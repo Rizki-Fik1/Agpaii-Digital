@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <g id="Group_29989" data-name="Group 29989" transform="translate(-1965 -14078)">
+    <rect id="Rectangle_4150" data-name="Rectangle 4150" width="60" height="60" transform="translate(1965 14078)" fill="none"/>
+    <g id="road" transform="translate(1974 14092.94)">
+      <path id="Path_25490" data-name="Path 25490" d="M42.32,44.091l9.675-41H67.283l9.675,41" transform="translate(-38.89 -0.001)" fill="#40c0f9"/>
+      <g id="Group_29275" data-name="Group 29275" transform="translate(0 3.093)">
+        <path id="Path_25491" data-name="Path 25491" d="M363.415,44.091l-11.591-41H350.31l9.675,41" transform="translate(-321.917 -3.094)" fill="#0cb4fe"/>
+        <path id="Path_25492" data-name="Path 25492" d="M0,44.091l11.591-41h1.514l-9.675,41" transform="translate(0 -3.094)" fill="#0cb4fe"/>
+      </g>
+      <g id="Group_29276" data-name="Group 29276" transform="translate(18.49 3.093)">
+        <path id="Path_25493" data-name="Path 25493" d="M244.721,6.141h-2.182l.094-3.048h1.995Z" transform="translate(-241.371 -3.093)" fill="#ddf1fb"/>
+        <path id="Path_25494" data-name="Path 25494" d="M242.516,65.5h-2.609l.165-5.351h2.279Z" transform="translate(-238.952 -55.523)" fill="#ddf1fb"/>
+        <path id="Path_25495" data-name="Path 25495" d="M239.929,157.095H236.82l.188-6.108h2.733Z" transform="translate(-236.116 -139)" fill="#ddf1fb"/>
+        <path id="Path_25496" data-name="Path 25496" d="M236.66,268.819h-3.742l.229-7.452h3.283Z" transform="translate(-232.53 -240.434)" fill="#ddf1fb"/>
+        <path id="Path_25497" data-name="Path 25497" d="M232.647,406.637h-4.518l.278-9.02h3.962Z" transform="translate(-228.129 -365.641)" fill="#ddf1fb"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,80 @@
+import { LinkIcon, MapPinIcon } from "@heroicons/react/16/solid";
+import moment from "moment";
+import Link from "next/link";
+
+export default function Event({ event }: { event: any }) {
+  return (
+    <div
+      key={i}
+      className="shadow relative bg-white border border-slate-300 rounded-md"
+    >
+      {/* Delete Button */}
+      {type == "me" && event.user_id === user.user_id && (
+        <div
+          onClick={() => {
+            setEventToDelete(event.id);
+            setmodalOpen(true);
+          }}
+          className="p-2 px-3 bg-red-600 text-white absolute right-0 top-0 text-sm rounded-bl-md cursor-pointer"
+        >
+          <TrashIcon className="size-5" />
+        </div>
+      )}
+      {/* End Delete Button */}
+      <div className="absolute pl-4 pr-5 py-2 rounded-tl-md top-0 left-0 rounded-br-lg bg-white flex items-center gap-3 border border-slate-200">
+        <img
+          src={process.env.NEXT_PUBLIC_STORAGE_URL + "/" + event?.author.avatar}
+          className="size-6 rounded-full object-cover object-center"
+          alt={event?.author.name + "Avatar"}
+        />
+        <h1 className="text-sm font-medium">{event?.author.name || "User"}</h1>
+      </div>
+      <div className="aspect-video">
+        <img
+          src={
+            event?.image !== null
+              ? process.env.NEXT_PUBLIC_STORAGE_URL + "/" + event.image
+              : "/img/agpaii_splash.svg"
+          }
+          className={clsx(
+            "size-full object-cover rounded-t-md",
+            event?.image == null ? "object-center" : "object-top"
+          )}
+          alt=""
+        />
+      </div>
+      <div className="px-4 py-4">
+        <Link href={`/event/${event.id}`}>
+          <h1 className="font-semibold">{event?.name}</h1>
+          <p className="text-slate-600 text-sm">
+            {moment(event?.start_at).locale("id").format("LLL")}
+          </p>
+        </Link>
+        <div className="flex flex-col pt-4 gap-y-3 *:!text-sm *:break-all *:items-start">
+          {event?.address !== "null" &&
+            event.address !== null &&
+            event?.address !== "Daring" && (
+              <div className="flex gap-3 pr-5 ">
+                <MapPinIcon className="fill-[#009788] size-6 min-w-6" />
+                <h1 className="mt-0.5">{event?.address}</h1>
+              </div>
+            )}
+          {event?.link !== null && (
+            <div className="flex gap-3">
+              <LinkIcon className="fill-[#009788]  size-6 min-w-6" />
+              <Link href={event?.link} className="text-blue-600">
+                {event?.link}
+              </Link>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <TvIcon className="size-6 fill-[#009788] min-w-6" />
+            {event?.type == "Daring" || event?.type == "online_event"
+              ? "Daring"
+              : "Luring"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

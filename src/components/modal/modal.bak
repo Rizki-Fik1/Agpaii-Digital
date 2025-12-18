@@ -1,0 +1,39 @@
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import clsx from "clsx";
+import { ReactNode, useEffect, useRef } from "react";
+
+export default function Modal({
+  children,
+  show,
+  onClose,
+  className,
+}: {
+  show: boolean;
+  className?: string;
+  children: ReactNode;
+  onClose: () => void;
+}) {
+  return show ? (
+    <>
+      <div
+        onClick={onClose}
+        className="fixed flex top-0 left-0 bottom-0 right-0 bg-[rgba(0,0,0,0.1)] z-[998]"
+      ></div>
+      <div
+        className={clsx(
+          "m-auto px-6 h-fit w-fit max-w-[480px] fixed top-0 left-0 right-0 bottom-0 z-[999] "
+        )}
+      >
+        <div className="pb-6 pt-8 px-6 gap-y-3 bg-white border border-slate-200 shadow rounded-md flex flex-col items-center text-center text-sm relative">
+          {/* XMarkIcon */}
+          <XMarkIcon
+            className="text-slate-400 size-6 absolute right-3 top-3 cursor-pointer"
+            onClick={onClose}
+          />
+          {/* EndXMark */}
+          {children}
+        </div>
+      </div>
+    </>
+  ) : null;
+}

@@ -1,0 +1,88 @@
+"use client";
+
+import TopBar from "@/components/nav/topbar";
+import API from "@/utils/api/config";
+import {
+  ArrowDownTrayIcon,
+  ArrowLeftIcon,
+  DocumentIcon,
+  FolderIcon,
+} from "@heroicons/react/20/solid";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+
+const downloadFile = async (content: any) => {
+  let url = process.env.NEXT_PUBLIC_STORAGE_URL + "/" + content.src;
+  let name = content.name;
+  await fetch(url, {
+    headers: new Headers({
+      Origin: location.origin,
+    }),
+    mode: "cors",
+  })
+    .then(async (res) => await res.blob())
+    .then((blob) => {
+      console.log(blob);
+      let url = URL.createObjectURL(blob);
+      forceDownload(url, name);
+    })
+    .catch((err) => console.log(err));
+};
+
+const forceDownload = (blob: any, filename: string) => {
+  let a = document.createElement("a");
+  a.download = filename;
+  a.href = blob;
+  a.click();
+  a.remove();
+};
+
+export default function CloudDocument() {
+  const { data: contents, isLoading } = useQuery({
+    queryKey: ["contents", 0],
+    queryFn: async () => {
+      const res = await API.get("/folder");
+      if (res.status == 200) return res.data;
+    },
+  });
+
+  return (
+    <div>
+      {!!isLoading ? null : (
+        <div className="flex flex-col justify-center w-full">
+          <div className="flex flex-col w-full ">
+            {contents.map((content: any, i: number) => {
+              return content.type == "folder" ? (
+                <Link
+                  key={i}
+                  href={`/cloud/${content.id}`}
+                  className="flex gap-3.5 items-center px-6 py-3 border-b border-b-slate-300"
+                >
+                  <FolderIcon className="size-7" />
+
+                  <h4 className="text-base text-center text-slate-600">
+                    {content.name}
+                  </h4>
+                </Link>
+              ) : (
+                <div
+                  key={i}
+                  className="flex gap-3.5 items-center px-6 py-3 border-b border-b-slate-300"
+                >
+                  <DocumentIcon className="size-7" />
+                  <h4 className="text-base text-center text-slate-600">
+                    {content.name}
+                  </h4>
+                  <ArrowDownTrayIcon
+                    onClick={() => downloadFile(content)}
+                    className="size-5 ms-auto"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

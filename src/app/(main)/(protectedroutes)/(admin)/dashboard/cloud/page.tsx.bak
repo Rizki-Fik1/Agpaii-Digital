@@ -1,0 +1,114 @@
+"use client";
+
+import { File, Folder } from "@/components/folders/folder";
+import Loader from "@/components/loader/loader";
+import Modal from "@/components/modal/modal";
+import API from "@/utils/api/config";
+import { useModal } from "@/utils/hooks/use_modal";
+import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+  DocumentIcon,
+  FolderIcon,
+} from "@heroicons/react/20/solid";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import clsx from "clsx";
+import { content } from "html2canvas/dist/types/css/property-descriptors/content";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+export default function CloudDocument() {
+  const router = useRouter();
+  const {
+    show: deleteModalShow,
+    toggle: toggleDeleteModal,
+    close: closeDeleteModal,
+  } = useModal();
+  const [selected, setSelected] = useState<any>();
+  const path = usePathname();
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["contents", 0],
+    queryFn: async () => {
+      const res = await API.get("/folder");
+      if (res.status == 200) return res.data;
+    },
+  });
+
+  const getDeletionUrl = (type: string) =>
+    type == "folder" ? "/folder" : "/cloud/file";
+
+  const { mutate: deleteContent, isPending: deletePending } = useMutation({
+    mutationFn: async () => {
+      const res = await API.delete(
+        `${getDeletionUrl(selected.type)}/${selected.id}`
+      );
+      if (res.status == 200) return res.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["contents", 0] });
+      closeDeleteModal();
+      toast.success(selected.type + " Berhasil dihapus");
+      setSelected(null);
+    },
+  });
+
+  return (
+    <>
+      <Modal show={deleteModalShow} onClose={closeDeleteModal}>
+        <img src="/img/trash.svg" className="size-44" alt="" />
+        <p>
+          Apakah anda yakin ingin menghapus <br /> {selected?.type} ini?
+        </p>
+        <div className="flex justify-center *:flex-grow pt-8 gap-3">
+          {deletePending ? (
+            <Loader className="size-8" />
+          ) : (
+            <>
+              <span
+                onClick={() => deleteContent()}
+                className="px-4 py-2 rounded-md cursor-default bg-[#009788] text-white"
+              >
+                Hapus {selected?.type}
+              </span>
+              <span
+                onClick={() => closeDeleteModal()}
+                className="px-4 py-2 rounded-md border border-slate-300 cursor-default"
+              >
+                Batal
+              </span>
+            </>
+          )}
+        </div>
+      </Modal>
+      {isLoading ? (
+        <div className="flex py-6 px-4 justify-center">
+          <Loader className="size-10" />
+        </div>
+      ) : data.length > 0 ? (
+        data.map((content: any, i: number) =>
+          content.type == "folder" ? (
+            <Folder
+              onDelete={toggleDeleteModal}
+              selected={content === selected}
+              content={content}
+              onClick={() => setSelected(content)}
+            />
+          ) : (
+            <File
+              onDelete={toggleDeleteModal}
+              selected={content === selected}
+              content={content}
+              onClick={() => setSelected(content)}
+            />
+          )
+        )
+      ) : (
+        <div className="flex py-6 px-4 justify-center text-sm text-slate-700">
+          <h1>Tidak ada folder / file</h1>
+        </div>
+      )}
+    </>
+  );
+}
