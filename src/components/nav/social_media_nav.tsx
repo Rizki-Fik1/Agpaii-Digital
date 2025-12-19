@@ -52,7 +52,7 @@ export default function SocialMediaNavbar() {
           <span className="text-xs">Pesan</span>
         </Link>
         <Link
-          href="/profile"
+          href={`/profile/${auth.id}`}
           className={`flex-1 flex flex-col items-center justify-center py-3 px-4 ${pathname.startsWith("/profile") ? "text-teal-700" : "text-slate-400"}`}
         >
           <UserIcon className="size-6 mb-0.5" />
