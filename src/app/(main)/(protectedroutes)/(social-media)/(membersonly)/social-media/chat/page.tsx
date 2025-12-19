@@ -240,7 +240,7 @@ export default function ChatIndex() {
 							: "Tidak ditemukan user yang cocok"}
 					</p>
 				) : (
-					<div className="space-y-3">
+					<div className="space-y-1">
 						{users.map((u) => {
 							// Temukan conversation untuk user ini (jika ada)
 							const conversation = conversations.find((c) =>
@@ -257,7 +257,7 @@ export default function ChatIndex() {
 							return (
 								<div
 									key={u.id}
-									className="bg-white rounded-lg p-4 border border-slate-200 flex items-center justify-between cursor-pointer hover:shadow-md transition"
+									className="bg-white py-3 px-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition border-b border-slate-100 last:border-b-0"
 									onMouseDown={(e) => {
 										if (conversationId) handlePressAndHold(e, conversationId);
 									}}
@@ -268,7 +268,7 @@ export default function ChatIndex() {
 									onTouchEnd={(e) => handleRelease(e, u, conversationId)}
 									onClick={() => handleClickUser(u)}>
 									
-									<div className="flex items-center gap-3 flex-1 min-w-0">
+									<div className="flex items-start gap-3 flex-1 min-w-0">
 										<img
 											src={
 												!u.avatar || u.avatar === "users/default.png"
@@ -280,22 +280,22 @@ export default function ChatIndex() {
 											alt="avatar"
 											className="w-12 h-12 rounded-full object-cover flex-shrink-0"
 										/>
-										<div className="flex-1 min-w-0">
-											<p className="font-semibold text-slate-800 text-sm truncate">
+										<div className="flex-1 min-w-0 pt-0.5">
+											<p className="font-semibold text-slate-900 text-base truncate">
 												{u.name || "Tidak ada Nama"}
 											</p>
-											<p className="text-slate-500 text-xs truncate">
+											<p className="text-slate-500 text-sm truncate">
 												{lastMessage || "Mulai percakapan"}
 											</p>
 										</div>
 									</div>
 
-									<div className="flex items-center gap-3 flex-shrink-0">
-										<span className="text-xs text-slate-500 whitespace-nowrap">
-											{conversation?.lastMessage ? "" : ""}
+									<div className="flex flex-col items-end gap-2 flex-shrink-0 ml-2">
+										<span className="text-xs text-slate-400 whitespace-nowrap">
+											{conversation?.lastMessageTime ? new Date(conversation.lastMessageTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ""}
 										</span>
 										{unreadCount > 0 && (
-											<span className="bg-teal-700 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+											<span className="bg-teal-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none">
 												{unreadCount}
 											</span>
 										)}

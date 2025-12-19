@@ -1,101 +1,29 @@
 "use client";
 
-import FormControl from "@/components/form/form_control";
 import Loader from "@/components/loader/loader";
 import API from "@/utils/api/config";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { ChevronLeftIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function Register() {
-	const formList = [
-		{
-			label: "Nama Lengkap",
-			name: "name",
-			type: "input",
-			inputType: "text",
-			validate: {
-				required: true,
-			},
-		},
-		{
-			label: "Email",
-			name: "email",
-			type: "input",
-			inputType: "text",
-			validate: {
-				required: true,
-			},
-		},
-		{
-			label: "Nomor HP",
-			name: "no_hp",
-			type: "input",
-			inputType: "number",
-			validate: {
-				required: true,
-			},
-		},
-		{
-			label: "Nomor NIK",
-			name: "nik",
-			type: "input",
-			inputType: "number",
-			validate: {
-				required: true,
-			},
-		},
-		{
-			label: "Password",
-			name: "password",
-			type: "input",
-			inputType: "password",
-			validate: {
-				required: true,
-			},
-		},
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+	const [selectedRole, setSelectedRole] = useState<{ name: string; value: number } | null>(null);
 
-		{
-			label: "Konfirmasi Password",
-			name: "password_confirmation",
-			type: "input",
-			inputType: "password",
-			validate: {
-				required: true,
-			},
-		},
-		{
-			label: "Daftar Sebagai",
-			name: "role_id",
-			type: "select",
-			options: [
-				{
-					name: "Guru PAI",
-					value: 2,
-				},
-				{
-					name: "Kepala Sekolah & Guru PAI",
-					value: 11,
-				},
-				{
-					name: "Pengawas PAI",
-					value: 7,
-				},
-				{
-					name: "Anggota Luar Biasa",
-					value: 9,
-				},
-				{
-					name: "Anggota Kehormatan",
-					value: 10,
-				},
-			],
-		},
+	const roleOptions = [
+		{ name: "Guru PAI", value: 2 },
+		{ name: "Kepala Sekolah & Guru PAI", value: 11 },
+		{ name: "Pengawas PAI", value: 7 },
+		{ name: "Anggota Luar Biasa", value: 9 },
+		{ name: "Anggota Kehormatan", value: 10 },
 	];
 
 	const userSchema = z
@@ -151,79 +79,244 @@ export default function Register() {
 		resolver: zodResolver(userSchema),
 	});
 	return (
-		<form
-			onSubmit={handleSubmit(createAccount as any)}
-			className="pt-16 px-[5%] sm:px-8">
-            {/* === BUTTON BACK === */}
-            <button
-              type="button"
-              onClick={() => router.push("/auth/login")}
-              className="absolute top-5 left-5 p-2 rounded-full bg-[#009788]"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="white"
-                className="size-5"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-			<div className="flex flex-col items-center mb-16 text-center">
-              <img
-                src="/svg/agpaii2.svg"
-                className="size-20"
-                alt="logo"
-              />
-              <h1 className="text-2xl -mt-2 font-semibold text-[#009788]">
-                Daftar Akun
-              </h1>
-              <p className="text-slate-500">
-                Daftarkan akun anda untuk mengakses fitur AGPAII Digital!
-              </p>
-            </div>
-
-			<div className="flex flex-col gap-3">
-				{formList.map((field, i) => (
-					<FormControl
-						className="rounded-md overflow-hidden appearance-none"
-						options={field?.options}
-						key={i}
-						name={field.name}
-						register={register}
-						inputType={field?.inputType as any}
-						placeholder={field.label}
-						type={field.type}
-						error={errors[field.name as keyof FormFields]}
-					/>
-				))}
-				{errors && errors.root && (
-					<small className="text-sm text-red-400">{errors.root.message}</small>
-				)}
-			</div>
-			{isPending ? (
-				<div className="flex justify-center mt-24">
-					<Loader className="size-8" />
-				</div>
-			) : (
-				<button
-					type="submit"
-					className=" px-5 py-2.5 bg-[#009788] w-full rounded-md text-white mt-12">
-					{"Register"}
+		<div className="min-h-screen bg-white flex flex-col">
+			{/* Header */}
+			<div className="flex items-center gap-4 px-6 py-6">
+				<button onClick={() => router.back()} className="p-1">
+					<ChevronLeftIcon className="w-6 h-6 text-gray-700" />
 				</button>
-			)}
-			<p className="text-sm text-slate-500 text-center mt-2">
+				<h1 className="text-xl font-medium text-gray-700">Daftar</h1>
+			</div>
+
+			{/* Form */}
+			<form onSubmit={handleSubmit(createAccount as any)} className="flex-1 flex flex-col px-6 pt-4">
+				<div className="space-y-4">
+					{/* Nama Lengkap */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Nama Lengkap
+						</label>
+						<input
+							type="text"
+							placeholder="Ardianita"
+							{...register("name")}
+							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+						/>
+						{errors.name && (
+							<p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+						)}
+					</div>
+
+					{/* Nomor HP */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Nomor HP
+						</label>
+						<input
+							type="tel"
+							placeholder="Minimal 12 karakter"
+							{...register("no_hp")}
+							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+						/>
+						{errors.no_hp && (
+							<p className="text-red-500 text-sm mt-1">{errors.no_hp.message}</p>
+						)}
+					</div>
+
+					{/* Nomor NIK */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Nomor NIK
+						</label>
+						<input
+							type="text"
+							placeholder="Minimal 16 karakter"
+							{...register("nik")}
+							maxLength={16}
+							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+						/>
+						{errors.nik && (
+							<p className="text-red-500 text-sm mt-1">{errors.nik.message}</p>
+						)}
+					</div>
+
+					{/* Alamat Email */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Alamat Email
+						</label>
+						<input
+							type="email"
+							placeholder="Ardianita@example.com"
+							{...register("email")}
+							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+						/>
+						{errors.email && (
+							<p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+						)}
+					</div>
+
+					{/* Tetapkan kata sandi Anda */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Tetapkan kata sandi Anda
+						</label>
+						<div className="relative">
+							<input
+								type={showPassword ? "text" : "password"}
+								placeholder="Minimal 8 karakter"
+								{...register("password")}
+								className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute right-4 top-1/2 -translate-y-1/2"
+							>
+								{showPassword ? (
+									<EyeSlashIcon className="w-5 h-5 text-gray-400" />
+								) : (
+									<EyeIcon className="w-5 h-5 text-gray-400" />
+								)}
+							</button>
+						</div>
+						{errors.password && (
+							<p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+						)}
+					</div>
+
+					{/* Konfirmasi kata sandi Anda */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Konfirmasi kata sandi Anda
+						</label>
+						<div className="relative">
+							<input
+								type={showConfirmPassword ? "text" : "password"}
+								placeholder="Minimal 8 karakter"
+								{...register("password_confirmation")}
+								className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							/>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+								className="absolute right-4 top-1/2 -translate-y-1/2"
+							>
+								{showConfirmPassword ? (
+									<EyeSlashIcon className="w-5 h-5 text-gray-400" />
+								) : (
+									<EyeIcon className="w-5 h-5 text-gray-400" />
+								)}
+							</button>
+						</div>
+						{errors.password_confirmation && (
+							<p className="text-red-500 text-sm mt-1">{errors.password_confirmation.message}</p>
+						)}
+					</div>
+
+					{/* Daftar Sebagai - Custom Dropdown */}
+					<div>
+						<label className="block text-gray-700 font-medium mb-2">
+							Daftar Sebagai
+						</label>
+						<div className="relative">
+							{/* Hidden input for form validation */}
+							<input
+								type="hidden"
+								{...register("role_id")}
+								value={selectedRole?.value || ""}
+							/>
+							
+							{/* Custom Dropdown Button */}
+							<button
+								type="button"
+								onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+								className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] text-left bg-white flex items-center justify-between"
+							>
+								<span className={selectedRole ? "text-gray-700" : "text-gray-400"}>
+									{selectedRole ? selectedRole.name : "Pilih Role"}
+								</span>
+								<svg
+									className={`w-5 h-5 text-[#00AF70] transition-transform ${isRoleDropdownOpen ? "rotate-180" : ""}`}
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+								</svg>
+							</button>
+
+							{/* Dropdown Menu */}
+							{isRoleDropdownOpen && (
+								<div 
+									className="absolute z-50 w-full bottom-full mb-2 bg-white border-2 border-[#00AF70] rounded-lg shadow-lg max-h-60 overflow-y-auto"
+									style={{
+										scrollbarWidth: "thin",
+										scrollbarColor: "#00AF70 #f1f1f1",
+									}}
+								>
+									<style jsx>{`
+										div::-webkit-scrollbar {
+											width: 8px;
+										}
+										div::-webkit-scrollbar-track {
+											background: #f1f1f1;
+											border-radius: 10px;
+										}
+										div::-webkit-scrollbar-thumb {
+											background: #00AF70;
+											border-radius: 10px;
+										}
+										div::-webkit-scrollbar-thumb:hover {
+											background: #008f5f;
+										}
+									`}</style>
+									{roleOptions.map((option) => (
+										<button
+											key={option.value}
+											type="button"
+											onClick={() => {
+												setSelectedRole(option);
+												setIsRoleDropdownOpen(false);
+											}}
+											className={`w-full px-4 py-3 text-left hover:bg-[#00AF70] hover:bg-opacity-10 transition ${
+												selectedRole?.value === option.value ? "bg-[#00AF70] bg-opacity-10 text-[#00AF70] font-medium" : "text-gray-700"
+											}`}
+										>
+											{option.name}
+										</button>
+									))}
+								</div>
+							)}
+						</div>
+						{errors.role_id && (
+							<p className="text-red-500 text-sm mt-1">{errors.role_id.message}</p>
+						)}
+					</div>
+				</div>
+
+				{/* Bottom Button */}
+				<div className="mt-8 pb-8">
+					<button
+						type="submit"
+						disabled={isPending}
+						className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition disabled:opacity-50"
+					>
+						{isPending ? "Loading..." : "Bergabung Sekarang"}
+					</button>
+
+				<p className="text-md text-slate-500 text-center mt-2">
 				Sudah mempunyai akun?{" "}
 				<span>
 					<Link
 						className="text-blue-500"
-						href={"/auth/login"}>
+						href={"/getting-started"}>
 						Login
 					</Link>
 				</span>{" "}
 			</p>
-		</form>
+				</div>
+			</form>
+		</div>
 	);
 }

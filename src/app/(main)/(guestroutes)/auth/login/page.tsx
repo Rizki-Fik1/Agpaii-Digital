@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import Loader from "@/components/loader/loader";
 import { useState } from "react";
+import { IoLockClosed, IoMailOutline } from "react-icons/io5";
 export default function LoginPage() {
   interface iFormField {
     loginType: "email" | "nik";
@@ -64,12 +65,12 @@ export default function LoginPage() {
   };
   return (
     <div className="h-screen px-[5%] sm:px-8 py-8 flex flex-col">
-      <div className="flex flex-col sm:px-2 mt-16 mb-16 px-1 items-center text-center">
+      <div className="flex flex-col sm:px-2 mb-16 px-1 items-center text-center">
         <img src="/svg/agpaii2.svg" className="size-20" alt="agpaii-logo" />
         <p className="font-semibold capitalize text-3xl text-[#009788] sm:text-4xl -mt-2">
           Login
         </p>
-        <p className="text-slate-500 mt-1">Login menggunakan akun anda</p>
+        <p className="text-slate-500 mt-2">Silahkan login menggunakan akun anda</p>
       </div>
       <form
         onSubmit={handleSubmit(submit as any)}
@@ -123,7 +124,7 @@ export default function LoginPage() {
             required
           />
         )}
-        <div className="flex flex-col *:py-2 *:text-base *:px-5 *:rounded-2xl mt-0 text-center text-white">
+        <div className="flex flex-col *:py-2 *:text-base *:px-5 *:rounded-full mt-0 text-center text-white">
           {loading ? (
             <div className="flex justify-center">
               <Loader className="size-8" />
@@ -143,21 +144,21 @@ export default function LoginPage() {
               Daftar Sekarang
             </Link>
           </p>
-          <div className="mt-4 pt-4 border-t border-slate-200">
+          <div className="">
             <div className="flex flex-col gap-2 justify-center items-center text-sm text-slate-600">
-              <div className="flex items-center gap-1">
-                <span className="text-sm">🔒</span>
+              <div className="flex items-center gap-1 pt-4">
+                <IoLockClosed className="text-sm" />
                 <Link className="text-blue-500 hover:underline" href={"/auth/password-reset"}>
                   Lupa Password? Reset Sekarang
                 </Link>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-sm">📧</span>
+                <IoMailOutline className="text-sm" />
                 <Link className="text-blue-500 hover:underline" href={"/auth/search-email"}>
                   Lupa Email? Cari Sekarang
                 </Link>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pt-5">
                 <a
                   href="https://api.whatsapp.com/send/?phone=628567854448&text=Assalamualaikum%20Admin%20AGPAII%2C%20saya%20ingin%20bertanya%20%3A&type=phone_number&app_absent=0"
                   target="_blank"

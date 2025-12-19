@@ -1,25 +1,27 @@
 "use client";
 
-import TopBar from "@/components/nav/topbar";
 import API from "@/utils/api/config";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Post as PostType } from "@/types/post/post";
 import { useInView } from "react-intersection-observer";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/utils/context/auth_context";
 import Loader from "@/components/loader/loader";
 import { getImage } from "@/utils/function/function";
+import { ArrowLeftIcon, HomeIcon, HeartIcon as HeartOutlineIcon, ChatBubbleLeftIcon, UserIcon, PlusIcon, PencilIcon, BuildingLibraryIcon, MapPinIcon } from "@heroicons/react/24/outline";
 
 function trimText(text: string, length: number) {
 	return text.length > length ? text.slice(0, length) + "..." : text;
 }
 
 export default function Profile() {
+	const router = useRouter();
 	const { auth: auth } = useAuth();
 	const { id } = useParams();
 	const [postCount, setPostCount] = useState(0);
+	const [activeTab, setActiveTab] = useState<"foto" | "teks">("foto");
 	const { ref, inView } = useInView();
 
 	/* ---------------- FETCH PROFILE ---------------- */
@@ -86,127 +88,161 @@ export default function Profile() {
 	}
 
 	return (
-		<div className="flex flex-col py-20">
-			<TopBar withBackButton>
-				<div className="flex items-center gap-3">
-					<h1>Profile</h1>
-				</div>
-			</TopBar>
-
-			<div className="pt-4 relative">
+		<div className="pb-28 bg-white min-h-screen">
+			{/* FIXED HEADER */}
+			<div className="fixed top-0 left-0 right-0 z-[99] max-w-[480px] mx-auto bg-teal-700 text-white px-4 py-4 flex items-center">
+				<button
+					onClick={() => router.back()}
+					className="p-1"
+				>
+					<ArrowLeftIcon className="size-6 text-white" />
+				</button>
+				<h1 className="font-semibold text-lg ml-3 flex-grow">Profil</h1>
 				{auth.id === profile?.id && (
 					<Link
-						className="absolute right-10 top-8 text-sm bg-[#009788] px-4 py-1.5 rounded-xl text-white"
-						href={"/profile/edit/social-media"}>
-						Edit Profile
+						className="text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-white transition flex items-center gap-1"
+						href={"/profile/edit/social-media"}
+					>
+						<PencilIcon className="size-4" />
+						Edit Profil
 					</Link>
 				)}
+			</div>
 
-				<div className="px-4 sm:px-5">
+			<div className="pt-16">
+				{/* COVER IMAGE */}
+				<div className="relative">
 					<img
 						src={
 							(profile?.banner !== null && getImage(profile.banner.src)) ||
 							"/img/post.png"
 						}
-						alt=""
-						className="rounded-2xl w-full h-[13rem] object-cover"
+						alt="banner"
+						className="w-full h-40 object-cover"
 					/>
 
-					<div className="flex items-center mx-auto -mt-12 justify-center px-3 sm:px-5">
-						<img
-							src={
-								(profile?.avatar !== null && getImage(profile.avatar)) ||
-								"https://avatar.iran.liara.run/public"
-							}
-							alt=""
-							className=" size-[5.5rem] rounded-full border-[6px] border-white"
-						/>
-
-						<div className="flex ml-4 gap-2 ms-auto">
-							<div className="flex flex-col items-center border bg-white border-slate-200 p-1.5  rounded-lg shadow-md">
-								<span className="font-semibold text-sm">{postCount}</span>
-								<h1 className="text-xs text-slate-600">Postingan</h1>
-							</div>
-							<div className="flex flex-col items-center border bg-white border-slate-200 p-1.5  rounded-lg shadow-md">
-								<span className="font-semibold text-sm ">
-									{profile?.created_at.split("-")[0]}
-								</span>
-								<h1 className="text-xs text-slate-600">Bergabung</h1>
-							</div>
-							<div className="flex flex-col items-center border bg-white border-slate-200 p-1.5 rounded-lg shadow-md px-3">
-								<span className="font-semibold text-sm ">0</span>
-								<h1 className="text-xs text-slate-600">Modul</h1>
-							</div>
-						</div>
-					</div>
-
-					<div className="pt-4 pb-8 sm:pl-1">
-						<h1 className="font-medium">{profile.name}</h1>
-						<div className="text-slate-500">
-							<h3 className="text-sm flex gap-2">
-								{profile?.kta_id !== null && (
-									<>
-										<p>NO KTA</p>
-										<span className="text-[#009788]">{profile?.kta_id}</span>
-									</>
-								)}
-							</h3>
-							
-                            {/* Sekolah */}
-                            {profile?.profile.school_place && (
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 text-gray-400">🏫</span>
-                                <span>{profile.profile.school_place}</span>
-                              </div>
-                            )}
-
-                            {/* Alamat */}
-                            {profile?.profile.home_address && (
-                              <div className="flex items-center mb-2 gap-2">
-                                <span className="w-5 h-5 text-gray-400">📍</span>
-                                <span>{profile.profile.home_address}</span>
-                              </div>
-                            )}
-
-                          <h3 className="font-medium text-sm text-gray-700 mb-2">Bio</h3>
-							{profile?.profile.long_bio ? (
-								<h4 className="text-sm mt-2">
-									{profile?.profile.long_bio}
-								</h4>
-							) : (
-								"No bio yet."
-							)}
+					{/* PROFILE PICTURE - OVERLAPPING */}
+					<div className="flex justify-center -mt-16 relative z-10 px-4">
+						<div className="border-4 border-white rounded-full overflow-hidden bg-white">
+							<img
+								src={
+									(profile?.avatar !== null && getImage(profile.avatar)) ||
+									"https://avatar.iran.liara.run/public"
+								}
+								alt="avatar"
+								className="w-32 h-32 object-cover"
+							/>
 						</div>
 					</div>
 				</div>
 
-				{/* ---------------- POSTS GRID ---------------- */}
-				<div className="border-t border-t-slate-300 flex flex-wrap">
+				{/* USER INFO SECTION */}
+				<div className="px-4 pt-6 pb-4">
+					{/* NAME */}
+					<h1 className="font-bold text-xl text-slate-900 text-center">{profile.name}</h1>
+
+					{/* KTA & LOCATION */}
+					<div className="text-center text-sm text-slate-600 mt-1">
+						{profile?.kta_id && (
+							<p className="font-medium">No. KTA <span className="font-semibold text-[#009788]">{profile?.kta_id}</span></p>
+						)}
+						{profile?.profile.school_place && (
+							<div className="flex items-center justify-center gap-1 mt-1">
+								<BuildingLibraryIcon className="size-4 text-slate-600" />
+								<span>{profile.profile.school_place}</span>
+							</div>
+						)}
+						{profile?.profile.home_address && (
+							<div className="flex items-center justify-center gap-1 mt-1">
+								<MapPinIcon className="size-4 text-slate-600" />
+								<span>{profile.profile.home_address}</span>
+							</div>
+						)}
+					</div>
+
+					{/* STATS SECTION */}
+					<div className="flex justify-around mt-6 py-4 border-t border-b border-slate-200">
+						<div className="text-center">
+							<p className="font-bold text-lg text-slate-900">{postCount}</p>
+							<p className="text-xs text-slate-500">Postingan</p>
+						</div>
+						<div className="text-center">
+							<p className="font-bold text-lg text-slate-900">0</p>
+							<p className="text-xs text-slate-500">Modul</p>
+						</div>
+						<div className="text-center">
+							<p className="font-bold text-lg text-slate-900">
+								{profile?.created_at.split("-")[0]}
+							</p>
+							<p className="text-xs text-slate-500">Bergabung</p>
+						</div>
+					</div>
+
+					{/* BIO SECTION */}
+					{profile?.profile.long_bio && (
+						<div className="mt-4">
+							<h3 className="font-semibold text-slate-900 text-sm mb-2">Bio</h3>
+							<p className="text-sm text-slate-600 leading-relaxed">
+								{profile?.profile.long_bio}
+							</p>
+						</div>
+					)}
+				</div>
+
+				{/* TABS */}
+				<div className="flex border-b border-slate-200 px-4">
+					<button
+						onClick={() => setActiveTab("foto")}
+						className={`flex-1 py-3 font-medium text-sm border-b-2 transition ${
+							activeTab === "foto"
+								? "border-teal-600 text-teal-600"
+								: "border-transparent text-slate-600"
+						}`}
+					>
+						Postingan Foto
+					</button>
+					<button
+						onClick={() => setActiveTab("teks")}
+						className={`flex-1 py-3 font-medium text-sm border-b-2 transition ${
+							activeTab === "teks"
+								? "border-teal-600 text-teal-600"
+								: "border-transparent text-slate-600"
+						}`}
+					>
+						Postingan Teks
+					</button>
+				</div>
+
+				{/* POSTS GRID */}
+				<div className="grid grid-cols-3 gap-1">
 					{isPending || isLoading ? (
-						<div className="flex mt-16 justify-center w-full">
+						<div className="col-span-3 flex justify-center py-16">
 							<Loader className="size-8" />
 						</div>
 					) : (
 						posts?.pages.map((page: any, index) => (
-							<div className="flex flex-wrap flex-grow" key={index}>
+							<div key={index} className="contents">
 								{page?.data.length > 0 ? (
 									page?.data.map((post: any, i: number) => {
 										const youtubeId = extractYoutubeId(post.youtube_url);
 										const hasImage = post.images && post.images.length > 0;
 										const hasYoutube = !hasImage && youtubeId;
-										const hasDocument =
-											!hasImage && !hasYoutube && post.document;
+										const hasDocument = !hasImage && !hasYoutube && post.document;
+
+										// Filter berdasarkan tab
+										if (activeTab === "foto" && !hasImage) return null;
+										if (activeTab === "teks" && (hasImage || hasYoutube || hasDocument)) return null;
 
 										return (
 											<Link
 												key={i}
 												href={"/social-media/post/" + post.id}
-												className="aspect-square w-1/3 border-[0.1px] border-neutral-300 relative bg-black"
+												className="aspect-square relative bg-slate-200 overflow-hidden hover:opacity-80 transition"
 											>
 												{/* IMAGE */}
 												{hasImage && (
 													<img
-														className="size-full object-cover"
+														className="w-full h-full object-cover"
 														src={getImage(post.images[0].src)}
 													/>
 												)}
@@ -216,7 +252,7 @@ export default function Profile() {
 													<div className="w-full h-full relative">
 														<img
 															src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
-															className="size-full object-cover opacity-80"
+															className="w-full h-full object-cover opacity-80"
 														/>
 
 														{/* PLAY ICON */}
@@ -242,15 +278,12 @@ export default function Profile() {
 
 												{/* DOCUMENT BADGE */}
 												{hasDocument && (
-													<div className="w-full h-full flex items-center justify-center bg-slate-800 text-white text-xs p-2 text-center">
-														<div className="flex flex-col items-center gap-2">
-															<span className="text-2xl">📄</span>
-															<span className="text-[10px] truncate px-2">
+													<div className="w-full h-full flex items-center justify-center bg-slate-600 text-white text-xs p-2 text-center">
+														<div className="flex flex-col items-center gap-1">
+															<span className="text-lg">📄</span>
+															<span className="text-[9px] truncate px-1 line-clamp-2">
 																{post.document.split("/").pop()}
 															</span>
-															<div className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">
-																Dokumen
-															</div>
 														</div>
 													</div>
 												)}
@@ -259,26 +292,71 @@ export default function Profile() {
 												{!hasImage && !hasYoutube && !hasDocument && (
 													<div
 														style={{ backgroundImage: "url(/img/post.png)" }}
-														className="bg-cover bg-center size-full flex px-6 py-6 text-center"
+														className="bg-cover bg-center w-full h-full flex px-4 py-4 text-center"
 													>
-														<p className="text-xs text-white m-auto break-all">
-															{trimText(post.body, 50)}...
+														<p className="text-xs text-white m-auto break-words line-clamp-3">
+															{trimText(post.body, 50)}
 														</p>
 													</div>
 												)}
 											</Link>
 										);
 									})
-								) : (
-									<div className="p-4 w-full text-center pt-8 text-slate-600">
-										Tidak Ada Postingan
-									</div>
-								)}
+								) : null}
 							</div>
 						))
 					)}
-					<div ref={ref}></div>
 				</div>
+
+				{/* EMPTY STATE */}
+				{!isPending && !isLoading && posts?.pages[0]?.data.length === 0 && (
+					<div className="p-4 w-full text-center pt-16 text-slate-600">
+						Tidak Ada Postingan
+					</div>
+				)}
+
+				<div ref={ref}></div>
+			</div>
+
+			{/* BOTTOM NAVIGATION BAR */}
+			<div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white px-0 py-0 flex justify-around items-center border-t border-slate-200">
+				<Link
+					href="/social-media"
+					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
+				>
+					<HomeIcon className="size-6 mb-0.5" />
+					<span className="text-xs">Beranda</span>
+				</Link>
+				<Link
+					href="/social-media/liked"
+					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
+				>
+					<HeartOutlineIcon className="size-6 mb-0.5" />
+					<span className="text-xs">Disukai</span>
+				</Link>
+				<Link
+					href="/social-media/post/new"
+					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
+				>
+					<div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-700 mb-0.5">
+						<PlusIcon className="size-6 text-white" />
+					</div>
+					<span className="text-xs">Posting</span>
+				</Link>
+				<Link
+					href="/social-media/chat"
+					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
+				>
+					<ChatBubbleLeftIcon className="size-6 mb-0.5" />
+					<span className="text-xs">Pesan</span>
+				</Link>
+				<Link
+					href="/profile"
+					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-teal-700"
+				>
+					<UserIcon className="size-6 mb-0.5" />
+					<span className="text-xs">Profil</span>
+				</Link>
 			</div>
 		</div>
 	);

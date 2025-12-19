@@ -54,50 +54,58 @@ export default function PasswordReset() {
   }, [params]);
 
   return (
-    <form
-      method="POST"
-      onSubmit={(e: any) => {
-        e.preventDefault();
-        searchUser();
-      }}
-    >
-      <p className="px-4 sm:px-12 text-sm -mt-3 text-center text-slate-500">
-        Masukkan alamat email anda untuk menerima kode OTP
-      </p>
-      <div className="sm:px-8 w-full mt-6 flex flex-col items-center">
-        <FormControl
-          className="rounded-md mx-2 overflow-hidden"
-          onChange={(e) => setEmail(e.target.value)}
-          name={""}
-          value={email}
-          type="input"
-          placeholder=""
-          inputType={"text"}
-        />
-        {isPending ? (
-          <div className="justify-center flex pt-12">
-            <Loader className="size-8" />
-          </div>
-        ) : (
-          <>
-            <button
-              type="submit"
-              className="px-6 py-2 text-sm bg-[#009788] text-white rounded-md w-fit mt-8"
-            >
-              Kirim OTP
-            </button>
-            <p className="text-sm mt-3">
-              Lupa email?{" "}
-              <Link
-                href={"/auth/password-reset/search-user"}
-                className="text-[#009788]"
+    <div className="bg-white px-6 pt-4">
+      <form
+        method="POST"
+        onSubmit={(e: any) => {
+          e.preventDefault();
+          searchUser();
+        }}
+      >
+        <p className="text-center text-slate-600 mb-6">
+          Masukkan alamat email anda untuk menerima kode OTP
+        </p>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">
+            Alamat Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Masukkan email Anda"
+            className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+            required
+          />
+        </div>
+
+        <div className="space-y-4">
+          {isPending ? (
+            <div className="flex justify-center py-4">
+              <Loader className="size-8" />
+            </div>
+          ) : (
+            <>
+              <button
+                type="submit"
+                className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition"
               >
-                Klik Disini
-              </Link>
-            </p>
-          </>
-        )}
-      </div>
-    </form>
+                Kirim OTP
+              </button>
+              <p className="text-sm text-center text-slate-600">
+                Lupa email?{" "}
+                <Link
+                  href={"/auth/password-reset/search-user"}
+                  className="text-[#00AF70] font-medium"
+                >
+                  Klik Disini
+                </Link>
+              </p>
+            </>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }
