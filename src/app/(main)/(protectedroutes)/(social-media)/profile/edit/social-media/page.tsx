@@ -1,268 +1,434 @@
 "use client";
-import { Post as PostType } from "@/types/post/post";
+import Loader from "@/components/loader/loader";
+import TopBar from "@/components/nav/topbar";
 import API from "@/utils/api/config";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import "swiper/css";
-import "swiper/css/pagination";
-import Post from "@/components/post/post";
-import { useInView } from "react-intersection-observer";
 import { useAuth } from "@/utils/context/auth_context";
-import { MagnifyingGlassIcon, ChatBubbleLeftIcon, HomeIcon, HeartIcon as HeartOutlineIcon, UserIcon, BellIcon } from "@heroicons/react/24/outline";
-import { PlusIcon } from "@heroicons/react/24/solid";
+import { CameraIcon } from "@heroicons/react/24/solid";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getImage } from "@/utils/function/function";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import Cropper from "react-easy-crop";
+import Modal from "@/components/modal/modal";
+import { Area } from "react-easy-crop";
 
-export default function SocialMedia() {
-  const { ref, inView } = useInView();
-  const { auth: user } = useAuth();
+const getImage = (url: string) =>
+  `${process.env.NEXT_PUBLIC_STORAGE_URL}/${url}`;
+
+function createImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
+    image.crossOrigin = "anonymous";
+    image.src = url;
+  });
+}
+
+async function generateCroppedImg(imageSrc: string, pixelCrop: Area) {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return new Promise<Blob>((resolve) => {
+    canvas.toBlob((blob) => resolve(blob!), "image/jpeg", 1);
+  });
+}
+
+
+export default function SocialMediaEditPage() {
+  const { auth } = useAuth();
+  const queryClient = useQueryClient();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("beranda");
+  const [data, setData] = useState<{
+    avatar: File | string | null;
+    banner: File | string | null;
+    long_bio: string | null;
+  }>({
+    avatar: null,
+    banner: null,
+    long_bio: null,
+  });
 
-  // State untuk search dan modal
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  // searchQuery akan dipakai sebagai parameter query
-  const [searchQuery, setSearchQuery] = useState("");
-  // State untuk loading saat pencarian
-  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  // Avatar crop states
+  const [showAvatarCrop, setShowAvatarCrop] = useState(false);
+  const [tempAvatarFile, setTempAvatarFile] = useState<File | null>(null);
+  const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0 });
+  const [avatarZoom, setAvatarZoom] = useState(1);
+  const [croppedAreaPixelsAvatar, setCroppedAreaPixelsAvatar] = useState<Area | null>(null);
 
-  // Fungsi untuk menghandle submit search
-  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Set loading sebelum refetch data
-    setIsSearchLoading(true);
-    // Update query untuk refetch data
-    setSearchQuery(searchInput);
-  };
+  // Banner crop states
+  const [showBannerCrop, setShowBannerCrop] = useState(false);
+  const [tempBannerFile, setTempBannerFile] = useState<File | null>(null);
+  const [bannerCrop, setBannerCrop] = useState({ x: 0, y: 0 });
+  const [bannerZoom, setBannerZoom] = useState(1);
+  const [croppedAreaPixelsBanner, setCroppedAreaPixelsBanner] = useState<Area | null>(null);
 
-  const fetchPosts = async ({ pageParam }: { pageParam: number }) => {
-    const searchParam = searchQuery
-      ? `&search=${encodeURIComponent(searchQuery)}`
-      : "";
-    const res = await API.get(`post?page=${pageParam}${searchParam}`);
-    if (res.status === 200) {
-      return {
-        currentPage: pageParam,
-        data: res.data.data as PostType[],
-        nextPage:
-          res.data.next_page_url !== null
-            ? parseInt(res.data.next_page_url.split("=")[1])
-            : undefined,
-      };
-    }
-  };
-
-  const { data, isLoading, error, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery({
-      queryKey: ["posts", searchQuery],
-      queryFn: fetchPosts,
-      initialPageParam: 1,
-      getNextPageParam: (lastPage) => lastPage?.nextPage,
+  useEffect(() => {
+    console.log(auth);
+    setData({
+      avatar: auth.avatar ?? null,
+      banner: !!auth.banner ? auth.banner.src : null,
+      long_bio: auth.profile.long_bio,
     });
+  }, [auth]);
 
-  useEffect(() => {
-    if (inView && !isFetchingNextPage) {
-      fetchNextPage();
+  const getUserAvatar = (avatar: any) => {
+    return typeof avatar == "string"
+      ? getImage(avatar)
+      : URL.createObjectURL(avatar as any);
+  };
+
+  const getUserBanner = (banner: any) =>
+    typeof banner === "string" ? getImage(banner) : URL.createObjectURL(banner);
+
+  const handleAvatarCropComplete = async () => {
+    if (!tempAvatarFile || !croppedAreaPixelsAvatar) return;
+
+    try {
+      const croppedImage = await generateCroppedImg(
+        URL.createObjectURL(tempAvatarFile),
+        croppedAreaPixelsAvatar
+      );
+      const croppedFile = new File([croppedImage], "cropped-avatar.jpg", { type: "image/jpeg" });
+      setData((prev) => ({ ...prev, avatar: croppedFile }));
+      toast.success("Avatar berhasil di-crop");
+    } catch (error) {
+      console.error("Error cropping avatar:", error);
+      toast.error("Gagal crop avatar");
+    } finally {
+      setShowAvatarCrop(false);
+      setTempAvatarFile(null);
+      setCroppedAreaPixelsAvatar(null);
     }
-  }, [inView, isFetchingNextPage, fetchNextPage]);
+  };
 
-  // Monitor loading dari react-query untuk menutup modal saat pencarian selesai
-  useEffect(() => {
-    if (isSearchLoading && !isLoading) {
-      setIsSearchLoading(false);
-      setIsSearchOpen(false);
+  const handleBannerCropComplete = async () => {
+    if (!tempBannerFile || !croppedAreaPixelsBanner) return;
+
+    try {
+      const croppedImage = await generateCroppedImg(
+        URL.createObjectURL(tempBannerFile),
+        croppedAreaPixelsBanner
+      );
+      const croppedFile = new File([croppedImage], "cropped-banner.jpg", { type: "image/jpeg" });
+      setData((prev) => ({ ...prev, banner: croppedFile }));
+      toast.success("Banner berhasil di-crop");
+    } catch (error) {
+      console.error("Error cropping banner:", error);
+      toast.error("Gagal crop banner");
+    } finally {
+      setShowBannerCrop(false);
+      setTempBannerFile(null);
+      setCroppedAreaPixelsBanner(null);
     }
-  }, [isLoading, isSearchLoading]);
+  };
 
-  if (error) return <div>{error.message}</div>;
+  const updateBio = async (data: any) => {
+    try {
+      const res = await API.put(`/user/${auth.id}/profile`, { long_bio: data });
+      if (res.status == 200) return res.data;
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
+  const updateAvatar = async (data: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", data);
+      const res = await API.post(`/user/${auth.id}/avatar`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (res.status == 200) return res.data;
+    } catch (error) {
+      console.log("error on update avatar", error);
+    }
+  };
+
+  const updateBanner = async (data: File) => {
+    try {
+      const formData = new FormData();
+      formData.append("banner", data);
+      const res = await API.post(`/user/${auth.id}/banner`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (res.status == 200) return res.data;
+    } catch (error) {
+      console.log("error on update banner", error);
+    }
+  };
+
+  const { mutate: update, isPending: updating } = useMutation({
+    mutationFn: async (d: typeof data) => {
+      await Promise.all([
+        updateBio(d.long_bio),
+        (d.avatar as any) instanceof File && updateAvatar(d.avatar as any),
+        (d.banner as any) instanceof File && updateBanner(d.banner as any),
+      ]);
+    },
+    onSuccess: async () => {
+      toast.success("Data Berhasil di Update");
+      await queryClient.invalidateQueries({
+        queryKey: ["auth"],
+      });
+      router.push("/profile/edit");
+    },
+  });
 
   return (
-    <div className="pb-28 bg-white min-h-screen">
-      <div className="fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-teal-700 flex items-center z-[9999] shadow">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center"
-        >
-          <svg className="size-6 cursor-pointer text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-white font-semibold ml-3 flex-grow">Diskusi AGPAII</h1>
-        <Link href="/social-media/chat" className="p-1">
-          <BellIcon className="size-6 text-white" />
-        </Link>
-      </div>
-
-      {/* User Avatar + Search Bar */}
-      <div className="sticky top-[4.5rem] z-40 bg-white border-b border-slate-200 px-4 py-4 mt-2 flex items-center gap-3">
-        <img
-          src={
-            (user?.avatar !== null && getImage(user.avatar)) ||
-            "https://avatar.iran.liara.run/public"
-          }
-          alt="user-avatar"
-          className="rounded-full size-11 min-w-11 min-h-11 object-cover border border-slate-200"
-        />
-        <button 
-          onClick={() => setIsSearchOpen(true)}
-          className="flex-1 flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2.5 text-slate-500"
-        >
-          <MagnifyingGlassIcon className="size-5" />
-          <span className="text-sm">Cari Diskusi...</span>
-        </button>
-      </div>
-
-      {/* Posts Feed */}
-      <div className="flex flex-col bg-white pt-8 mt-8">
-        {!isLoading &&
-          data?.pages.map((page, iPage) => {
-            // Default value untuk page?.data jika undefined
-            const pageData = page?.data || [];
-            // Pisahkan pinned dan non-pinned data
-            const pinnedData = pageData.filter(
-              (item) => item.is_pinned === true || item.is_pinned === 1,
-            );
-            const nonPinnedData = pageData.filter(
-              (item) => !item.is_pinned && item.is_pinned !== 1,
-            );
-            // Gabungkan pinnedData di awal
-            const sortedData = [...pinnedData, ...nonPinnedData];
-            return (
-              <div className="flex flex-col" key={iPage}>
-                {sortedData.length > 0 ? (
-                  sortedData.map((post, i) => (
-                    <Post key={i} post={post} />
-                  ))
-                ) : (
-                  <div className="h-screen flex items-center justify-center">
-                    <h1 className="text-slate-500">Tidak Ada postingan</h1>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        <span
-          ref={ref}
-          className="px-6 py-2 text-sm cursor-pointer text-slate-300 text-center mx-auto"
-        >
-          {isFetchingNextPage ? "Harap Tunggu..." : ""}
-        </span>
-      </div>
-
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto border-t border-slate-200 bg-white px-0 py-0 flex justify-around items-center">
-        <Link
-          href="/social-media"
-          className={`flex-1 flex flex-col items-center justify-center py-3 px-4 ${
-            activeTab === "beranda"
-              ? "text-teal-700 border-b-2 border-teal-700"
-              : "text-slate-400"
-          }`}
-        >
-          <HomeIcon className="size-6 mb-0.5" />
-          <span className="text-xs">Beranda</span>
-        </Link>
-        <button
-          onClick={() => router.push("/social-media/liked")}
-          className={`flex-1 flex flex-col items-center justify-center py-3 px-4 ${
-            activeTab === "disukai"
-              ? "text-teal-700 border-b-2 border-teal-700"
-              : "text-slate-400"
-          }`}
-        >
-          <HeartOutlineIcon className="size-6 mb-0.5" />
-          <span className="text-xs">Disukai</span>
-        </button>
-        <Link
-          href="/social-media/post/new"
-          className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-teal-700"
-        >
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-700 mb-0.5">
-            <PlusIcon className="size-6 text-white" />
-          </div>
-          <span className="text-xs">Posting</span>
-        </Link>
-        <Link
-          href="/social-media/chat"
-          className={`flex-1 flex flex-col items-center justify-center py-3 px-4 ${
-            activeTab === "pesan"
-              ? "text-teal-700 border-b-2 border-teal-700"
-              : "text-slate-400"
-          }`}
-        >
-          <ChatBubbleLeftIcon className="size-6 mb-0.5" />
-          <span className="text-xs">Pesan</span>
-        </Link>
-        <Link
-          href="/profile"
-          className={`flex-1 flex flex-col items-center justify-center py-3 px-4 ${
-            activeTab === "profil"
-              ? "text-teal-700 border-b-2 border-teal-700"
-              : "text-slate-400"
-          }`}
-        >
-          <UserIcon className="size-6 mb-0.5" />
-          <span className="text-xs">Profil</span>
-        </Link>
-      </div>
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Cari Diskusi</h2>
-            <form onSubmit={handleSearchSubmit}>
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Masukkan kata kunci"
-                disabled={isSearchLoading}
-                className="w-full border border-slate-300 rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(false)}
-                  disabled={isSearchLoading}
-                  className="px-4 py-2 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSearchLoading}
-                  className="px-4 py-2 rounded-md bg-teal-700 text-white flex items-center gap-2 hover:bg-teal-800"
-                >
-                  {isSearchLoading && (
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      ></path>
-                    </svg>
+    <div className="pt-[3.7rem] pb-20 bg-gradient-to-b from-slate-50 to-white min-h-screen">
+      <TopBar withBackButton>Profile Sosmed</TopBar>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8">
+        {/* Banner Section */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+            <div className="flex flex-col gap-4 p-6">
+              <div>
+                <label htmlFor="banner" className="block text-xl font-semibold text-slate-700 mb-3">
+                  Banner Profil
+                </label>
+                <p className="text-xs text-slate-500 mb-4">Ukuran rekomendasi: 1600 x 400 px</p>
+                <input
+                  type="file"
+                  name=""
+                  id="banner"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setTempBannerFile(e.target.files[0]);
+                      setShowBannerCrop(true);
+                    }
+                  }}
+                  accept="image/*"
+                  hidden
+                />
+                <div className="relative w-full aspect-[16/7] overflow-hidden rounded-lg border-2 border-dashed border-slate-300 hover:border-[#009788] transition-colors duration-200 bg-slate-50 group cursor-pointer">
+                  {!!data.banner && (
+                    <img
+                      className="size-full object-center object-cover"
+                      src={getUserBanner(data.banner)}
+                      alt="banner"
+                    />
                   )}
-                  Cari
-                </button>
+                  <label
+                    htmlFor="banner"
+                    className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer bg-black/0 group-hover:bg-black/10 transition-colors duration-200"
+                  >
+                    <CameraIcon className="size-10 text-slate-400 group-hover:text-[#009788] transition-colors" />
+                    <span className="text-xs text-slate-500 mt-2">Klik untuk ubah</span>
+                  </label>
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Content Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bio Section - Takes 2 columns on large screens */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100 h-full">
+              <div className="p-6">
+                <label className="block text-xl font-semibold text-slate-700 mb-3">
+                  Biografi
+                </label>
+                <p className="text-xs text-slate-500 mb-4">Ceritakan tentang diri Anda kepada komunitas</p>
+                <textarea
+                  onChange={(e) =>
+                    setData((d) => ({ ...d, long_bio: e.target.value } as any))
+                  }
+                  value={(data.long_bio as any) || ""}
+                  placeholder="Tulis biografi Anda di sini..."
+                  rows={8}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg resize-none shadow-sm hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#009788] focus:ring-opacity-50 transition-all duration-200 font-[400] text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Avatar Section */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+              <div className="p-6">
+                <label htmlFor="avatar" className="block text-xl font-semibold text-slate-700 mb-3">
+                  Foto Profil
+                </label>
+                <p className="text-xs text-slate-500 mb-4">Format: Persegi (1:1)</p>
+                <input
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setTempAvatarFile(e.target.files[0]);
+                      setShowAvatarCrop(true);
+                    }
+                  }}
+                  type="file"
+                  name=""
+                  id="avatar"
+                  accept="image/*"
+                  hidden
+                />
+                <div className="w-full aspect-square relative rounded-lg border-2 border-dashed border-slate-300 hover:border-[#009788] transition-colors duration-200 overflow-hidden bg-slate-50 group cursor-pointer">
+                  {!!data.avatar && (
+                    <img
+                      src={getUserAvatar(data.avatar)}
+                      className="size-full object-cover object-center"
+                      alt="avatar"
+                    />
+                  )}
+                  <label
+                    htmlFor="avatar"
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/0 group-hover:bg-black/10 transition-colors duration-200"
+                  >
+                    <div className="flex flex-col items-center">
+                      <CameraIcon className="size-8 text-slate-400 group-hover:text-[#009788] transition-colors" />
+                      <span className="text-xs text-slate-500 mt-2">Ubah</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="mt-8">
+          {updating ? (
+            <div className="flex justify-center items-center py-4">
+              <Loader className="size-8" />
+            </div>
+          ) : (
+            <button
+              className="w-full px-6 py-3 bg-gradient-to-r from-[#009788] to-[#008078] text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-[#008078] hover:to-[#006b60] transition-all duration-200 flex items-center justify-center text-base"
+              onClick={() => update(data)}
+            >
+              Simpan Perubahan
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Avatar Crop Modal */}
+      <Modal show={showAvatarCrop} onClose={() => setShowAvatarCrop(false)}>
+        <div className="p-6 max-w-md mx-auto bg-white rounded-xl">
+          <h2 className="text-xl font-semibold mb-2 text-slate-800">📸 Crop Foto Profil</h2>
+          <p className="text-sm text-slate-500 mb-6">Atur posisi dan ukuran foto Anda</p>
+          <div className="relative h-72 bg-black rounded-lg overflow-hidden shadow-lg">
+            <Cropper
+              image={tempAvatarFile ? URL.createObjectURL(tempAvatarFile) : ""}
+              crop={avatarCrop}
+              zoom={avatarZoom}
+              aspect={1}
+              onCropChange={setAvatarCrop}
+              onZoomChange={setAvatarZoom}
+              onCropComplete={(_, croppedAreaPixels) => {
+                setCroppedAreaPixelsAvatar(croppedAreaPixels);
+              }}
+            />
+          </div>
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-slate-700">
+                🔍 Zoom
+              </label>
+              <span className="text-sm font-semibold text-[#009788]">{Math.round(avatarZoom * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={avatarZoom}
+              onChange={(e) => setAvatarZoom(Number(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#009788]"
+            />
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setShowAvatarCrop(false)}
+              className="flex-1 px-4 py-2.5 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleAvatarCropComplete}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#009788] to-[#008078] text-white rounded-lg font-medium hover:shadow-md transition-all"
+            >
+              Simpan Crop
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Banner Crop Modal */}
+      <Modal show={showBannerCrop} onClose={() => setShowBannerCrop(false)}>
+        <div className="p-6 max-w-2xl mx-auto bg-white rounded-xl">
+          <h2 className="text-xl font-semibold mb-2 text-slate-800">🎨 Crop Banner Profil</h2>
+          <p className="text-sm text-slate-500 mb-6">Atur posisi dan ukuran banner Anda</p>
+          <div className="relative h-64 bg-black rounded-lg overflow-hidden shadow-lg">
+            <Cropper
+              image={tempBannerFile ? URL.createObjectURL(tempBannerFile) : ""}
+              crop={bannerCrop}
+              zoom={bannerZoom}
+              aspect={16 / 7}
+              onCropChange={setBannerCrop}
+              onZoomChange={setBannerZoom}
+              onCropComplete={(_, croppedAreaPixels) => {
+                setCroppedAreaPixelsBanner(croppedAreaPixels);
+              }}
+            />
+          </div>
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-slate-700">
+                🔍 Zoom
+              </label>
+              <span className="text-sm font-semibold text-[#009788]">{Math.round(bannerZoom * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={bannerZoom}
+              onChange={(e) => setBannerZoom(Number(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#009788]"
+            />
+          </div>
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setShowBannerCrop(false)}
+              className="flex-1 px-4 py-2.5 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleBannerCropComplete}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#009788] to-[#008078] text-white rounded-lg font-medium hover:shadow-md transition-all"
+            >
+              Simpan Crop
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
