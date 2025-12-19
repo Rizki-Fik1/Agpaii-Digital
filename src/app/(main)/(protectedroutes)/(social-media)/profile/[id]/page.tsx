@@ -10,7 +10,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/utils/context/auth_context";
 import Loader from "@/components/loader/loader";
 import { getImage } from "@/utils/function/function";
-import { ArrowLeftIcon, HomeIcon, HeartIcon as HeartOutlineIcon, ChatBubbleLeftIcon, UserIcon, PlusIcon, PencilIcon, BuildingLibraryIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PencilIcon, BuildingLibraryIcon, MapPinIcon } from "@heroicons/react/24/outline";
+import SocialMediaNavbar from "@/components/nav/social_media_nav";
 
 function trimText(text: string, length: number) {
 	return text.length > length ? text.slice(0, length) + "..." : text;
@@ -314,50 +315,11 @@ export default function Profile() {
 						Tidak Ada Postingan
 					</div>
 				)}
-
 				<div ref={ref}></div>
 			</div>
 
-			{/* BOTTOM NAVIGATION BAR */}
-			<div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white px-0 py-0 flex justify-around items-center border-t border-slate-200">
-				<Link
-					href="/social-media"
-					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
-				>
-					<HomeIcon className="size-6 mb-0.5" />
-					<span className="text-xs">Beranda</span>
-				</Link>
-				<Link
-					href="/social-media/liked"
-					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
-				>
-					<HeartOutlineIcon className="size-6 mb-0.5" />
-					<span className="text-xs">Disukai</span>
-				</Link>
-				<Link
-					href="/social-media/post/new"
-					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
-				>
-					<div className="flex items-center justify-center w-10 h-10 rounded-full bg-teal-700 mb-0.5">
-						<PlusIcon className="size-6 text-white" />
-					</div>
-					<span className="text-xs">Posting</span>
-				</Link>
-				<Link
-					href="/social-media/chat"
-					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-slate-400"
-				>
-					<ChatBubbleLeftIcon className="size-6 mb-0.5" />
-					<span className="text-xs">Pesan</span>
-				</Link>
-				<Link
-					href="/profile"
-					className="flex-1 flex flex-col items-center justify-center py-3 px-4 text-teal-700"
-				>
-					<UserIcon className="size-6 mb-0.5" />
-					<span className="text-xs">Profil</span>
-				</Link>
-			</div>
+			{/* Bottom Navigation */}
+			<SocialMediaNavbar />
 		</div>
 	);
 }

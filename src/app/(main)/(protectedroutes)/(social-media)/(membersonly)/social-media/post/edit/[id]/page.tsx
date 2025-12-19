@@ -6,6 +6,7 @@ import {
   DocumentPlusIcon,
   PlayIcon,
   ArrowLeftIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/utils/crop/createCroppedImage";
