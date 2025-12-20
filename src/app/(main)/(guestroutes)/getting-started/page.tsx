@@ -6,69 +6,71 @@ import { EnvelopeIcon, IdentificationIcon } from "@heroicons/react/24/outline";
 export default function GettingStarted() {
   return (
     <div 
-      className="min-h-screen flex flex-col relative overflow-hidden"
+      className="min-h-screen flex flex-col"
       style={{
         background: "linear-gradient(180deg, #007E51 0%, #005738 50%, #242424 100%)"
       }}
     >
       {/* Header */}
-      <div className="flex flex-col items-center pt-2 px-6">
+      <div className="flex flex-col items-center pt-6 sm:pt-8 px-4 sm:px-6 pb-4 sm:pb-6">
         <img 
           src="/img/agpai-logo.png" 
           alt="Masjid" 
-          className="w-20 h-20 object-contain"
+          className="w-16 h-16 sm:w-20 sm:h-20 object-contain"
         />
-        <p className="text-white text-center text-lg font-bold">
+        <p className="text-white text-center text-base sm:text-lg font-bold mt-2">
           Assalamualaikum,
         </p>
-        <p className="text-white text-center text-base">
+        <p className="text-white text-center text-sm sm:text-base">
           Selamat datang di <span className="font-semibold">AGPAII</span> 🌙
         </p>
       </div>
 
-      {/* Image Tasbih - Positioned at right */}
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none top-[400px]">
-        <img 
-          src="/img/ilustrasi_tasbih.png" 
-          alt="Tasbih" 
-          className="w-[320px] h-auto object-contain"
-        />
+      {/* Image Tasbih */}
+      <div className="flex justify-end items-center py-2 sm:py-4 pr-0">
+        <div className="w-[240px] sm:w-[260px] md:w-[300px]">
+          <img 
+            src="/img/ilustrasi_tasbih.png" 
+            alt="Tasbih" 
+            className="w-full h-auto object-contain"
+          />
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 top-[240px]">
-        <p className="text-white text-center text-base mb-4 px-4">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 sm:px-6 pb-8 pt-4 sm:pt-6">
+        <p className="text-white text-center text-sm sm:text-base mb-6 sm:mb-8 px-2 max-w-md">
           Buat akun Anda untuk menyimpan pengajaran
         </p>
 
         {/* Buttons */}
-        <div className="w-full max-w-sm space-y-3">
+        <div className="w-full max-w-sm space-y-3 sm:space-y-4">
           <Link
             href="/auth/login/email"
-            className="flex items-center justify-center gap-3 w-full py-3 px-6 rounded-full bg-[#00DB81] text-white font-medium hover:bg-[#00c573] transition"
+            className="flex items-center justify-center gap-2 sm:gap-3 w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-full bg-[#00DB81] text-white text-sm sm:text-base font-medium hover:bg-[#00c573] transition shadow-lg"
           >
-            <EnvelopeIcon className="w-6 h-6" />
+            <EnvelopeIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
             <span>Lanjut dengan Email</span>
           </Link>
 
           <Link
             href="/auth/login/nik"
-            className="flex items-center justify-center gap-3 w-full py-3 px-6 rounded-full bg-[#FDFDFD] text-black font-medium hover:bg-gray-100 transition"
+            className="flex items-center justify-center gap-2 sm:gap-3 w-full py-3 sm:py-3.5 px-4 sm:px-6 rounded-full bg-[#FDFDFD] text-black text-sm sm:text-base font-medium hover:bg-gray-100 transition shadow-lg"
           >
-            <IdentificationIcon className="w-6 h-6" />
+            <IdentificationIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
             <span>Lanjut dengan NIK</span>
           </Link>
 
           {/* OR Divider */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-gray-500 font-medium">OR</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
+          <div className="flex items-center gap-3 sm:gap-4 py-2">
+            <div className="flex-1 h-px bg-white/30"></div>
+            <span className="text-white/80 font-medium text-sm">OR</span>
+            <div className="flex-1 h-px bg-white/30"></div>
           </div>
 
           <Link
             href="/auth/register"
-            className="block w-full py-4 bg-[#004C41] text-white font-medium rounded-full text-center hover:bg-[#1a1a1a] transition"
+            className="block w-full py-3 sm:py-3.5 bg-[#2C2C2C] text-white text-sm sm:text-base font-medium rounded-full text-center hover:bg-[#1a1a1a] transition shadow-lg"
           >
             Daftar Akun
           </Link>

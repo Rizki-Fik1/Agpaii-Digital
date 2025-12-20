@@ -77,7 +77,7 @@ export default function SocialMedia() {
   if (error) return <div>{error.message}</div>;
 
   return (
-    <div className="pb-28 bg-white min-h-screen">
+    <div className="pb-24 bg-white min-h-screen">
       <div className="fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-teal-700 flex items-center z-[9999]">
         <button
           onClick={() => router.back()}
@@ -149,6 +149,7 @@ export default function SocialMedia() {
         </span>
       </div>
 
+      {/* Search Modal */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">

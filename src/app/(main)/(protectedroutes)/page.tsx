@@ -346,16 +346,16 @@ export default function Home() {
       {/* End Modal */}
       
       {/* Header */}
-      <div className="flex max-w-[480px] z-[996] top-0 left-0 right-0 bg-fffff px-8 py-6">
-        <div className="flex items-center justify-between gap-x-8">
-          <div className="flex items-center gap-2">
-            <img src="/img/wave.png" alt="sapa" className="size-8 text-white" />
-            <div className="pr-3 ml-2">
-              <p className="text-sm font-medium text-[#575757]">Assalamualaikum</p>
-              <p className="text-md font-bold text-[#006557]">{auth.name}</p>
+      <div className="w-full max-w-[480px] mx-auto bg-white px-4 py-4">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <img src="/img/wave.png" alt="sapa" className="size-8 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm font-medium text-[#575757]">Assalamualaikum</p>
+              <p className="text-sm sm:text-base font-bold text-[#006557] truncate">{auth.name}</p>
             </div>
           </div>
-          <Link href={"/profile/edit"} className="rounded-full border-2 border-white size-fit ml-40">
+          <Link href={"/profile/edit"} className="rounded-full border-2 border-white flex-shrink-0 ml-2">
             <img
               src={
                 (auth?.avatar !== null && getImage(auth.avatar)) ||
@@ -369,7 +369,7 @@ export default function Home() {
       </div>
 
       {/* Status Card */}
-      <div className="px-4 mt-2 mb-4">
+      <div className="w-full max-w-[480px] mx-auto px-4 mt-2 mb-4">
         {userStatus === Status.ACTIVE && (
           <div className="bg-[#01B671] rounded-2xl p-2.5 shadow-md">
             <div className="flex items-center gap-4">
@@ -448,8 +448,8 @@ export default function Home() {
       </div>
 
       {/* Menu Grid 3x3 */}
-      <div className=" px-4 py-6">
-        <div className="grid grid-cols-3 gap-y-3">
+      <div className="w-full max-w-[480px] mx-auto px-4 py-4">
+        <div className="grid grid-cols-3 gap-x-2 gap-y-4">
           {menus.map((menu, i) => (
             <Link
               onClick={(e) => {
@@ -466,10 +466,10 @@ export default function Home() {
               href={menu.link}
               className="flex flex-col items-center gap-2 group"
             >
-              <div className="bg-slate-100 rounded-2xl p-3 group-hover:bg-slate-200 transition">
-                <img src={menu.icon} className="size-10 object-contain" alt="" />
+              <div className="bg-slate-100 rounded-2xl p-2.5 sm:p-3 group-hover:bg-slate-200 transition w-full aspect-square flex items-center justify-center max-w-[80px]">
+                <img src={menu.icon} className="w-8 h-8 sm:w-10 sm:h-10 object-contain" alt="" />
               </div>
-              <p className="text-xs text-center text-slate-600 line-clamp-2">
+              <p className="text-[10px] sm:text-xs text-center text-slate-600 line-clamp-2 w-full px-1">
                 {menu.label}
               </p>
             </Link>
@@ -479,7 +479,7 @@ export default function Home() {
 
       {/* Banner Carousel */}
       {banners?.length > 0 && (
-        <div className="px-4 py-6">
+        <div className="w-full max-w-[480px] mx-auto px-4 py-4">
           <Swiper
             autoplay={{ delay: 2000, disableOnInteraction: true }}
             pagination={{ clickable: true }}
@@ -491,7 +491,7 @@ export default function Home() {
                 <Link href={"/banner/" + banner.id} className="w-full">
                   <img
                     src={getImage(banner.url)}
-                    className="w-full object-cover rounded-lg h-40"
+                    className="w-full object-cover rounded-lg h-32 sm:h-40"
                     alt=""
                   />
                 </Link>
@@ -502,10 +502,10 @@ export default function Home() {
       )}
 
        {/* Social Media Terbaru */}
-      <div className="sm:px-4 mt-6">
+      <div className="w-full max-w-[480px] mx-auto px-4 mt-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-700">Postingan Terbaru</h2>
-          <Link href="/social-media" className="text-sm text-[#009788] hover:underline">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-700">Postingan Terbaru</h2>
+          <Link href="/social-media" className="text-xs sm:text-sm text-[#009788] hover:underline">
             Lihat Semua
           </Link>
         </div>
@@ -525,7 +525,7 @@ export default function Home() {
                 onClick={() => router.push("/social-media")}
                 className="cursor-pointer"
               >
-                <div className="p-4 bg-white shadow- min-h-[320px] max-h-[320px] flex flex-col">
+                <div className="p-3 sm:p-4 bg-white shadow-sm rounded-lg min-h-[280px] sm:min-h-[320px] max-h-[280px] sm:max-h-[320px] flex flex-col">
                   <div className="flex items-center gap-3">
                     <img
                       src={
@@ -533,10 +533,10 @@ export default function Home() {
                         "https://avatar.iran.liara.run/public"
                       }
                       alt={post.author?.name}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     />
-                    <div>
-                      <p className="font-semibold text-slate-700 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-700 text-sm truncate">
                         {post.author?.name || "Unknown User"}
                       </p>
                       <p className="text-xs text-slate-500">
@@ -545,8 +545,8 @@ export default function Home() {
                     </div>
                   </div>
                   {/* Body (isi postingan) */}
-                  <div className="min-h-[60px]">
-                    <p className="text-sm text-slate-600 mt-2">
+                  <div className="min-h-[50px] sm:min-h-[60px] mt-2">
+                    <p className="text-xs sm:text-sm text-slate-600 line-clamp-3">
                       {post.body}
                     </p>
                   </div>
@@ -554,7 +554,7 @@ export default function Home() {
                     <img
                       src={getImage(post.images[0].src)}
                       alt="post"
-                      className="w-full min-h-[150px] max-h-[150px] rounded-lg object-cover"
+                      className="w-full min-h-[130px] max-h-[130px] sm:min-h-[150px] sm:max-h-[150px] rounded-lg object-cover mt-2"
                     />
                   )}
                 </div>
@@ -562,16 +562,16 @@ export default function Home() {
             ))}
           </Swiper>
         ) : (
-          <p className="text-sm text-slate-500">Belum ada postingan terbaru.</p>
+          <p className="text-xs sm:text-sm text-slate-500">Belum ada postingan terbaru.</p>
         )}
       </div>
 
       {/* Artikel Section */}
-      <div className="px-4 py-6 bg-slate-50">
+      <div className="w-full max-w-[480px] mx-auto px-4 py-4 bg-slate-50 mt-4">
         <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-lg font-bold text-slate-700">Artikel</h2>
+          <h2 className="text-base sm:text-lg font-bold text-slate-700">Artikel</h2>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {articles?.length > 0 ? (
             [...articles]
               .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf())
@@ -582,25 +582,25 @@ export default function Home() {
                   href={`/article/${article.id}`}
                   className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
                 >
-                  <div className="relative h-32 overflow-hidden bg-slate-200">
+                  <div className="relative h-24 sm:h-32 overflow-hidden bg-slate-200">
                     <img
                       src={article.yoast_head_json?.og_image?.[0]?.url || "/img/article.png"}
                       alt={article.title.rendered}
                       className="w-full h-full object-cover group-hover:scale-105 transition"
                     />
                   </div>
-                  <div className="p-3">
-                    <p className="text-xs font-medium text-slate-700 line-clamp-2 h-8">
+                  <div className="p-2 sm:p-3">
+                    <p className="text-[10px] sm:text-xs font-medium text-slate-700 line-clamp-2 min-h-[28px] sm:min-h-[32px]">
                       {article.title.rendered}
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-[9px] sm:text-xs text-slate-400 mt-1">
                       {moment(article.date).locale("id").format("DD MMM YYYY")}
                     </p>
                   </div>
                 </Link>
               ))
           ) : (
-            <p className="text-sm text-slate-500">Tidak ada artikel terbaru saat ini.</p>
+            <p className="text-xs sm:text-sm text-slate-500 col-span-2">Tidak ada artikel terbaru saat ini.</p>
           )}
         </div>
       </div>

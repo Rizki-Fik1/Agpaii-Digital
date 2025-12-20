@@ -1,6 +1,6 @@
 import { Post as PostType } from "@/types/post/post";
 import API from "@/utils/api/config";
-import { ChatBubbleOvalLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleOvalLeftIcon, HeartIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolidIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
@@ -139,16 +139,16 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
             {/* EDIT BUTTON */}
             <Link
               href={`/social-media/post/edit/${post.id}`}
-              className="p-1 rounded-full bg-blue-500 text-white hover:bg-blue-600"
+              className="p-1.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
               title="Edit postingan"
             >
-              ✏️
+              <PencilIcon className="size-4" />
             </Link>
             {/* DELETE BUTTON */}
             <button
               onClick={handleDeleteClick}
               disabled={deletePending}
-              className="p-1 rounded-full bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
+              className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition disabled:opacity-50"
               title="Hapus postingan"
             >
               <TrashIcon className="size-4" />
@@ -213,18 +213,36 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
           </div>
         )}
       </div>
-      {/* ---------------- DOCUMENT BADGE ---------------- */}
+      {/* ---------------- DOCUMENT PREVIEW ---------------- */}
       {post.document && (
-        <a
-          href={getImage(post.document)}
-          target="_blank"
-          className="mx-4 mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-300 rounded-full text-xs text-blue-800 font-medium w-fit shadow-sm"
-        >
-          <span className="text-lg">📄</span>
-          <span className="truncate max-w-[160px]">
-            {extractFileName(post.document)}
-          </span>
-        </a>
+        <div className="mx-4 mt-3">
+          <p className="text-sm font-medium text-slate-700 mb-2">📄 Dokumen Terlampir</p>
+          <a
+            href={getImage(post.document)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block relative bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 hover:border-blue-300 transition-all hover:shadow-md group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition">
+                <svg className="size-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-800 truncate group-hover:text-blue-700 transition">
+                  {extractFileName(post.document)}
+                </p>
+                <p className="text-sm text-slate-500 mt-0.5">Klik untuk membuka dokumen</p>
+              </div>
+              <div className="text-blue-600 group-hover:translate-x-1 transition-transform">
+                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        </div>
       )}
       {/* ---------------- LIKE / COMMENT ---------------- */}
       <div className="flex flex-col px-4">
