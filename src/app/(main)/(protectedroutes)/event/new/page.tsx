@@ -16,7 +16,7 @@ import "moment/locale/id";
 import Loader from "@/components/loader/loader";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronRightIcon } from "@heroicons/react/24/solid";
+import { ChevronRightIcon, CalendarDaysIcon, PlusIcon } from "@heroicons/react/24/solid";
 import FormControl from "@/components/form/form_control";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -56,82 +56,15 @@ export default function CreateEvent() {
     register,
     getValues,
     setValue,
+    watch,
   } = useForm<Fields>({
     resolver: zodResolver(schema),
     defaultValues: defaultEventValue,
   });
-  const forms = [
-    {
-      label: "Banner",
-      type: "input",
-      inputType: "file",
-      placeholder: "Tambahkan Banner",
-      name: "image",
-    },
-    {
-      label: "Nama Acara",
-      type: "input",
-      inputType: "text",
-      name: "name",
-      placeholder: "Masukkan nama acara",
-    },
-    {
-      type: "select",
-      label: "Kategori Acara",
-      options: [
-        { name: "Seminar", value: 1 },
-        { name: "Pelatihan", value: 2 },
-        { name: "Workshop", value: 3 },
-        { name: "Webinar", value: 4 },
-        { name: "Lomba", value: 5 },
-        { name: "Rapat", value: 6 },
-      ],
-      name: "category_id",
-      placeholder: "Kategori acara",
-    },
-    {
-      label: "Deskripsi Acara",
-      type: "textarea",
-      inputType: "text",
-      name: "description",
-      placeholder: "Masukkan deskripsi acara",
-    },
-    {
-      label: "Fasilitas Acara",
-      type: "textarea",
-      inputType: "text",
-      name: "facilities",
-      placeholder: "Fasilitas Acara",
-    },
-    {
-      type: "input",
-      label: "Tempat Acara",
-      inputType: "text",
-      name: "address",
-      placeholder: "Tempat Acara",
-    },
-    {
-      label: "Link",
-      inputType: "text",
-      type: "input",
-      name: "link",
-      placeholder: "Link Meeting",
-    },
-    {
-      label: "Mulai",
-      inputType: "date",
-      type: "input",
-      name: "start_at",
-      placeholder: "Waktu Mulai ",
-    },
-    {
-      label: "Selesai",
-      inputType: "date",
-      type: "input",
-      name: "end_at",
-      placeholder: "Waktu Selesai",
-    },
-  ];
+
+  // Watch image for preview
+  const watchImage = watch("image");
+
   const [sessions, setSessions] = useState([
     {
       id: 1,
@@ -219,198 +152,312 @@ export default function CreateEvent() {
     setSessions(updatedSessions);
   };
 
+  const categories = [
+    { name: "Seminar", value: 1 },
+    { name: "Pelatihan", value: 2 },
+    { name: "Workshop", value: 3 },
+    { name: "Webinar", value: 4 },
+    { name: "Lomba", value: 5 },
+    { name: "Rapat", value: 6 },
+  ];
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <div className="pt-[4.21rem] pb-20">
         <TopBar withBackButton>Buat Acara</TopBar>
-        {/* FORM EVENT */}
+        {/* FORM EVENT Selection */}
         {type === null ? (
           <div className="flex flex-col pt-8 px-4 sm:px-6 gap-3">
+             <h2 className="font-semibold text-lg mb-2">Pilih Tipe Acara</h2>
             <div
               onClick={() => setType("Daring")}
-              className="border border-slate-300 p-4 pr-6 rounded-md flex items-center"
+              className="border border-slate-300 p-4 pr-6 rounded-xl flex items-center hover:border-[#009788] hover:bg-slate-50 cursor-pointer transition-all"
             >
               <div>
-                <h1 className="text-slate-600 font-medium ">Online</h1>
+                <h1 className="text-[#009788] font-bold text-lg">Online</h1>
                 <p className="text-slate-500 text-sm pr-5">
-                  Buat kegiatan anda secara online dengan menggunakan layanan
-                  meeting kami
+                  Buat kegiatan anda secara online dengan menggunakan layanan meeting kami
                 </p>
               </div>
-              <ChevronRightIcon className="size-6" />
+              <ChevronRightIcon className="size-6 text-slate-400" />
             </div>
             <div
               onClick={() => setType("Luring")}
-              className="border border-slate-300 p-4 pr-6 rounded-md flex items-center"
+              className="border border-slate-300 p-4 pr-6 rounded-xl flex items-center hover:border-[#009788] hover:bg-slate-50 cursor-pointer transition-all"
             >
               <div>
-                <h1 className="text-slate-600 font-medium ">Offline</h1>
+                <h1 className="text-[#009788] font-bold text-lg">Offline</h1>
                 <p className="text-slate-500 pr-6 text-sm">
-                  Buat kegiatan secara langsung dengan bertemu di tempat yang
-                  sudah di tetapkan
+                  Buat kegiatan secara langsung dengan bertemu di tempat yang sudah di tetapkan
                 </p>
               </div>
-              <ChevronRightIcon className="size-6" />
+              <ChevronRightIcon className="size-6 text-slate-400" />
             </div>
           </div>
         ) : (
           <form
             method="POST"
             onSubmit={handleSubmit(createEvent as any)}
-            className="flex flex-col px-6 pt-6 gap-3"
+            className="flex flex-col px-4 sm:px-6 pt-6 gap-6"
           >
-            {forms.map((f, i) => {
-              return f.type == "input" && f.inputType == "file" ? (
+            {/* Image Upload Section */}
+            <div className="flex flex-col gap-2">
                 <Controller
-                  key={i}
                   control={control}
-                  name={f.name as keyof Fields}
-                  render={({ field: { value, onChange, ref, name } }) => (
-                    <div className="flex relative *:w-full aspect-video">
-                      {getValues(f.name as keyof Fields) == null ? (
-                        <FormControl
-                          className="size-full"
-                          onChange={(e) =>
-                            onChange(e.target.files && e.target.files[0])
-                          }
-                          inputType={f.inputType as any}
-                          placeholder={f.placeholder}
-                          value={value}
-                          type={f.type}
-                          name={name}
-                          refs={ref}
-                        />
-                      ) : (
-                        <>
+                  name="image"
+                  render={({ field: { value, onChange, ref } }) => (
+                    <>
+                      <div className="w-full aspect-video bg-slate-100 rounded-xl overflow-hidden border border-slate-200 relative">
+                        {value ? (
                           <img
-                            src={URL.createObjectURL(
-                              getValues(f.name as keyof Fields)
-                            )}
-                            className="size-full object-cover aspect-video rounded-md"
+                            src={URL.createObjectURL(value)}
+                            className="w-full h-full object-cover"
+                            alt="Preview"
                           />
-                          <XMarkIcon
-                            onClick={() =>
-                              setValue(f.name as keyof Fields, null)
-                            }
-                            className="absolute size-6 -right-1 -top-1.5 cursor-pointer !w-fit p-1 bg-white rounded-full border border-slate-300"
-                          />
-                        </>
-                      )}
-                    </div>
-                  )}
-                />
-              ) : f.type == "input" && f.inputType == "date" ? (
-                <Controller
-                  key={i}
-                  name={f.name as keyof Fields}
-                  control={control}
-                  render={({ field: { value, onChange, ref, name } }) => (
-                    <div className="flex flex-col">
-                      <label
-                        className="text-sm text-slate-700 mb-1"
-                        htmlFor={f.name}
-                      >
-                        {f.label}
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                             <span className="text-sm">Belum ada gambar</span>
+                          </div>
+                        )}
+                      </div>
+                      <label className="self-start px-4 py-2 bg-[#009788] text-white text-sm font-medium rounded-md cursor-pointer hover:bg-[#3b5e59] transition-colors mt-2">
+                        {value ? "Ubah Gambar" : "Tambah Gambar"}
+                        <input
+                           type="file"
+                           className="hidden"
+                           accept="image/*"
+                           onChange={(e) => {
+                             if (e.target.files && e.target.files[0]) {
+                               onChange(e.target.files[0]);
+                             }
+                           }}
+                           ref={ref}
+                        />
                       </label>
-                      <MobileDateTimePicker
-                        name={name}
-                        ref={ref}
-                        onChange={(value) => onChange(value)}
-                        value={value}
-                        ampm={false}
-                      />
-                    </div>
+                    </>
                   )}
                 />
-              ) : f.type == "input" || f.type == "textarea" ? (
-                <div
-                  key={i}
-                  className={clsx("flex flex-col", {
-                    hidden:
-                      (f.name == "link" && type == "Luring") ||
-                      (f.name == "address" && type == "Daring"),
-                  })}
-                >
-                  <label
-                    className="text-sm text-slate-700 mb-1"
-                    htmlFor={f.name}
-                  >
-                    {f.placeholder}
-                  </label>
-                  <FormControl
-                    key={i}
-                    name={f.name}
-                    inputType={f.inputType as any}
-                    placeholder={f.placeholder}
-                    type={f.type}
-                    register={register}
-                    error={errors[f.name as keyof Fields]}
-                    className="rounded-md overflow-hidden"
+            </div>
+
+            {/* Name & Category Section */}
+            <div className="space-y-4">
+               <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nama Acara:</label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="md:col-span-2">
+                         <input
+                           {...register("name")}
+                           placeholder="Masukkan Nama Acara..."
+                           className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788]"
+                         />
+                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message as string}</p>}
+                     </div>
+                     <div>
+                       <FormControl
+                           name="category_id"
+                           type="select"
+                           placeholder="Kategori"
+                           register={register}
+                           options={categories}
+                           className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788] bg-white appearance-none"
+                        />
+                         {errors.category_id && <p className="text-red-500 text-xs mt-1">{errors.category_id.message as string}</p>}
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Description Section */}
+            <div>
+               <label className="block text-sm font-semibold text-slate-700 mb-2">Deskripsi Acara:</label>
+               <textarea
+                 {...register("description")}
+                 placeholder="Masukkan Deskripsi Acara..."
+                 rows={4}
+                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788] resize-none"
+               />
+               {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message as string}</p>}
+            </div>
+
+             {/* Facilities Section */}
+            <div>
+               <label className="block text-sm font-semibold text-slate-700 mb-2">Fasilitas Acara:</label>
+               <textarea
+                 {...register("facilities")}
+                 placeholder="Masukkan Fasilitas Acara..."
+                 rows={3}
+                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788] resize-none"
+               />
+               {errors.facilities && <p className="text-red-500 text-xs mt-1">{errors.facilities.message as string}</p>}
+            </div>
+
+            {/* Date Time Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">Waktu Mulai:</label>
+                  <Controller
+                     control={control}
+                     name="start_at"
+                     render={({ field }) => (
+                         <div className="w-full">
+                           <MobileDateTimePicker
+                               {...field}
+                               className="w-full bg-white border-slate-300"
+                               slotProps={{
+                                 textField: {
+                                    size: 'small',
+                                    fullWidth: true,
+                                    sx: {
+                                       '& .MuiOutlinedInput-root': {
+                                          borderRadius: '0.5rem',
+                                          '& fieldset': { borderColor: '#cbd5e1' },
+                                          '&:hover fieldset': { borderColor: '#94a3b8' },
+                                          '&.Mui-focused fieldset': { borderColor: '#009788' },
+                                       }
+                                    }
+                                 }
+                               }}
+                           />
+                         </div>
+                     )}
                   />
-                </div>
-              ) : (
-                f.type == "select" && (
-                  <FormControl
-                    key={i}
-                    className="appearance-none rounded-md"
-                    type={f.type}
-                    placeholder={f.placeholder}
-                    register={register}
-                    name={f.name}
-                    options={f.options}
+               </div>
+               <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">Waktu Selesai:</label>
+                   <Controller
+                     control={control}
+                     name="end_at"
+                     render={({ field }) => (
+                         <div className="w-full">
+                           <MobileDateTimePicker
+                               {...field}
+                               className="w-full bg-white border-slate-300"
+                               slotProps={{
+                                 textField: {
+                                    size: 'small',
+                                    fullWidth: true,
+                                    sx: {
+                                       '& .MuiOutlinedInput-root': {
+                                          borderRadius: '0.5rem',
+                                          '& fieldset': { borderColor: '#cbd5e1' },
+                                          '&:hover fieldset': { borderColor: '#94a3b8' },
+                                          '&.Mui-focused fieldset': { borderColor: '#009788' },
+                                       }
+                                    }
+                                 }
+                               }}
+                           />
+                         </div>
+                     )}
                   />
-                )
-              );
-            })}
-            <h1 className="mt-4 text-slate-700">Tambahkan Sesi</h1>
-            {sessions.map((session, index) => (
-              <div key={index} className="flex flex-col border border-slate-300 rounded-md p-2 relative">
-                {sessions.length > 1 && (
-                  <XMarkIcon
-                    onClick={() => removeSession(index)}
-                    className="absolute size-5 -right-1 -top-1 cursor-pointer p-0.5 bg-white rounded-full border border-slate-300"
+               </div>
+            </div>
+
+            {/* Location / Link Section (Conditional) */}
+            {type === "Daring" ? (
+               <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Link Meeting (opsional):</label>
+                  <input
+                     {...register("link")}
+                     placeholder="Masukkan Link Meeting..."
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788]"
                   />
-                )}
-                <input
-                  type="text"
-                  value={session.name}
-                  onChange={(e) => handleSessionChange(index, "name", e.target.value)}
-                  placeholder={`Nama Sesi ${session.id}`}
-                  className="px-3 py-2 border-b border-slate-300"
-                />
-                <MobileDateTimePicker
-                  value={session.waktu}
-                  onChange={(value) => handleSessionChange(index, "waktu", value)}
-                  className="text-sm border-b border-slate-300 py-2"
-                  ampm={false}
-                />
-                <textarea
-                  value={session.keterangan}
-                  onChange={(e) => handleSessionChange(index, "keterangan", e.target.value)}
-                  placeholder="Keterangan Sesi"
-                  className="px-3 py-2"
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addSession}
-              className="px-4 py-2 bg-[#009788] text-white rounded-md mt-2"
-            >
-              Tambah Sesi
-            </button>
-            {creatingEvent ? (
-              <div className="flex justify-center mt-8">
-                <Loader className="size-8" />
-              </div>
+               </div>
             ) : (
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-[#009788] rounded-md text-white mt-8"
-              >
-                Submit
-              </button>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Tempat Acara:</label>
+                  <input
+                     {...register("address")}
+                     placeholder="Masukkan Tempat Acara..."
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788]"
+                  />
+               </div>
             )}
+
+
+            {/* Sessions Section */}
+            <div className="mt-2">
+               <h1 className="text-lg font-bold text-slate-800 mb-4">Sesi Acara:</h1>
+               <div className="space-y-4">
+                  {sessions.map((session, index) => (
+                      <div key={index} className="border border-slate-200 rounded-xl p-4 bg-slate-50 relative">
+                          <div className="flex justify-between items-center mb-4">
+                             <h3 className="font-semibold text-slate-700">
+                                {index === 0 ? "Sesi Pertama" : index === 1 ? "Sesi Kedua" : `Sesi Ke-${index + 1}`}
+                             </h3>
+                             {sessions.length > 1 && (
+                                <button type="button" onClick={() => removeSession(index)} className="text-red-500 text-sm hover:underline">Hapus</button>
+                             )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                             {/* Session Date - Using a simple input date for now or we can use MobileDateTimePicker again */}
+                             {/* Since state is manual, we use manual MobileDateTimePicker */}
+                              <MobileDateTimePicker
+                                value={session.waktu}
+                                onChange={(val) => handleSessionChange(index, "waktu", val)}
+                                slotProps={{
+                                 textField: {
+                                    size: 'small',
+                                    placeholder: 'Waktu',
+                                    sx: {
+                                       '& .MuiOutlinedInput-root': {
+                                          bgcolor: 'white',
+                                          borderRadius: '0.5rem',
+                                          '& fieldset': { borderColor: '#cbd5e1' },
+                                       }
+                                    }
+                                 }
+                               }}
+                              />
+                              {/* If we needed a separate Time picker, we could split it, but DateTimePicker handles both */}
+                              {/* The reference had Date and Time separate, but DateTimePicker is more functional for 'waktu'. Keeping it as DateTimePicker. */}
+                          </div>
+
+                          <textarea
+                              value={session.keterangan}
+                              onChange={(e) => handleSessionChange(index, "keterangan", e.target.value)}
+                              placeholder="• Peserta tiba, pembagian welcome drink.&#10;• Icebreaking : Sholawat Nariyah"
+                              rows={3}
+                              className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:border-[#009788] focus:ring-1 focus:ring-[#009788] resize-none text-sm bg-white"
+                          />
+                      </div>
+                  ))}
+               </div>
+
+               <button
+                  type="button"
+                  onClick={addSession}
+                  className="w-full py-3 bg-[#009788] text-white rounded-lg mt-4 font-medium hover:bg-[#3b5e59] transition-colors flex items-center justify-center gap-2"
+               >
+                  Tambahkan Sesi
+               </button>
+            </div>
+
+
+            {/* Footer Buttons */}
+            <div className="flex justify-end gap-3 pt-6 pb-10">
+               <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="px-6 py-2.5 bg-gray-100 text-slate-700 rounded-full font-semibold hover:bg-gray-200 transition-colors"
+               >
+                  Batalkan
+               </button>
+               {creatingEvent ? (
+                  <div className="px-8 py-2.5 flex items-center justify-center">
+                     <Loader className="size-6 text-[#009788]" />
+                  </div>
+               ) : (
+                  <button
+                     type="submit"
+                     className="px-8 py-2.5 bg-[#009788] text-white rounded-full font-semibold hover:bg-[#3b5e59] transition-colors"
+                  >
+                     Simpan
+                  </button>
+               )}
+            </div>
+
           </form>
         )}
       </div>
