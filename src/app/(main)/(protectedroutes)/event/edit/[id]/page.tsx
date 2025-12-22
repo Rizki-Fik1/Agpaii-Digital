@@ -247,169 +247,305 @@ export default function EditEvent() {
 
   if (isLoading) return <Loader className="size-8 mx-auto mt-20" />;
 
+  const categoryOptions = [
+    { name: "Seminar", value: 1 },
+    { name: "Pelatihan", value: 2 },
+    { name: "Workshop", value: 3 },
+    { name: "Webinar", value: 4 },
+    { name: "Lomba", value: 5 },
+    { name: "Rapat", value: 6 },
+  ];
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="pt-[4.21rem] pb-20">
+      <div className="pt-[4.21rem] pb-24 bg-white min-h-screen">
         <TopBar withBackButton>Edit Acara</TopBar>
         <form
           method="POST"
           onSubmit={handleSubmit(updateEvent as any)}
-          className="flex flex-col px-6 pt-6 gap-3"
+          className="flex flex-col px-4 sm:px-6 pt-6 gap-6 max-w-xl mx-auto"
         >
-          {forms.map((f, i) => {
-            if (f.type === "input" && f.inputType === "file") {
-              return (
-                <Controller
-                  key={i}
-                  control={control}
-                  name="image"
-                  render={({ field: { value, onChange, ref, name } }) => {
-                    // Kondisi 1 - masih pakai gambar lama
-                    if (!replaceImage && eventData?.image) {
-                      return (
-                        <div className="relative">
-                          <img
-                            src={process.env.NEXT_PUBLIC_STORAGE_URL + "/" + eventData.image}
-                            className="size-full object-cover aspect-video rounded-md"
-                          />
+          {/* Image Upload Section */}
+          <div className="flex flex-col gap-2">
+            <Controller
+              control={control}
+              name="image"
+              render={({ field: { value, onChange } }) => {
+                const imageUrl = value
+                  ? URL.createObjectURL(value)
+                  : !replaceImage && eventData?.image
+                  ? process.env.NEXT_PUBLIC_STORAGE_URL + "/" + eventData.image
+                  : "/img/placeholder_image.svg"; // Fallback placeholder if available or handle empty
 
-                          {/* Tombol hapus -> masuk mode upload */}
-                          <XMarkIcon
-                            className="absolute size-6 -right-1 -top-1.5 cursor-pointer p-1 bg-white rounded-full border border-slate-300"
-                            onClick={() => {
-                              setReplaceImage(true);
-                              onChange(null);
-                            }}
+                const hasImage = value || (!replaceImage && eventData?.image);
+
+                return (
+                  <div className="flex flex-col items-start gap-4">
+                     {hasImage ? (
+                        <div className="w-full aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                          <img
+                            src={imageUrl}
+                            className="w-full h-full object-cover"
+                            alt="Preview"
                           />
                         </div>
-                      );
-                    }
-
-                    // Kondisi 2 - user sudah pilih file baru → tampilkan preview
-                    if (value) {
-                      return (
-                        <div className="relative">
-                          <img
-                            src={URL.createObjectURL(value)}
-                            className="size-full object-cover aspect-video rounded-md"
-                          />
-                          <XMarkIcon
-                            onClick={() => onChange(null)}
-                            className="absolute size-6 -right-1 -top-1.5 cursor-pointer p-1 bg-white rounded-full border border-slate-300"
-                          />
+                     ) : (
+                        <div className="w-full aspect-video rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
+                           <span className="text-sm">Belum ada gambar</span>
                         </div>
-                      );
-                    }
-
-                    // Kondisi 3 - mode upload gambar baru
-                    return (
-                      <FormControl
-                        className="size-full"
+                     )}
+                    
+                    <FormControl
+                        className="hidden"
                         inputType="file"
-                        placeholder="Tambahkan Banner"
                         type="input"
-                        name={name}
-                        refs={ref}
-                        onChange={(e) => onChange(e.target.files?.[0] || null)}
-                      />
-                    );
-                  }}
-                />
-              );
-            }
+                        name="image"
+                        id="image-upload"
+                        onChange={(e: any) => {
+                            setReplaceImage(true);
+                            onChange(e.target.files?.[0] || null);
+                        }}
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="px-4 py-2 bg-[#009788] text-white text-sm font-medium rounded-md cursor-pointer hover:bg-[#355855] transition-colors"
+                    >
+                      Ubah Gambar
+                    </label>
+                  </div>
+                );
+              }}
+            />
+          </div>
 
-            // Input / textarea
-            if (f.type === "input" || f.type === "textarea") {
-              return (
-                <div
-                  key={i}
-                  className={clsx("flex flex-col", {
-                    hidden:
-                      (f.name === "link" && type === "Luring") ||
-                      (f.name === "address" && type === "Daring"),
-                  })}
-                >
-                  <label className="text-sm text-slate-700 mb-1">{f.placeholder}</label>
+          {/* Nama & Kategori */}
+          <div className="flex flex-col gap-1">
+             <label className="text-sm font-semibold text-slate-800">Nama Acara:</label>
+             <div className="flex gap-3">
+                <div className="flex-grow">
                   <FormControl
-                    name={f.name}
-                    inputType={f.inputType}
-                    placeholder={f.placeholder}
-                    type={f.type}
+                    name="name"
+                    inputType="text"
+                    placeholder="Masukkan Nama Acara..."
+                    type="input"
                     register={register}
-                    error={errors[f.name as keyof Fields]}
-                    className="rounded-md overflow-hidden"
+                    error={errors.name}
+                    className="w-full rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788]"
                   />
                 </div>
-              );
-            }
+                <div className="w-1/3 min-w-[120px]">
+                  <FormControl
+                    className="appearance-none rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788]"
+                    type="select"
+                    placeholder="Kategori"
+                    register={register}
+                    name="category_id"
+                    options={categoryOptions}
+                  />
+                </div>
+             </div>
+          </div>
 
-            // Select
-            if (f.type === "select") {
-              return (
-                <FormControl
-                  key={i}
-                  className="appearance-none rounded-md"
-                  type="select"
-                  placeholder={f.placeholder}
-                  register={register}
-                  name={f.name}
-                  options={f.options}
+          {/* Deskripsi */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-slate-800">Deskripsi Acara:</label>
+            <FormControl
+              name="description"
+              inputType="text"
+              placeholder="Masukkan Deskripsi Acara..."
+              type="textarea"
+              register={register}
+              error={errors.description}
+              className="w-full rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788] min-h-[100px]"
+            />
+          </div>
+
+          {/* Fasilitas */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-slate-800">Fasilitas Acara:</label>
+            <FormControl
+              name="facilities"
+              inputType="text"
+              placeholder="Masukkan Fasilitas Acara..."
+              type="textarea"
+              register={register}
+              error={errors.facilities}
+              className="w-full rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788] min-h-[80px]"
+            />
+          </div>
+
+           {/* Waktu Mulai & Selesai */}
+           <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-slate-800">Waktu Mulai:</label>
+                <Controller
+                  control={control}
+                  name="start_at"
+                  render={({ field }) => (
+                    <MobileDateTimePicker
+                      {...field}
+                      format="MM/DD/YYYY HH:mm"
+                      className="w-full bg-white rounded-md"
+                      slotProps={{
+                        textField: {
+                          size: "small",
+                          fullWidth: true,
+                          error: !!errors.start_at,
+                          sx: { 
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '0.375rem', 
+                                backgroundColor: 'white'
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  )}
                 />
-              );
-            }
-
-            return null;
-          })}
-
-          <h1 className="mt-4 text-slate-700">Tambahkan Sesi</h1>
-          {sessions.map((session, index) => (
-            <div key={index} className="flex flex-col border border-slate-300 rounded-md p-2 relative">
-              {sessions.length > 1 && (
-                <XMarkIcon
-                  onClick={() => removeSession(index)}
-                  className="absolute size-5 -right-1 -top-1 cursor-pointer p-0.5 bg-white rounded-full border border-slate-300"
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-slate-800">Waktu Selesai:</label>
+                <Controller
+                    control={control}
+                    name="end_at"
+                    render={({ field }) => (
+                      <MobileDateTimePicker
+                        {...field}
+                        format="MM/DD/YYYY HH:mm"
+                        className="w-full bg-white rounded-md"
+                        slotProps={{
+                            textField: {
+                              size: "small",
+                              fullWidth: true,
+                              error: !!errors.end_at,
+                              sx: { 
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: '0.375rem', 
+                                    backgroundColor: 'white'
+                                }
+                              }
+                            }
+                        }}
+                      />
+                    )}
                 />
-              )}
-              <input
-                type="text"
-                value={session.name}
-                onChange={(e) => handleSessionChange(index, "name", e.target.value)}
-                placeholder={`Nama Sesi ${session.id}`}
-                className="px-3 py-2 border-b border-slate-300"
-              />
-              <MobileDateTimePicker
-                value={session.waktu}
-                onChange={(value) => handleSessionChange(index, "waktu", value)}
-                className="text-sm border-b border-slate-300 py-2"
-                ampm={false}
-              />
-              <textarea
-                value={session.keterangan}
-                onChange={(e) => handleSessionChange(index, "keterangan", e.target.value)}
-                placeholder="Keterangan Sesi"
-                className="px-3 py-2"
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addSession}
-            className="px-4 py-2 bg-[#009788] text-white rounded-md mt-2"
-          >
-            Tambah Sesi
-          </button>
-          {updatingEvent ? (
-            <div className="flex justify-center mt-8">
-              <Loader className="size-8" />
-            </div>
-          ) : (
-            <button
-              type="submit"
-              className="px-5 py-2.5 bg-[#009788] rounded-md text-white mt-8"
-            >
-              Update
-            </button>
-          )}
+              </div>
+           </div>
+
+          {/* Link / Address based on Logic */}
+          <div className={clsx("flex flex-col gap-1", {
+             hidden: type === "Luring" 
+          })}>
+            <label className="text-sm font-semibold text-slate-800">Link Meeting (opsional):</label>
+            <FormControl
+              name="link"
+              inputType="text"
+              placeholder="Masukkan Link Meeting..."
+              type="input"
+              register={register}
+              error={errors.link}
+              className="w-full rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788]"
+            />
+          </div>
+
+          <div className={clsx("flex flex-col gap-1", {
+             hidden: type === "Daring" 
+          })}>
+             <label className="text-sm font-semibold text-slate-800">Tempat Acara:</label>
+             <FormControl
+              name="address"
+              inputType="text"
+              placeholder="Masukkan Tempat Acara..."
+              type="input"
+              register={register}
+              error={errors.address}
+              className="w-full rounded-md border-slate-300 focus:border-[#009788] focus:ring-[#009788]"
+            />
+          </div>
+
+          {/* Sessions */}
+          <div className="flex flex-col gap-4">
+             <h2 className="text-sm font-semibold text-slate-800">Sesi Acara:</h2>
+             
+             {sessions.map((session, index) => (
+                <div key={index} className="border border-slate-200 rounded-lg p-4 bg-slate-50 relative space-y-3">
+                   {sessions.length > 1 && (
+                      <button 
+                        type="button" 
+                        onClick={() => removeSession(index)}
+                        className="absolute top-2 right-2 text-red-500 hover:bg-red-50 p-1 rounded-full"
+                      >
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                      </button>
+                   )}
+                   
+                   <p className="font-medium text-slate-700">Sesi {index === 0 ? "Pertama" : index === 1 ? "Kedua" : index === 2 ? "Ketiga" : `Ke-${index + 1}`}</p>
+                   
+                   {/* Date & Time Picker for Session */}
+                   <div className="flex items-center gap-2">
+                        <MobileDateTimePicker
+                             value={session.waktu}
+                             onChange={(value) => handleSessionChange(index, "waktu", value)}
+                             label="Waktu Sesi"
+                             className="w-full bg-white"
+                             slotProps={{
+                                textField: {
+                                size: "small",
+                                fullWidth: true,
+                                sx: { '& .MuiOutlinedInput-root': { borderRadius: '0.375rem', backgroundColor: 'white' } }
+                                }
+                             }}
+                        />
+                   </div>
+
+                   {/* Description (List style in reference, but input here) */}
+                   <textarea
+                        value={session.name} 
+                        onChange={(e) => handleSessionChange(index, "name", e.target.value)}
+                        placeholder="Nama Sesi / Kegiatan..."
+                        className="w-full text-sm p-3 border border-slate-300 rounded-md focus:outline-none focus:border-[#009788]"
+                        rows={2}
+                   />
+                   
+                   <textarea
+                        value={session.keterangan} 
+                        onChange={(e) => handleSessionChange(index, "keterangan", e.target.value)}
+                        placeholder="Detail Keterangan (e.g. Pembicara, Agenda)..."
+                        className="w-full text-sm p-3 border border-slate-300 rounded-md focus:outline-none focus:border-[#009788]"
+                        rows={3}
+                   />
+                </div>
+             ))}
+
+             <button
+                type="button"
+                onClick={addSession}
+                className="w-full py-3 bg-[#009788] text-white rounded-lg font-medium hover:bg-[#355855] transition-colors"
+                style={{ backgroundColor: '#009788' }} // Matching the reference dark green/slate
+             >
+                Tambahkan Sesi
+             </button>
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="flex gap-4 pt-4 mt-4 mb-8">
+               <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="flex-1 py-3 bg-slate-100 text-slate-700 font-medium rounded-full hover:bg-slate-200 transition-colors"
+               >
+                  Batalkan
+               </button>
+               <button
+                  type="submit"
+                  disabled={updatingEvent}
+                  className="flex-1 py-3 bg-[#009788] text-white font-medium rounded-full hover:bg-[#355855] transition-colors flex justify-center items-center"
+               >
+                  {updatingEvent ? <Loader className="size-5 text-white" /> : "Simpan"}
+               </button>
+          </div>
         </form>
       </div>
     </LocalizationProvider>
