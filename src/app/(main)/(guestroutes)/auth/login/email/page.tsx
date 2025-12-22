@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import API from "@/utils/api/config";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { getErrorMessage } from "@/utils/error-handler";
 
 interface LoginFormData {
   email: string;
@@ -23,7 +24,10 @@ export default function LoginEmailPage() {
       const res = await API.post("/login", data);
       if (res.status === 200) return res.data;
     },
-    onError: (err: any) => toast.error(err.message || "Login gagal"),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err, "login");
+      toast.error(errorMessage);
+    },
     onSuccess: async (data) => {
       localStorage.setItem("access_token", data?.access_token);
       await queryClient.invalidateQueries({ queryKey: ["auth"] });

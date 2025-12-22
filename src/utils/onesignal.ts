@@ -1,19 +1,28 @@
+// Extend Window interface to include OneSignal
+declare global {
+  interface Window {
+    OneSignal: any[];
+  }
+}
+
 export function initOneSignal(userId?: string | number) {
   if (typeof window === "undefined") return;
 
-  // @ts-ignore
+  // Initialize OneSignal array if not exists
   window.OneSignal = window.OneSignal || [];
 
-  // @ts-ignore
-  OneSignal.push(function () {
-    OneSignal.init({
+  // Push initialization function
+  window.OneSignal.push(function () {
+    // @ts-ignore - OneSignal SDK methods
+    window.OneSignal.init({
       appId: "1436bf70-cf4b-495e-8528-b1fcc58df79d",
       allowLocalhostAsSecureOrigin: true,
       notifyButton: { enable: false },
     });
 
     if (userId) {
-      OneSignal.setExternalUserId(String(userId));
+      // @ts-ignore - OneSignal SDK methods
+      window.OneSignal.setExternalUserId(String(userId));
     }
   });
 }

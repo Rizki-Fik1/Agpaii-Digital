@@ -13,6 +13,7 @@ import FormControl from "@/components/form/form_control";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getErrorMessage } from "@/utils/error-handler";
 
 const schema = z
   .object({
@@ -69,7 +70,8 @@ export default function VerifyPage() {
 
         if (res.status == 200) setVerifySuccess(true);
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        const errorMessage = getErrorMessage(error);
+        toast.error(errorMessage);
       }
     },
   });
@@ -91,7 +93,10 @@ export default function VerifyPage() {
           else throw error;
         }
       },
-      onError: async (err) => toast.error(err.message),
+      onError: async (err: any) => {
+        const errorMessage = getErrorMessage(err);
+        toast.error(errorMessage);
+      },
       onSuccess: async (data) => {
         toast.success(data.message);
         router.push("/auth/login");

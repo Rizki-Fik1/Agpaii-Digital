@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import Loader from "@/components/loader/loader";
 import { useState } from "react";
 import { IoLockClosed, IoMailOutline } from "react-icons/io5";
+import { getErrorMessage } from "@/utils/error-handler";
 export default function LoginPage() {
   interface iFormField {
     loginType: "email" | "nik";
@@ -47,7 +48,10 @@ export default function LoginPage() {
         }
       }
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err, "login");
+      toast.error(errorMessage);
+    },
     onSuccess: async (data) => {
       localStorage.setItem("access_token", data?.access_token);
       await queryClient.invalidateQueries({ queryKey: ["auth"] });

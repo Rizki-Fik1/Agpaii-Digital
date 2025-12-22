@@ -35,7 +35,7 @@ export default function OthersMenuPage() {
 			items: [
 				{ label: "Ruang Guru", icon: "/svg/ikon guru.svg", link: "/ruang-guru" },
 				{ label: "Perangkat Ajar", icon: "/svg/ikon perangkat.svg", link: "/perangkat-ajar" },
-				{ label: "RPP Digital", icon: "/svg/ikon-rpp.svg", link: "/perangkat-ajar" },
+				{ label: "RPP Digital", icon: "/svg/ikon-rpp.svg", link: "/rpp" },
 				{ label: "Tryout", icon: "/svg/ikon try out.svg", link: "https://cbt.agpaiidigital.org" },
 			],
 		},

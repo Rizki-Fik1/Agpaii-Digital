@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/error-handler";
 
 export default function PasswordReset() {
   const [email, setEmail] = useState("");
@@ -26,7 +27,10 @@ export default function PasswordReset() {
       }
     },
     onSuccess: (id) => sendOtp(id),
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err, "user");
+      toast.error(errorMessage);
+    },
   });
 
   const { mutate: sendOtp } = useMutation({
@@ -44,7 +48,10 @@ export default function PasswordReset() {
       toast.success(data.message);
       router.push("/auth/password-reset/verify/?email=" + email);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage);
+    },
   });
 
   useEffect(() => {

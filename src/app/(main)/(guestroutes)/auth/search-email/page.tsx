@@ -10,6 +10,7 @@ import { ChevronLeftIcon, ClipboardIcon } from "@heroicons/react/24/solid";
 import Loader from "@/components/loader/loader";
 import { useState, useEffect } from "react";
 import debounce from "lodash/debounce";
+import { getErrorMessage } from "@/utils/error-handler";
 
 export default function SearchEmailByName() {
   interface iFormField {
@@ -44,7 +45,10 @@ export default function SearchEmailByName() {
         }
       }
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err);
+      toast.error(errorMessage);
+    },
     onSuccess: (data) => {
       setResults(data.emails || []);
       setCurrentPage(1); // Reset to first page on new search
@@ -139,7 +143,7 @@ export default function SearchEmailByName() {
         <ChevronLeftIcon className="size-4 text-[#009788]" />
         <Link
           className="text-sm font-medium text-[#009788] hover:underline"
-          href={"/auth/login"}
+          href={"/getting-started"}
         >
           Kembali ke Login
         </Link>

@@ -11,6 +11,7 @@ import { z } from "zod";
 import { ChevronLeftIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import Link from "next/link";
+import { getErrorMessage } from "@/utils/error-handler";
 
 export default function Register() {
 	const [showPassword, setShowPassword] = useState(false);
@@ -28,25 +29,25 @@ export default function Register() {
 
 	const userSchema = z
 		.object({
-			name: z.string().min(1, { message: "Nama perlu diisi" }),
-			email: z.string().email({ message: "Invalid email" }).min(1),
-			no_hp: z.string().min(1, { message: "Nomor Hp perlu diisi" }),
+			name: z.string().min(3, { message: "Nama Anda harus berisi setidaknya 3 karakter." }),
+			email: z.string().email({ message: "Format email tidak valid" }).min(1, { message: "Email wajib diisi" }),
+			no_hp: z.string().min(12, { message: "Nomor HP Anda harus berisi setidaknya 12 angka." }),
 			nik: z
 				.string()
-				.min(16, { message: "NIK Harus 16 Digit" })
-				.max(16, { message: "NIK Harus 16 Digit" })
-				.refine((string) => !isNaN(Number(string)), { message: "Invalid NIK" }),
-			password: z.string().min(1, { message: "Password perlu diisi" }),
+				.min(16, { message: "Nomor NIK Anda harus berisi setidaknya 16 angka." })
+				.max(16, { message: "Nomor NIK tidak boleh lebih dari 16 angka" })
+				.refine((string) => !isNaN(Number(string)), { message: "NIK harus berupa angka" }),
+			password: z.string().min(8, { message: "Password Anda harus berisi setidaknya 8 huruf, angka atau simbol." }),
 			password_confirmation: z.string(),
 			role_id: z.string().refine((string) => parseFloat(string), {
-				message: "Anda Harus Memilih",
+				message: "Anda harus memilih role",
 			}),
 		})
 		.refine(
 			({ password, password_confirmation }) =>
 				password == password_confirmation,
 			{
-				message: "Konfirmasi Password Tidak Sesuai",
+				message: "Konfirmasi password tidak sesuai",
 				path: ["password_confirmation"],
 			},
 		);
@@ -68,7 +69,10 @@ export default function Register() {
 			await queryClient.invalidateQueries({ queryKey: ["auth"] });
 			router.push("/");
 		},
-		onError: async (err) => toast.error(err.message),
+		onError: async (err: any) => {
+			const errorMessage = getErrorMessage(err);
+			toast.error(errorMessage);
+		},
 	});
 	const {
 		register,
@@ -100,10 +104,17 @@ export default function Register() {
 							type="text"
 							placeholder="Ardianita"
 							{...register("name")}
-							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+								errors.name 
+									? "border-red-500 focus:border-red-500" 
+									: "border-[#00AF70] focus:border-[#00AF70]"
+							}`}
 						/>
 						{errors.name && (
-							<p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.name.message}</p>
+							</div>
 						)}
 					</div>
 
@@ -116,10 +127,17 @@ export default function Register() {
 							type="tel"
 							placeholder="Minimal 12 karakter"
 							{...register("no_hp")}
-							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+								errors.no_hp 
+									? "border-red-500 focus:border-red-500" 
+									: "border-[#00AF70] focus:border-[#00AF70]"
+							}`}
 						/>
 						{errors.no_hp && (
-							<p className="text-red-500 text-sm mt-1">{errors.no_hp.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.no_hp.message}</p>
+							</div>
 						)}
 					</div>
 
@@ -133,10 +151,17 @@ export default function Register() {
 							placeholder="Minimal 16 karakter"
 							{...register("nik")}
 							maxLength={16}
-							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+								errors.nik 
+									? "border-red-500 focus:border-red-500" 
+									: "border-[#00AF70] focus:border-[#00AF70]"
+							}`}
 						/>
 						{errors.nik && (
-							<p className="text-red-500 text-sm mt-1">{errors.nik.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.nik.message}</p>
+							</div>
 						)}
 					</div>
 
@@ -149,10 +174,17 @@ export default function Register() {
 							type="email"
 							placeholder="Ardianita@example.com"
 							{...register("email")}
-							className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+							className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+								errors.email 
+									? "border-red-500 focus:border-red-500" 
+									: "border-[#00AF70] focus:border-[#00AF70]"
+							}`}
 						/>
 						{errors.email && (
-							<p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.email.message}</p>
+							</div>
 						)}
 					</div>
 
@@ -166,7 +198,11 @@ export default function Register() {
 								type={showPassword ? "text" : "password"}
 								placeholder="Minimal 8 karakter"
 								{...register("password")}
-								className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+								className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+									errors.password 
+										? "border-red-500 focus:border-red-500" 
+										: "border-[#00AF70] focus:border-[#00AF70]"
+								}`}
 							/>
 							<button
 								type="button"
@@ -181,7 +217,10 @@ export default function Register() {
 							</button>
 						</div>
 						{errors.password && (
-							<p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.password.message}</p>
+							</div>
 						)}
 					</div>
 
@@ -195,7 +234,11 @@ export default function Register() {
 								type={showConfirmPassword ? "text" : "password"}
 								placeholder="Minimal 8 karakter"
 								{...register("password_confirmation")}
-								className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+								className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+									errors.password_confirmation 
+										? "border-red-500 focus:border-red-500" 
+										: "border-[#00AF70] focus:border-[#00AF70]"
+								}`}
 							/>
 							<button
 								type="button"
@@ -210,7 +253,10 @@ export default function Register() {
 							</button>
 						</div>
 						{errors.password_confirmation && (
-							<p className="text-red-500 text-sm mt-1">{errors.password_confirmation.message}</p>
+							<div className="flex items-center gap-2 mt-2">
+								<span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+								<p className="text-red-500 text-sm">{errors.password_confirmation.message}</p>
+							</div>
 						)}
 					</div>
 

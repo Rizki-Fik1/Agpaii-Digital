@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import API from "@/utils/api/config";
 import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { getErrorMessage } from "@/utils/error-handler";
+import { useState } from "react";
 
 interface LoginFormData {
   nik: string;
@@ -15,20 +17,47 @@ interface LoginFormData {
 export default function LoginNikPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { register, handleSubmit } = useForm<LoginFormData>();
+  const { register, handleSubmit, watch } = useForm<LoginFormData>();
+  const [nikError, setNikError] = useState<string>("");
+  
+  const nikValue = watch("nik");
 
   const { mutate: submit, isPending: loading } = useMutation({
     mutationFn: async (data: LoginFormData) => {
+      // Validate NIK length
+      if (data.nik.length !== 16) {
+        throw new Error("NIK harus 16 digit");
+      }
+      
       const res = await API.post("/login", { nik: data.nik });
       if (res.status === 200) return res.data;
     },
-    onError: (err: any) => toast.error(err.message || "Login gagal"),
+    onError: (err: any) => {
+      const errorMessage = getErrorMessage(err, "login");
+      toast.error(errorMessage);
+    },
     onSuccess: async (data) => {
       localStorage.setItem("access_token", data?.access_token);
       await queryClient.invalidateQueries({ queryKey: ["auth"] });
       router.push("/");
     },
   });
+
+  const handleNikChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Only allow numbers
+    if (value && !/^\d+$/.test(value)) {
+      return;
+    }
+    
+    // Validate length
+    if (value.length > 0 && value.length < 16) {
+      setNikError("Nomor NIK Anda harus berisi setidaknya 16 angka.");
+    } else {
+      setNikError("");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -50,17 +79,32 @@ export default function LoginNikPage() {
             </label>
             <input
               type="text"
-              placeholder="Minimal 16 Karakter"
-              {...register("nik", { required: true, minLength: 16, maxLength: 16 })}
-              className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
+              placeholder="Minimal 16 karakter"
+              {...register("nik", { 
+                required: true, 
+                minLength: 16, 
+                maxLength: 16,
+                onChange: handleNikChange
+              })}
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none placeholder-gray-400 ${
+                nikError 
+                  ? "border-red-500 focus:border-red-500" 
+                  : "border-[#00AF70] focus:border-[#00AF70]"
+              }`}
               maxLength={16}
             />
+            {nikError && nikValue && nikValue.length < 16 && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-red-500 text-xl flex-shrink-0">⚠</span>
+                <p className="text-red-500 text-sm">{nikError}</p>
+              </div>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition disabled:opacity-50"
+            disabled={loading || nikValue?.length !== 16}
+            className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Loading..." : "Masuk"}
           </button>

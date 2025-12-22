@@ -27,6 +27,10 @@ const nextConfig = {
 			},
 			{
 				protocol: "https",
+				hostname: "file.agpaiidigital.org",
+			},
+			{
+				protocol: "https",
 				hostname: "via.placeholder.com",
 			},
 		],
