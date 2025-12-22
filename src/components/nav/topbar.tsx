@@ -5,17 +5,20 @@ import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline"; // For dots icon
+import Link from "next/link";
 
 export default function TopBar({
 	children,
 	withBackButton,
 	href,
 	dots,
+	kelolaButton,
 }: {
 	children?: ReactNode;
 	withBackButton?: boolean;
 	href?: string;
 	dots?: string;
+	kelolaButton?: string;
 }) {
 	const router = useRouter();
 
@@ -38,6 +41,21 @@ export default function TopBar({
 			<h1 className="text-white font-medium ml-3 flex-grow capitalize">
 				{children}
 			</h1>
+
+			{/* Kelola Button */}
+			{kelolaButton && (
+				<Link href={kelolaButton}>
+					<button className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-full transition-colors">
+						<img 
+							src="/svg/marketplace.svg" 
+							alt="Marketplace" 
+							className="w-5 h-5 object-contain"
+						/>
+						<span className="font-medium">Kelola</span>
+					</button>
+				</Link>
+			)}
+
 			{/* Menu Icon */}
 			{dots && (
 				<Menu>

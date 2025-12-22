@@ -137,17 +137,7 @@ export default function TypeEvent() {
           )}
         </div>
       </Modal>
-      <Link
-        href={"/event/new/"}
-        className="fixed bottom-6 md:bottom-8 md:right-8 right-6 flex"
-      >
-        <PlusIcon
-          className={clsx(
-            type !== "me" && "hidden",
-            "size-10 rounded-full p-2 bg-[#009788] text-white cursor-pointer"
-          )}
-        />
-      </Link>
+
       <TopBar withBackButton href="/">
         Acara
       </TopBar>
@@ -182,6 +172,38 @@ export default function TypeEvent() {
         >
           Acara Saya
         </div>
+      </div>
+      <div className="px-4 sm:px-6 mt-6 flex gap-3">
+        <div className="relative flex-grow">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+            />
+          </svg>
+
+          <input
+            type="text"
+            placeholder="Cari Acara..."
+            className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-full focus:outline-none focus:border-[#009788]"
+          />
+        </div>
+        {type === "me" && (
+          <Link
+            href="/event/new/"
+            className="flex-shrink-0 size-[50px] bg-[#009788] text-white rounded-full flex items-center justify-center hover:bg-[#007a6e] transition-colors"
+          >
+            <PlusIcon className="size-6" />
+          </Link>
+        )}
       </div>
       <div className="flex flex-col gap-4 px-4 sm:px-6 py-8">
         {events?.pages.map((page, index) => {

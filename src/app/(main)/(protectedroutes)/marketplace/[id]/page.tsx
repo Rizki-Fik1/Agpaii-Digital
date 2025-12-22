@@ -29,15 +29,12 @@ interface Product {
 }
 
 const ProductDetailPage: NextPage = () => {
-	const router = useRouter();
 	const { id } = useParams(); // Getting product ID from URL params
 	const [product, setProduct] = useState<Product | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
+	const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 
 	const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
-
-	// For auto-scrolling carousel
-	const carouselRef = useRef<HTMLDivElement>(null);
 
 	// Format price to Rupiah (without decimals)
 	const formatRupiah = (price: number) => {
@@ -93,27 +90,16 @@ const ProductDetailPage: NextPage = () => {
 	if (product?.foto_2) photos.push(`${STORAGE_URL}/${product.foto_2}`);
 	if (product?.foto_3) photos.push(`${STORAGE_URL}/${product.foto_3}`);
 
-	// Auto-scroll carousel (looping)
+	// Auto-change image every 3 seconds
 	useEffect(() => {
-		const container = carouselRef.current;
-		if (!container || photos.length === 0) return;
+		if (photos.length <= 1) return;
 
-		let index = 0;
-		const scrollNext = () => {
-			// Increase index and loop back when reaching the end
-			index = (index + 1) % photos.length;
-			const child = container.children[index] as HTMLElement;
-			if (child) {
-				container.scrollTo({
-					left: child.offsetLeft,
-					behavior: "smooth",
-				});
-			}
-		};
+		const interval = setInterval(() => {
+			setCurrentImageIndex((prevIndex) => (prevIndex + 1) % photos.length);
+		}, 3000);
 
-		const interval = setInterval(scrollNext, 3000);
 		return () => clearInterval(interval);
-	}, [photos]);
+	}, [photos.length]);
 
 	// Function to open WhatsApp with predefined message
 	const handleBuyNow = () => {
@@ -153,54 +139,97 @@ const ProductDetailPage: NextPage = () => {
 	console.log(product.deskripsi);
 
 	return (
-		<div className="pt-[4.2rem]">
-			<TopBar withBackButton>Martketplace</TopBar>
-			<div className="container mx-auto pb-20">
-				{/* Carousel Foto with auto-scroll and looping */}
-				<div
-					ref={carouselRef}
-					className="overflow-x-auto flex snap-x snap-mandatory scrollbar-hide">
-					{photos.map((uri, index) => (
+		<div className="pt-[4.2rem] bg-gray-50 min-h-screen">
+			<TopBar withBackButton>Marketplace</TopBar>
+			<div className="container mx-auto pb-24">
+				{/* Single Image Display (no scroll) */}
+				<div className="relative bg-gray-200 h-80 overflow-hidden">
+					{photos.length > 0 && (
 						<img
+							src={photos[currentImageIndex]}
+							alt={`Product photo ${currentImageIndex + 1}`}
+							className="w-full h-full object-cover"
+						/>
+					)}
+				</div>
+
+				{/* Carousel Indicators */}
+				<div className="flex justify-center gap-2 py-4 bg-white">
+					{photos.map((_, index) => (
+						<div
 							key={index}
-							src={uri}
-							alt={`Product photo ${index + 1}`}
-							className="w-full h-80 object-cover snap-start"
+							className={`h-2 rounded-full transition-all ${
+								index === currentImageIndex
+									? "w-8 bg-[#009788]"
+									: "w-2 bg-gray-300"
+							}`}
 						/>
 					))}
 				</div>
 
 				{/* Product Information */}
-				<div className="p-4">
-					<h1 className="text-2xl font-bold text-gray-800">{product.nama}</h1>
-					<p className="text-xl font-bold text-orange-500 mt-2">
-						{formatRupiah(product.harga)}
+				<div className="bg-white px-5 py-4">
+					{/* Title and Price */}
+					<div className="flex justify-between items-start mb-3">
+						<h1 className="text-xl font-bold text-gray-900 flex-1">
+							{product.nama}
+						</h1>
+						<p className="text-xl font-bold text-[#07806F] ml-4">
+							{formatRupiah(product.harga)}
+						</p>
+					</div>
+
+					{/* Seller Name */}
+					<p className="text-base text-gray-700 mb-1">
+						oleh {product.user?.name || "Nama Penjual Tidak Tersedia"}
 					</p>
-					<p className="text-sm text-gray-600 mt-1">
-						{formatDate(product.created_at)}
+
+					{/* Date Posted */}
+					<p className="text-sm text-gray-400 mb-3">
+						Di posting {formatDate(product.created_at)}
 					</p>
-					<p className="text-lg text-gray-700 mt-2">
-						{product.user?.name || "Nama Penjual Tidak Tersedia"}
-					</p>
-					<p className="text-md text-gray-700 mt-1">
-						Dikirim dari: {product.city?.name || "Kota tidak tersedia"}
-					</p>
-					<h2 className="text-xl font-semibold text-gray-800 mt-4">
+
+					{/* Shipping Location */}
+					<div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg mb-4 inline-flex">
+						<img 
+							src="/svg/delivery.svg" 
+							alt="Tasbih" 
+							className="w-6 h-4 object-contain"
+						/>
+						<span className="text-sm text-[#07806F] font-medium">
+							<span className="text-[#8F8F8F]">Dikirim dari:</span> {product.city?.name?.toUpperCase() || "KOTA TIDAK TERSEDIA"}
+						</span>
+					</div>
+
+					{/* Description Section */}
+					<h2 className="text-lg font-bold text-gray-900 mb-2">
 						Deskripsi Produk
 					</h2>
 					<p
-						className="text-gray-600 mt-2 text-justify"
+						className="text-gray-600 text-sm leading-relaxed"
 						style={{ whiteSpace: "pre-line" }}>
 						{product.deskripsi}
 					</p>
 				</div>
 			</div>
 
-			{/* Buy Now Button */}
-			<div className=" bottom-0 left-0 right-0 bg-green-600">
+			{/* Buy Now Button - Fixed at bottom */}
+			<div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-[480px] mx-auto">
 				<button
 					onClick={handleBuyNow}
-					className="w-full py-4 text-white font-bold">
+					className="w-full py-4 bg-[#07806F] hover:bg-[#076E5F] text-white font-bold rounded-full flex items-center justify-center gap-2 transition-colors">
+					<svg
+						className="w-6 h-6"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+						/>
+					</svg>
 					Beli Sekarang
 				</button>
 			</div>

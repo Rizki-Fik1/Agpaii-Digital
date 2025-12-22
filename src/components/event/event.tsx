@@ -1,4 +1,4 @@
-import { LinkIcon, TvIcon } from "@heroicons/react/24/outline";
+import { LinkIcon, CalendarDaysIcon, ArrowUpRightIcon } from "@heroicons/react/24/outline";
 import { MapPinIcon, TrashIcon, PencilIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import moment from "moment";
@@ -15,44 +15,47 @@ export default function Event({
   auth?: any;
   onDelete?: (id: string) => void;
 }) {
-
   const shouldShowButtons = type === "me" && event?.user_id === auth?.id;
 
-
   return (
-    <div className="shadow relative bg-white border border-slate-300 rounded-md">
-      {/* Delete Button */}
-      {shouldShowButtons && (
-        <div
-        onClick={() => onDelete && onDelete(event.id)}
-        className="p-2 px-3 bg-red-600 text-white absolute right-0 top-0 text-sm rounded-bl-md cursor-pointer z-50"
-      >
-        <TrashIcon className="size-5" />
-      </div>
-      )}
-      {/* End Delete Button */}
-
-      {/* Optional: Tombol Edit (update) */}
-      {shouldShowButtons && (
-        <Link
-          href={`/event/edit/${event.id}`}
-          className="p-2 px-3 bg-blue-600 text-white absolute right-12 top-0 text-sm rounded-bl-md cursor-pointer z-50"
-        >
-          <PencilIcon className="size-5" />
-        </Link>
-      )}
-
-      <div className="absolute pl-4 pr-5 py-2.5 rounded-tl-md w-full top-0 left-0 bg-white flex items-center gap-3 border border-slate-200">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-slate-100 relative">
         <img
           src={process.env.NEXT_PUBLIC_STORAGE_URL + "/" + event?.author.avatar}
-          className="size-6 rounded-full object-cover object-center"
-          alt={"-"}
+          className="size-10 rounded-full object-cover border border-slate-100"
+          alt={event?.author.name}
         />
-        <h1 className="text-sm font-medium text-slate-600">
-          {event?.author.name || "User"}
-        </h1>
+        <div>
+          <h1 className="text-sm font-semibold text-slate-800">
+            {event?.author.name || "User"}
+          </h1>
+          <p className="text-xs text-slate-500">
+            {event?.author.work_unit || "Guru AGPAII"}
+          </p>
+        </div>
+
+        {/* Action Buttons (Edit/Delete) */}
+        {shouldShowButtons && (
+          <div className="absolute right-4 top-4 flex gap-2">
+            <Link
+              href={`/event/edit/${event.id}`}
+              className="p-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+            >
+              <PencilIcon className="size-4" />
+            </Link>
+            <button
+              onClick={() => onDelete && onDelete(event.id)}
+              className="p-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+            >
+              <TrashIcon className="size-4" />
+            </button>
+          </div>
+        )}
       </div>
-      <div className="aspect-video overflow-hidden">
+
+      {/* Image */}
+      <div className="aspect-video w-full overflow-hidden bg-slate-50">
         <img
           src={
             event?.image !== null
@@ -60,42 +63,60 @@ export default function Event({
               : "/img/agpaii_splash.svg"
           }
           className={clsx(
-            "size-full object-cover rounded-t-md ",
-            event?.image == null ? "object-center mt-5" : "object-top"
+            "w-full h-full object-cover transition-transform hover:scale-105 duration-500",
+            event?.image == null && "p-8 object-contain opacity-50"
           )}
-          alt=""
+          alt={event?.name}
         />
       </div>
-      <div className="px-4 py-4">
-        <Link href={`/event/${event.id}`}>
-          <h1 className="font-semibold">{event?.name}</h1>
-          <p className="text-slate-600 text-sm">
-            {moment(event?.start_at).locale("id").format("LLL")}
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        <div>
+          <h2 className="font-bold text-slate-800 text-lg leading-tight line-clamp-2">
+            {event?.name}
+          </h2>
+          <p className="text-slate-500 text-xs mt-1">
+            {moment(event?.start_at).locale("id").format("D MMMM YYYY [pukul] HH:mm")}
           </p>
-        </Link>
-        <div className="flex flex-col pt-4 gap-y-3 *:!text-sm *:break-all *:items-start">
-          {event?.address !== "null" &&
-            event.address !== null &&
-            event?.address !== "Daring" && (
-              <div className="flex gap-3 pr-5 ">
-                <MapPinIcon className="text-[#009788] size-5 min-w-5" />
-                <h1 className="mt-0.5">{event?.address}</h1>
-              </div>
-            )}
-          {event?.link !== null && (
-            <div className="flex gap-3">
-              <LinkIcon className="text-[#009788] size-5 min-w-5" />
-              <Link href={event?.link} className="text-blue-500">
-                {event?.link}
-              </Link>
+        </div>
+
+        <div className="space-y-2 text-sm text-slate-600">
+          {event?.link && (
+            <div className="flex items-start gap-2.5">
+               <LinkIcon className="size-4 text-[#009788] mt-0.5 shrink-0" />
+               <a href={event.link} target="_blank" rel="noreferrer" className="text-[#009788] hover:underline truncate">
+                  {event.link}
+               </a>
             </div>
           )}
-          <div className="flex gap-3 text-slate-600">
-            <TvIcon className="size-5 text-[#009788] min-w-5" />
-            {event?.type == "Daring" || event?.type == "online_event"
-              ? "Daring"
-              : "Luring"}
+
+          <div className="flex items-center gap-2.5">
+            <CalendarDaysIcon className="size-4 text-[#009788] shrink-0" />
+            <span>
+              {event?.type === "Daring" || event?.type === "online_event"
+                ? "Daring"
+                : "Luring"}
+            </span>
           </div>
+
+          {(event?.address && event?.address !== "null" && event?.address !== "Daring") && (
+             <div className="flex items-center gap-2.5">
+                <MapPinIcon className="size-4 text-[#009788] shrink-0" />
+                <span className="truncate">{event.address}</span>
+             </div>
+          )}
+        </div>
+
+        {/* Footer/Action */}
+        <div className="flex justify-end pt-2">
+          <Link
+            href={`/event/${event.id}`}
+            className="flex items-center gap-1 bg-[#01574e] text-white px-4 py-1.5 rounded-full text-xs font-medium hover:bg-[#004d44] transition-colors"
+          >
+            Detail
+            <ArrowUpRightIcon className="size-3" />
+          </Link>
         </div>
       </div>
     </div>
