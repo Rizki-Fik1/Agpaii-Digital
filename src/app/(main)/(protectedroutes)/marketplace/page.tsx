@@ -105,41 +105,78 @@ const MarketplacePage: NextPage = () => {
 		<div className="pt-[4.2rem]">
 			<TopBar
 				withBackButton
-				dots="/marketplace/produk-saya">
-				Martketplace
+				kelolaButton="/marketplace/produk-saya">
+				Marketplace
 			</TopBar>
 			<div className="container mx-auto p-4">
-				{/* Banner Carousel */}
-				<div
-					className="relative overflow-hidden rounded-lg mb-4"
-					style={{ height: "250px" }}>
-					{banners.length > 0 && (
-						<img
-							src={`${STORAGE_URL}/${banners[currentIndex].foto}`}
-							alt="Banner"
-							className="w-full h-full object-contain rounded-lg"
-						/>
-					)}
-				</div>
-
 				{/* Search Bar */}
-				<div className="flex mb-4">
+				<div className="relative mb-4">
+					<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+						<svg
+							className="w-5 h-5 text-gray-400"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							/>
+						</svg>
+					</div>
 					<input
 						type="text"
 						value={searchText}
 						onChange={(e) => handleSearch(e.target.value)}
-						placeholder="Cari produk"
-						className="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none"
+						placeholder="Cari Produk..."
+						className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-200 bg-white shadow-sm"
 					/>
-					<button
-						className="bg-green-600 text-white px-4 rounded-r-lg"
-						onClick={() => {}}>
-						Tampilkan
-					</button>
+				</div>
+
+				{/* Banner Carousel */}
+				<div className="relative mb-6">
+					<div
+						className="relative overflow-hidden rounded-2xl bg-gray-200"
+						style={{ height: "200px" }}>
+						{banners.length > 0 && (
+							<img
+								src={`${STORAGE_URL}/${banners[currentIndex].foto}`}
+								alt="Banner"
+								className="w-full h-full object-cover rounded-2xl"
+							/>
+						)}
+					</div>
+					
+					{/* Indicator Dots */}
+					{banners.length > 0 && (
+						<div className="flex justify-center gap-2 mt-3">
+							{banners.map((_, index) => (
+								<div
+									key={index}
+									className={`h-2 rounded-full transition-all duration-300 ${
+										index === currentIndex
+											? "w-8 bg-[#009788]"
+											: "w-2 bg-gray-300"
+									}`}
+								/>
+							))}
+						</div>
+					)}
+				</div>
+
+				{/* Header Daftar Produk */}
+				<div className="mb-4">
+					<h2 className="text-xl font-bold text-gray-900">
+						Daftar Produk{" "}
+						<span className="text-gray-400 font-normal text-base">
+							Menampilkan {filteredData.filter((item) => item.id !== "dummy").length}
+						</span>
+					</h2>
 				</div>
 
 				{/* Grid Produk */}
-				<div className="grid grid-cols-2 gap-4">
+				<div className="grid grid-cols-2 gap-3">
 					{filteredData.map((item) => {
 						if (item.id === "dummy") {
 							return (
@@ -152,27 +189,27 @@ const MarketplacePage: NextPage = () => {
 							<Link
 								key={item.id}
 								href={`/marketplace/${item.id}`}>
-								<div className="bg-white rounded-lg shadow p-2 cursor-pointer hover:shadow-lg">
+								<div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
 									{item.foto && (
 										<img
 											src={`${STORAGE_URL}/${item.foto}`}
 											alt={item.nama}
-											className="w-full h-40 object-cover rounded-t-lg"
+											className="w-full h-40 object-cover"
 										/>
 									)}
-									<div className="p-2">
-										<h3 className="text-sm font-bold text-gray-800 truncate">
+									<div className="p-3">
+										<h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-1">
 											{item.nama}
 										</h3>
-										<p className="text-sm font-semibold text-orange-500 my-1">
-											{formatRupiah(item.harga ?? 0)}
-										</p>
-										<p className="text-xs text-gray-500 line-clamp-2">
+										<p className="text-xs text-gray-400 line-clamp-2 mb-1">
 											{item.deskripsi}
 										</p>
-										<div className="mt-2">
-											<p className="text-xs text-gray-600 truncate">
-												{item.user?.name || "Nama User Tidak Tersedia"}
+										<p className="text-xs text-gray-500 mb-2">
+											{item.user?.name || "Nama User Tidak Tersedia"}
+										</p>
+										<div className="flex justify-end">
+											<p className="text-sm font-bold text-[#009788]">
+												{formatRupiah(item.harga ?? 0)}
 											</p>
 										</div>
 									</div>
