@@ -568,8 +568,11 @@ export default function Home() {
 
       {/* Artikel Section */}
       <div className="w-full max-w-[480px] mx-auto px-4 py-4 bg-slate-50 mt-4">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-base sm:text-lg font-bold text-slate-700">Artikel</h2>
+          <Link href="/article" className="text-xs sm:text-sm text-[#009788] hover:underline">
+            Lihat Lainnya
+          </Link>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {articles?.length > 0 ? (
