@@ -377,8 +377,7 @@ export default function Home() {
                 <img src="/svg/iuran-aktif.svg" alt="Iuran Aktif" className="w-8 h-8" />
               </div>
               <div className="flex-1">
-                <p className="text-white font-semibold text-base mb-1">Sudah Membayar Iuran</p>
-                <p className="text-white font-medium text-sm">Kamu sekarang sudah memulai</p>
+                <p className="text-white font-semibold text-base mb-1">AGPAII Jaya, Guru Sejahtera</p>
               </div>
             </div>
           </div>
