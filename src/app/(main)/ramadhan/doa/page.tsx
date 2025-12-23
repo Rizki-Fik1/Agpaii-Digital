@@ -308,29 +308,106 @@ const data = {
 
 const DoaRamadhanPage = () => {
 	return (
-		<div className="p-6 bg-gray-50 min-h-screen pt-[5.21rem]">
+		<div className="bg-gradient-to-b from-emerald-50 to-white min-h-screen pt-[4.2rem]">
 			<TopBar withBackButton>Doa Ramadhan</TopBar>
-			{/* Judul Halaman */}
-
-			{/* Menampilkan daftar doa */}
-			{data.data.map((item) => (
-				<div
-					key={item.hari}
-					className="mb-6 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
-					<h2 className="text-xl font-semibold">
-						{item.judul} (Hari ke-{item.hari})
-					</h2>
-					<p className="mt-3 text-lg text-amber-600 leading-relaxed">
-						<strong>Arab:</strong> {item.arabic}
-					</p>
-					<p className="mt-2 text-gray-700 italic leading-relaxed">
-						<strong>Latin:</strong> {item.latin}
-					</p>
-					<p className="mt-2 text-gray-700 leading-relaxed">
-						<strong>Terjemah:</strong> {item.terjemah}
+			
+			<div className="max-w-4xl mx-auto px-4 py-6">
+				{/* Header Section */}
+				<div className="bg-gradient-to-r from-[#009788] to-[#00b894] rounded-2xl p-6 mb-6 text-white shadow-lg">
+					<div className="flex items-center gap-3 mb-2">
+						<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+							<path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+						</svg>
+						<h1 className="text-2xl font-bold">Doa Harian Ramadhan</h1>
+					</div>
+					<p className="text-emerald-50 text-sm">
+						Kumpulan doa untuk setiap hari di bulan suci Ramadhan
 					</p>
 				</div>
-			))}
+
+				{/* Doa Cards */}
+				{data.data.map((item) => (
+					<div
+						key={item.hari}
+						className="mb-5 bg-white rounded-2xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-100">
+						
+						{/* Card Header */}
+						<div className="bg-gradient-to-r from-[#009788] to-[#00b894] px-5 py-4">
+							<div className="flex items-center gap-3">
+								<div className="bg-white text-[#009788] rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-md">
+									{item.hari}
+								</div>
+								<div>
+									<h2 className="text-lg font-bold text-white">
+										Hari ke-{item.hari}
+									</h2>
+									<p className="text-emerald-100 text-sm">
+										Doa Puasa Ramadhan
+									</p>
+								</div>
+							</div>
+						</div>
+
+						{/* Card Content */}
+						<div className="p-5 space-y-4">
+							{/* Arabic Text */}
+							<div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4">
+								<div className="flex items-center gap-2 mb-3">
+									<svg className="w-5 h-5 text-[#009788]" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+									</svg>
+									<h3 className="font-bold text-[#009788]">Bacaan Arab</h3>
+								</div>
+								<p className="font-arabic text-right text-2xl leading-loose text-gray-800">
+									{item.arabic}
+								</p>
+							</div>
+
+							{/* Latin Text */}
+							{item.latin && (
+								<div className="bg-blue-50 rounded-xl p-4">
+									<div className="flex items-center gap-2 mb-2">
+										<svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+										</svg>
+										<h3 className="font-bold text-blue-800">Bacaan Latin</h3>
+									</div>
+									<p className="text-gray-700 italic leading-relaxed text-sm">
+										{item.latin}
+									</p>
+								</div>
+							)}
+
+							{/* Translation */}
+							<div className="bg-purple-50 rounded-xl p-4">
+								<div className="flex items-center gap-2 mb-2">
+									<svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+										<path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+									</svg>
+									<h3 className="font-bold text-purple-800">Terjemahan</h3>
+								</div>
+								<p className="text-gray-700 leading-relaxed text-sm">
+									{item.terjemah}
+								</p>
+							</div>
+						</div>
+					</div>
+				))}
+
+				{/* Footer */}
+				<div className="bg-white rounded-2xl p-6 text-center shadow-md border border-gray-100 mb-6">
+					<p className="text-gray-600 text-sm">
+						Semoga doa-doa ini diterima oleh Allah SWT
+					</p>
+					<p className="text-[#009788] font-semibold mt-2">
+						آمِيْنَ يَا رَبَّ الْعَالَمِيْنَ
+					</p>
+					<p className="text-gray-500 text-xs mt-1 italic">
+						(Aamiin ya Rabbal 'alamin)
+					</p>
+				</div>
+			</div>
 		</div>
 	);
 };
