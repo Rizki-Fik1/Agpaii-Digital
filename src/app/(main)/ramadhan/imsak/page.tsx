@@ -74,11 +74,10 @@ const ImsakRamadhan = () => {
 				let currentPage = 1;
 				let totalPages = 1;
 
-				// Fetch all pages
+				// Fetch all pages using internal API route to avoid CORS
 				while (currentPage <= totalPages) {
 					const response = await axios.get(
-						`${API_BASE_URL}/regencies?page=${currentPage}`,
-						{ headers: apiHeaders }
+						`/api/prayer-times/regencies?page=${currentPage}`
 					);
 					
 					if (response.data.is_success) {
@@ -143,11 +142,10 @@ const ImsakRamadhan = () => {
 			let currentPage = 1;
 			let totalPages = 1;
 
-			// Fetch all pages for the date range
+			// Fetch all pages using internal API route to avoid CORS
 			while (currentPage <= totalPages) {
 				const response = await axios.get(
-					`${API_BASE_URL}?regency_code=${regencyCode}&start_date=${startDate}&end_date=${endDate}&page=${currentPage}`,
-					{ headers: apiHeaders }
+					`/api/prayer-times/schedule?regency_code=${regencyCode}&start_date=${startDate}&end_date=${endDate}&page=${currentPage}`
 				);
 
 				if (response.data.is_success) {
