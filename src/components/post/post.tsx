@@ -54,7 +54,7 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
   // Delete state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletePending, setDeletePending] = useState(false);
-  const [isLiking, setIsLiking] = useState(false);
+  const [likeConfirmed, setLikeConfirmed] = useState(false);
   const youtubeId = getYoutubeId(post.youtube_url || "");
   
   const handlelikeUnlikePost = async () => {
@@ -76,19 +76,21 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
     mutationFn: handlelikeUnlikePost,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      setIsLiking(false);
+      setLikeConfirmed(false);
     },
     onError: () => {
-      setIsLiking(false);
+      setLikeConfirmed(false);
     },
   });
 
   const handleLikeClick = () => {
-    if (isLiking) {
-      toast.info("Tekan like sekali lagi");
+    if (!likeConfirmed) {
+      // Klik pertama: tampilkan notif dan set confirmed
+      toast.info("Silahkan tekan sekali lagi");
+      setLikeConfirmed(true);
       return;
     }
-    setIsLiking(true);
+    // Klik kedua: jalankan API
     likeUnlikePost();
   };
 
