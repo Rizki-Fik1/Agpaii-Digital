@@ -37,6 +37,7 @@ export default function OthersMenuPage() {
 				{ label: "Perangkat Ajar", icon: "/svg/ikon perangkat.svg", link: "/perangkat-ajar" },
 				{ label: "RPP Digital", icon: "/svg/ikon-rpp.svg", link: "/rpp" },
 				{ label: "Tryout", icon: "/svg/ikon try out.svg", link: "https://cbt.agpaiidigital.org" },
+				{label: "Modul Ajar",icon: "/svg/modul_digital.svg",link: "/modul-ajar"},
 			],
 		},
 		{
