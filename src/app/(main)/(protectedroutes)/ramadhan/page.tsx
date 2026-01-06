@@ -2,7 +2,7 @@
 
 import TopBar from "@/components/nav/topbar";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import moment from "moment";
 import "moment/locale/id";
@@ -16,6 +16,10 @@ import {
   BsBookHalf,
   BsListCheck,
   BsStarFill,
+  BsVolumeUpFill,
+  BsVolumeMuteFill,
+  BsPauseFill,
+  BsPlayFill,
 } from "react-icons/bs";
 import { 
   FaCalendarAlt, 
@@ -129,14 +133,22 @@ const RamadhanDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dailyQuote, setDailyQuote] = useState(ramadhanQuotes[0]);
   
-  // Ramadhan 1447H configuration (estimated: Feb 28 - Mar 29, 2026)
-  const ramadhanStartDate = new Date("2026-02-28");
-  const ramadhanEndDate = new Date("2026-03-29");
+  // Audio player state
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.3); // Default volume 30%
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  
+  // Ramadhan 1447H configuration (Feb 18 - Mar 19, 2026)
+  const ramadhanStartDate = new Date("2026-02-18T00:00:00");
+  const ramadhanEndDate = new Date("2026-03-19T23:59:59");
   
   const isRamadhan = currentTime >= ramadhanStartDate && currentTime <= ramadhanEndDate;
+  const isBeforeRamadhan = currentTime < ramadhanStartDate;
   const daysUntilRamadhan = Math.ceil((ramadhanStartDate.getTime() - currentTime.getTime()) / (1000 * 60 * 60 * 24));
   const currentRamadhanDay = isRamadhan 
-    ? Math.ceil((currentTime.getTime() - ramadhanStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    ? Math.floor((currentTime.getTime() - ramadhanStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
     : 0;
 
   // Quick actions menu
@@ -244,6 +256,95 @@ const RamadhanDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Audio player initialization and autoplay
+  useEffect(() => {
+    // Create audio element
+    const audio = new Audio("/audio/Ramadhan-sound.mp3");
+    audio.loop = true;
+    audio.volume = volume;
+    audioRef.current = audio;
+
+    // Load saved preferences from localStorage
+    const savedMuted = localStorage.getItem("ramadhan-audio-muted");
+    const savedVolume = localStorage.getItem("ramadhan-audio-volume");
+    
+    if (savedMuted === "true") {
+      setIsMuted(true);
+      audio.muted = true;
+    }
+    
+    if (savedVolume) {
+      const vol = parseFloat(savedVolume);
+      setVolume(vol);
+      audio.volume = vol;
+    }
+
+    // Try to autoplay
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          // Autoplay was prevented by browser
+          console.log("Autoplay prevented:", error);
+          setIsPlaying(false);
+        });
+    }
+
+    // Cleanup on unmount
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    };
+  }, []);
+
+  // Update audio volume when volume state changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      localStorage.setItem("ramadhan-audio-volume", volume.toString());
+    }
+  }, [volume]);
+
+  // Audio control functions
+  const togglePlay = useCallback(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch((e) => console.log("Play failed:", e));
+      }
+    }
+  }, [isPlaying]);
+
+  const toggleMute = useCallback(() => {
+    if (audioRef.current) {
+      const newMuted = !isMuted;
+      audioRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+      localStorage.setItem("ramadhan-audio-muted", newMuted.toString());
+    }
+  }, [isMuted]);
+
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (newVolume > 0 && isMuted) {
+      setIsMuted(false);
+      if (audioRef.current) {
+        audioRef.current.muted = false;
+      }
+      localStorage.setItem("ramadhan-audio-muted", "false");
+    }
+  }, [isMuted]);
+
   useEffect(() => {
     const fetchPrayerTimes = async () => {
       try {
@@ -307,6 +408,69 @@ const RamadhanDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-green-50 pt-[4.2rem] pb-6">
       <TopBar withBackButton>Ramadhan 1447H</TopBar>
 
+      {/* Floating Audio Control */}
+      <div className="fixed bottom-20 right-4 z-50">
+        <div 
+          className="relative"
+          onMouseEnter={() => setShowVolumeSlider(true)}
+          onMouseLeave={() => setShowVolumeSlider(false)}
+        >
+          {/* Volume Slider - appears on hover */}
+          {showVolumeSlider && (
+            <div className="absolute bottom-full right-0 mb-2 bg-white rounded-xl shadow-lg p-3 flex flex-col items-center gap-2 animate-fade-in">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-24 h-2 accent-teal-500 cursor-pointer"
+                style={{ writingMode: 'horizontal-tb' }}
+              />
+              <span className="text-xs text-gray-500">{Math.round(volume * 100)}%</span>
+            </div>
+          )}
+          
+          {/* Audio Control Buttons */}
+          <div className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full shadow-lg p-1">
+            {/* Play/Pause Button */}
+            <button
+              onClick={togglePlay}
+              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95"
+              title={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? (
+                <BsPauseFill className="w-5 h-5" />
+              ) : (
+                <BsPlayFill className="w-5 h-5" />
+              )}
+            </button>
+            
+            {/* Mute Button */}
+            <button
+              onClick={toggleMute}
+              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95"
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? (
+                <BsVolumeMuteFill className="w-5 h-5" />
+              ) : (
+                <BsVolumeUpFill className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          
+          {/* Playing Indicator */}
+          {isPlaying && !isMuted && (
+            <div className="absolute -top-1 -right-1 w-3 h-3">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
         {/* Hero Section - Countdown/Day Counter */}
         <div className="bg-gradient-to-br from-teal-600 via-emerald-600 to-green-700 rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden">
@@ -332,21 +496,21 @@ const RamadhanDashboard = () => {
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               {isRamadhan ? (
                 <>
-                  <p className="text-emerald-100 text-sm mb-1">Hari ke-</p>
-                  <p className="text-5xl font-bold mb-1">{currentRamadhanDay}</p>
-                  <p className="text-emerald-100 text-sm">Ramadhan 1447H</p>
+                  <p className="text-emerald-100 text-sm mb-1">Ramadhan 1447H</p>
+                  <p className="text-5xl font-bold mb-1">H {currentRamadhanDay}</p>
+                  <p className="text-emerald-100 text-sm">Selamat Menunaikan Ibadah Puasa</p>
                 </>
-              ) : daysUntilRamadhan > 0 ? (
+              ) : isBeforeRamadhan ? (
                 <>
                   <p className="text-emerald-100 text-sm mb-1">Menuju Ramadhan 1447H</p>
-                  <p className="text-5xl font-bold mb-1">{daysUntilRamadhan}</p>
-                  <p className="text-emerald-100 text-sm">Hari Lagi</p>
+                  <p className="text-5xl font-bold mb-1">H-{daysUntilRamadhan}</p>
+                  <p className="text-emerald-100 text-sm">Persiapkan Diri untuk Bulan Suci</p>
                 </>
               ) : (
                 <>
                   <p className="text-emerald-100 text-sm mb-1">Ramadhan 1447H</p>
                   <p className="text-2xl font-bold">Telah Berlalu</p>
-                  <p className="text-emerald-100 text-sm mt-1">Semoga berjumpa kembali</p>
+                  <p className="text-emerald-100 text-sm mt-1">Semoga berjumpa kembali tahun depan</p>
                 </>
               )}
             </div>
@@ -356,36 +520,54 @@ const RamadhanDashboard = () => {
         {/* Waktu Imsak & Berbuka */}
         <div className="grid grid-cols-2 gap-3">
           {/* Imsak Card */}
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg">
+          <div className={`bg-gradient-to-br rounded-2xl p-4 text-white shadow-lg transition-all ${isRamadhan ? 'from-indigo-500 to-purple-600' : 'from-gray-400 to-gray-500'}`}>
             <div className="flex items-center gap-2 mb-2">
               <BsMoonStarsFill className="w-5 h-5" />
               <span className="text-sm font-medium opacity-90">Imsak</span>
             </div>
-            <p className="text-3xl font-bold mb-1">
-              {loading ? "--:--" : prayerTimes?.imsak || "--:--"}
-            </p>
-            <p className="text-xs opacity-75">{cityName}</p>
-            {mounted && prayerTimes?.imsak && (
-              <p className="text-xs mt-2 opacity-90">
-                {formatTimeRemaining(prayerTimes.imsak)} lagi
-              </p>
+            {isRamadhan ? (
+              <>
+                <p className="text-3xl font-bold mb-1">
+                  {loading ? "--:--" : prayerTimes?.imsak || "--:--"}
+                </p>
+                <p className="text-xs opacity-75">{cityName}</p>
+                {mounted && prayerTimes?.imsak && (
+                  <p className="text-xs mt-2 opacity-90">
+                    {formatTimeRemaining(prayerTimes.imsak)} lagi
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-bold mb-1 opacity-60">--:--</p>
+                <p className="text-xs opacity-60">Aktif saat Ramadhan</p>
+              </>
             )}
           </div>
 
           {/* Berbuka Card */}
-          <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white shadow-lg">
+          <div className={`bg-gradient-to-br rounded-2xl p-4 text-white shadow-lg transition-all ${isRamadhan ? 'from-amber-500 to-orange-600' : 'from-gray-400 to-gray-500'}`}>
             <div className="flex items-center gap-2 mb-2">
               <BsSunsetFill className="w-5 h-5" />
               <span className="text-sm font-medium opacity-90">Berbuka</span>
             </div>
-            <p className="text-3xl font-bold mb-1">
-              {loading ? "--:--" : prayerTimes?.maghrib || "--:--"}
-            </p>
-            <p className="text-xs opacity-75">{cityName}</p>
-            {mounted && prayerTimes?.maghrib && (
-              <p className="text-xs mt-2 opacity-90">
-                {formatTimeRemaining(prayerTimes.maghrib)} lagi
-              </p>
+            {isRamadhan ? (
+              <>
+                <p className="text-3xl font-bold mb-1">
+                  {loading ? "--:--" : prayerTimes?.maghrib || "--:--"}
+                </p>
+                <p className="text-xs opacity-75">{cityName}</p>
+                {mounted && prayerTimes?.maghrib && (
+                  <p className="text-xs mt-2 opacity-90">
+                    {formatTimeRemaining(prayerTimes.maghrib)} lagi
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-bold mb-1 opacity-60">--:--</p>
+                <p className="text-xs opacity-60">Aktif saat Ramadhan</p>
+              </>
             )}
           </div>
         </div>
