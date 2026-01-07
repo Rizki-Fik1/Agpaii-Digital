@@ -194,7 +194,10 @@ const BacaBukuPage = () => {
                 <h3 className="text-base font-bold text-gray-800">Buku Terfavorit</h3>
                 <p className="text-[10px] text-gray-500">Paling banyak disukai</p>
               </div>
-              <button className="text-teal-600 text-sm font-medium hover:text-teal-700">
+              <button 
+                onClick={() => router.push("/baca-buku/semua?sort=likes")}
+                className="text-teal-600 text-sm font-medium hover:text-teal-700"
+              >
                 Lihat Semua
               </button>
             </div>
@@ -216,7 +219,10 @@ const BacaBukuPage = () => {
                 <h3 className="text-base font-bold text-gray-800">Buku Terlaris</h3>
                 <p className="text-[10px] text-gray-500">Paling banyak dilihat</p>
               </div>
-              <button className="text-teal-600 text-sm font-medium hover:text-teal-700">
+              <button 
+                onClick={() => router.push("/baca-buku/semua?sort=views")}
+                className="text-teal-600 text-sm font-medium hover:text-teal-700"
+              >
                 Lihat Semua
               </button>
             </div>
