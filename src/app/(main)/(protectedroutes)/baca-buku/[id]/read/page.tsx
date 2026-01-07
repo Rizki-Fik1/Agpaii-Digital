@@ -3,9 +3,10 @@
 import TopBar from "@/components/nav/topbar";
 import { useRouter, useParams } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { useAuth } from "@/utils/context/auth_context";
 import { getBookById, Book } from "@/constants/books-data";
 import { getUserBookById } from "@/utils/books-storage";
-import * as pdfjsLib from "pdfjs-dist";
 
 // React Icons
 import {
@@ -18,94 +19,120 @@ import {
 } from "react-icons/bs";
 import { HiOutlineBookOpen } from "react-icons/hi";
 
-// Set worker path
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+// Using iframe viewer instead of pdfjs worker. No worker setup required.
 
 const BookReaderPage = () => {
   const router = useRouter();
   const params = useParams();
   const bookId = params?.id as string;
-  
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL2 ||
+    "";
+
+  const { auth: user } = useAuth();
+
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
   const [scale, setScale] = useState(1);
-  const [pageImage, setPageImage] = useState<string | null>(null);
-  
-  const pdfDocRef = useRef<any>(null);
+  const [iframeError, setIframeError] = useState(false);
+  const iframeTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (bookId) {
-      // Try to find in user books first, then in dummy books
-      let foundBook = getUserBookById(bookId);
-      if (!foundBook) {
-        foundBook = getBookById(bookId);
+    const fetchBook = async () => {
+      if (!bookId) return;
+      setLoading(true);
+
+      if (!API_URL) {
+        // Fallback to local books
+        let foundBook = getUserBookById(bookId);
+        if (!foundBook) foundBook = getBookById(bookId);
+        setBook(foundBook || null);
+        setLoading(false);
+        return;
       }
-      setBook(foundBook || null);
-      setLoading(false);
-    }
-  }, [bookId]);
 
-  // Load PDF when book is available
+      try {
+        const token = localStorage.getItem("token");
+        const params: any = {};
+        if (user?.id) params.user_id = user.id;
+
+        const res = await axios.get(`${API_URL}/books/${bookId}`, {
+          params,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        const data = res.data?.data;
+        if (!data) {
+          setBook(null);
+          setLoading(false);
+          return;
+        }
+
+        const normalizeUrl = (path?: string | null) => {
+          if (!path) return undefined;
+          if (String(path).startsWith("http")) return String(path);
+          return `https://file.agpaiidigital.org/${String(path).replace(
+            /^\\/,
+            ""
+          )}`;
+        };
+
+        const mapped = {
+          id: String(data.id),
+          title: data.judul || data.title || "",
+          author: data.author?.name || data.author || "",
+          cover:
+            normalizeUrl(data.cover_path) ||
+            normalizeUrl(data.cover) ||
+            "/img/book-placeholder.png",
+          pdfUrl: data.file_path ? normalizeUrl(data.file_path) : undefined,
+          category: data.category?.name || data.category || "Umum",
+          description: data.deskripsi || data.description || "",
+        } as Book;
+
+        setBook(mapped);
+      } catch (err) {
+        console.error("Error fetching book:", err);
+        setBook(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBook();
+  }, [bookId, API_URL, user?.id]);
+
+  // Use iframe-based PDF viewer: toggle loading state and detect iframe failures
   useEffect(() => {
+    // clear any previous timeout
+    if (iframeTimeoutRef.current) {
+      window.clearTimeout(iframeTimeoutRef.current);
+      iframeTimeoutRef.current = null;
+    }
+
     if (book?.pdfUrl) {
-      loadPdf(book.pdfUrl);
+      setPdfLoading(true);
+      setIframeError(false);
+      // If iframe doesn't finish loading within 6s, mark as error and show fallback
+      iframeTimeoutRef.current = window.setTimeout(() => {
+        console.warn("iframe load timeout for PDF, switching to fallback");
+        setPdfLoading(false);
+        setIframeError(true);
+      }, 6000);
     } else {
       setPdfLoading(false);
+      setIframeError(false);
     }
+
+    return () => {
+      if (iframeTimeoutRef.current) {
+        window.clearTimeout(iframeTimeoutRef.current);
+        iframeTimeoutRef.current = null;
+      }
+    };
   }, [book]);
-
-  const loadPdf = async (url: string) => {
-    try {
-      setPdfLoading(true);
-      const loadingTask = pdfjsLib.getDocument(url);
-      const pdf = await loadingTask.promise;
-      pdfDocRef.current = pdf;
-      setTotalPages(pdf.numPages);
-      await renderPage(1, pdf);
-    } catch (error) {
-      console.error("Error loading PDF:", error);
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
-  const renderPage = async (pageNum: number, pdfDoc?: any) => {
-    const pdf = pdfDoc || pdfDocRef.current;
-    if (!pdf) return;
-
-    try {
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: scale * 2 }); // Higher quality
-
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-      if (!context) return;
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      await page.render({
-        canvasContext: context,
-        viewport: viewport,
-      }).promise;
-
-      setPageImage(canvas.toDataURL("image/jpeg", 0.9));
-    } catch (error) {
-      console.error("Error rendering page:", error);
-    }
-  };
-
-  const goToPage = (pageNum: number) => {
-    if (pageNum >= 1 && pageNum <= totalPages) {
-      setCurrentPage(pageNum);
-      renderPage(pageNum);
-    }
-  };
 
   const handleZoomIn = () => {
     const newScale = Math.min(scale + 0.25, 3);
@@ -117,20 +144,56 @@ const BookReaderPage = () => {
     setScale(newScale);
   };
 
-  // Re-render when scale changes
-  useEffect(() => {
-    if (pdfDocRef.current) {
-      renderPage(currentPage);
-    }
-  }, [scale]);
-
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (book?.pdfUrl) {
       const link = document.createElement("a");
       link.href = book.pdfUrl;
       link.download = `${book.title}.pdf`;
+      link.target = "_blank";
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
+      if (API_URL) {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.get(`${API_URL}/books/${bookId}/download`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+        } catch (err) {
+          console.log("API tracking skipped:", err);
+        }
+      }
     }
+  };
+
+  const openPdfInNewTab = async () => {
+    if (!book?.pdfUrl) return;
+
+    // Try to fetch with auth headers first (some storage requires Authorization)
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        book.pdfUrl,
+        token ? { headers: { Authorization: `Bearer ${token}` } } : ({} as any)
+      );
+      if (res.ok) {
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/pdf")) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          // revoke after a short delay
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+          return;
+        }
+      }
+    } catch (err) {
+      // ignore fetch errors and fallback to opening URL directly
+      console.log("fetch fallback failed, opening direct URL", err);
+    }
+
+    window.open(book.pdfUrl, "_blank");
   };
 
   if (loading) {
@@ -203,9 +266,7 @@ const BookReaderPage = () => {
             <h1 className="text-white font-medium text-sm line-clamp-1">
               {book.title}
             </h1>
-            <p className="text-teal-200 text-xs">
-              Halaman {currentPage} dari {totalPages}
-            </p>
+            <p className="text-teal-200 text-xs">{book.author}</p>
           </div>
           <button
             onClick={handleDownload}
@@ -216,7 +277,7 @@ const BookReaderPage = () => {
         </div>
       </div>
 
-      {/* PDF Viewer */}
+      {/* PDF Viewer (iframe) */}
       <div className="flex-1 pt-16 pb-20 overflow-auto">
         {pdfLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -225,58 +286,72 @@ const BookReaderPage = () => {
               <p className="text-gray-400 text-sm">Memuat dokumen...</p>
             </div>
           </div>
-        ) : pageImage ? (
-          <div className="flex justify-center p-4">
-            <img
-              src={pageImage}
-              alt={`Halaman ${currentPage}`}
-              className="max-w-full h-auto shadow-2xl"
-              style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}
-            />
+        ) : iframeError ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <HiOutlineBookOpen className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-300 mb-2">
+                Tidak dapat menampilkan PDF melalui iframe.
+              </p>
+              <p className="text-gray-400 text-sm mb-4">
+                Silakan buka di tab baru atau unduh untuk melihat dokumen.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => openPdfInNewTab()}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm"
+                >
+                  Buka di Tab Baru
+                </button>
+                <button
+                  onClick={() => handleDownload()}
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm"
+                >
+                  Unduh
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-400">Gagal memuat halaman</p>
+          <div className="flex justify-center p-4">
+            <div
+              className="w-full max-w-[720px] h-[80vh] bg-black overflow-hidden"
+              style={{
+                transform: `scale(${scale})`,
+                transformOrigin: "top center",
+              }}
+            >
+              <iframe
+                src={book.pdfUrl}
+                title={book.title}
+                onLoad={() => {
+                  if (iframeTimeoutRef.current) {
+                    window.clearTimeout(iframeTimeoutRef.current);
+                    iframeTimeoutRef.current = null;
+                  }
+                  setPdfLoading(false);
+                  setIframeError(false);
+                }}
+                onError={() => {
+                  if (iframeTimeoutRef.current) {
+                    window.clearTimeout(iframeTimeoutRef.current);
+                    iframeTimeoutRef.current = null;
+                  }
+                  console.warn("iframe error while loading PDF");
+                  setPdfLoading(false);
+                  setIframeError(true);
+                }}
+                className="w-full h-full"
+                style={{ border: 0 }}
+              />
+            </div>
           </div>
-        )}
+        )}{" "}
       </div>
 
       {/* Bottom Controls */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-800 border-t border-gray-700 px-4 py-3">
         <div className="max-w-[480px] mx-auto">
-          {/* Page Navigation */}
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage <= 1}
-              className="flex items-center gap-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm transition-colors"
-            >
-              <BsChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Sebelumnya</span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                value={currentPage}
-                onChange={(e) => goToPage(parseInt(e.target.value) || 1)}
-                className="w-14 px-2 py-1 text-center bg-gray-700 text-white rounded border border-gray-600 text-sm"
-              />
-              <span className="text-gray-400 text-sm">/ {totalPages}</span>
-            </div>
-
-            <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-              className="flex items-center gap-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm transition-colors"
-            >
-              <span className="hidden sm:inline">Selanjutnya</span>
-              <BsChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-
           {/* Zoom Controls */}
           <div className="flex items-center justify-center gap-4">
             <button

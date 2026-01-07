@@ -87,7 +87,9 @@ export function usePDFThumbnail(
       } catch (err) {
         if (!isCancelled) {
           console.error("Error generating PDF thumbnail:", err);
-          setError(err instanceof Error ? err.message : "Failed to generate thumbnail");
+          setError(
+            err instanceof Error ? err.message : "Failed to generate thumbnail"
+          );
         }
       } finally {
         if (!isCancelled) {

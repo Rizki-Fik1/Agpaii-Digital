@@ -3,7 +3,9 @@
 import TopBar from "@/components/nav/topbar";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, Suspense } from "react";
-import { dummyBooks, getMostLikedBooks, getMostViewedBooks, Book } from "@/constants/books-data";
+import axios from "axios";
+import { useAuth } from "@/utils/context/auth_context";
+import { Book } from "@/constants/books-data";
 import { getUserBooks } from "@/utils/books-storage";
 
 // React Icons
@@ -14,29 +16,94 @@ import { HiOutlineBookOpen } from "react-icons/hi";
 // Separate component that uses useSearchParams
 function SemuaBukuContent() {
   const router = useRouter();
+  const { auth: user } = useAuth();
   const searchParams = useSearchParams();
   const sortParam = searchParams.get("sort");
-  
+
   const [activeTab, setActiveTab] = useState<"all" | "likes" | "views">(
     sortParam === "likes" ? "likes" : sortParam === "views" ? "views" : "all"
   );
-  const [allBooks, setAllBooks] = useState<Book[]>(dummyBooks);
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load user books from localStorage on mount
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL2 ||
+    "";
+
+  // Fetch books from server and merge with local user books
+  const fetchBooks = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const userBooks = getUserBooks();
+
+      if (!API_URL) {
+        setAllBooks([...userBooks]);
+        return;
+      }
+
+      const params: any = { per_page: 100 }; // Adjust as needed
+
+      const res = await axios.get(`${API_URL}/books`, { params });
+      const data = res.data?.data || [];
+
+      const fetched: Book[] = data.map((b: any) => {
+        const normalizeUrl = (path?: string | null) => {
+          if (!path) return undefined;
+          if (String(path).startsWith("http")) return String(path);
+          return `https://file.agpaiidigital.org/${String(path).replace(
+            /^\\/,
+            ""
+          )}`;
+        };
+
+        const cover =
+          normalizeUrl(b.cover_path) ||
+          normalizeUrl(b.cover) ||
+          "/img/book-placeholder.png";
+        const pdfUrl = b.file_path ? normalizeUrl(b.file_path) : undefined;
+
+        return {
+          id: String(b.id),
+          title: b.judul || b.title || "",
+          author: b.author?.name || "",
+          cover,
+          pdfUrl,
+          category: b.category?.name || b.category || "Umum",
+          description: b.deskripsi || b.description || "",
+          likeCount: b.likes_count || 0,
+          viewCount: b.view_count || 0,
+          uploadDate: b.created_at || undefined,
+        };
+      });
+
+      setAllBooks([...userBooks, ...fetched]);
+    } catch (err) {
+      console.error("Failed to fetch books:", err);
+      setError("Gagal memuat buku dari server. Menampilkan buku lokal saja.");
+      setAllBooks([...getUserBooks()]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const userBooks = getUserBooks();
-    setAllBooks([...userBooks, ...dummyBooks]);
-  }, []);
+    fetchBooks();
+  }, [API_URL]);
 
   // Get sorted books based on active tab
   const getSortedBooks = () => {
+    const books = [...allBooks];
     switch (activeTab) {
       case "likes":
-        return [...allBooks].sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+        return books.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
       case "views":
-        return [...allBooks].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+        return books.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
       default:
-        return allBooks;
+        return books;
     }
   };
 
@@ -61,14 +128,14 @@ function SemuaBukuContent() {
     const gradients: { [key: string]: string } = {
       "Bahasa Inggris": "from-blue-400 to-blue-600",
       "Bahasa Indonesia": "from-red-400 to-rose-600",
-      "Matematika": "from-green-400 to-emerald-600",
-      "IPA": "from-cyan-400 to-teal-600",
-      "IPS": "from-amber-400 to-orange-600",
-      "PKn": "from-red-500 to-red-700",
+      Matematika: "from-green-400 to-emerald-600",
+      IPA: "from-cyan-400 to-teal-600",
+      IPS: "from-amber-400 to-orange-600",
+      PKn: "from-red-500 to-red-700",
       "Pendidikan Agama": "from-emerald-500 to-green-700",
       "Seni Budaya": "from-purple-400 to-violet-600",
-      "PJOK": "from-orange-400 to-red-600",
-      "Informatika": "from-indigo-400 to-blue-600",
+      PJOK: "from-orange-400 to-red-600",
+      Informatika: "from-indigo-400 to-blue-600",
     };
     return gradients[category] || "from-teal-500 to-emerald-600";
   };
@@ -76,7 +143,7 @@ function SemuaBukuContent() {
   // Book Card Component
   const BookCard = ({ book }: { book: Book }) => {
     const coverSrc = book.coverDataUrl || book.cover;
-    
+
     return (
       <div
         onClick={() => handleBookClick(book.id)}
@@ -90,24 +157,27 @@ function SemuaBukuContent() {
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
+              target.style.display = "none";
               if (target.nextElementSibling) {
-                (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                (target.nextElementSibling as HTMLElement).style.display =
+                  "flex";
               }
             }}
           />
-          
+
           {/* Fallback Placeholder */}
-          <div 
-            className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(book.category)} flex-col items-center justify-center p-2 text-white`}
-            style={{ display: 'none' }}
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(
+              book.category
+            )} flex-col items-center justify-center p-2 text-white`}
+            style={{ display: "none" }}
           >
             <span className="text-[8px] font-bold mb-1">{book.category}</span>
             <p className="text-[9px] text-center font-bold line-clamp-3 leading-tight px-1">
               {book.title}
             </p>
           </div>
-          
+
           {/* Stats Badge */}
           <div className="absolute bottom-1.5 left-1.5 right-1.5 flex justify-between">
             {activeTab === "likes" && (
@@ -124,7 +194,7 @@ function SemuaBukuContent() {
             )}
           </div>
         </div>
-        
+
         {/* Book Info */}
         <div className="mt-2 px-0.5">
           <p className="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight">
@@ -143,7 +213,7 @@ function SemuaBukuContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <TopBar withBackButton>Semua Buku</TopBar>
-      
+
       <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6">
         {/* Tab Filter */}
         <div className="bg-white sticky top-[3.8rem] z-40 px-4 py-3 border-b border-gray-100 shadow-sm">
@@ -186,15 +256,30 @@ function SemuaBukuContent() {
         {/* Books Count */}
         <div className="px-4 py-3">
           <p className="text-xs text-gray-500">
-            Menampilkan <span className="font-semibold text-gray-700">{sortedBooks.length}</span> buku
+            Menampilkan{" "}
+            <span className="font-semibold text-gray-700">
+              {sortedBooks.length}
+            </span>{" "}
+            buku
             {activeTab === "likes" && " (diurutkan berdasarkan jumlah suka)"}
             {activeTab === "views" && " (diurutkan berdasarkan jumlah dilihat)"}
           </p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-lg mx-4">
+            {error}
+          </div>
+        )}
+
         {/* Books Grid */}
         <div className="px-4">
-          {sortedBooks.length > 0 ? (
+          {loading && sortedBooks.length === 0 ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
+            </div>
+          ) : sortedBooks.length > 0 ? (
             <div className="grid grid-cols-3 gap-3">
               {sortedBooks.map((book) => (
                 <BookCard key={book.id} book={book} />
@@ -215,11 +300,13 @@ function SemuaBukuContent() {
 // Main page component with Suspense wrapper
 const SemuaBukuPage = () => {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        </div>
+      }
+    >
       <SemuaBukuContent />
     </Suspense>
   );

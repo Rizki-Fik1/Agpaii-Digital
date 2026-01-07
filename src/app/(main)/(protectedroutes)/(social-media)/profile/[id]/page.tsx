@@ -27,6 +27,7 @@ export default function Profile() {
   const { auth: auth } = useAuth();
   const { id } = useParams();
   const [postCount, setPostCount] = useState(0);
+  const [moduleCount, setModuleCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"foto" | "teks">("foto");
   const { ref, inView } = useInView();
 
@@ -174,10 +175,16 @@ export default function Profile() {
               <p className="font-bold text-lg text-slate-900">{postCount}</p>
               <p className="text-xs text-slate-500">Postingan</p>
             </div>
-            <div className="text-center">
-              <p className="font-bold text-lg text-slate-900">0</p>
+            <div
+              onClick={() => router.push(`/profile/${profile.id}/modules`)}
+              className="text-center cursor-pointer hover:opacity-80 transition"
+            >
+              <p className="font-bold text-lg text-slate-900">
+                {profile?.modules_learn_count ?? 0}
+              </p>
               <p className="text-xs text-slate-500">Modul</p>
             </div>
+
             <div className="text-center">
               <p className="font-bold text-lg text-slate-900">
                 {profile?.created_at.split("-")[0]}
@@ -241,8 +248,10 @@ export default function Profile() {
                       // Filter berdasarkan tab
                       // Tab "foto" = Foto & Video (images + YouTube)
                       // Tab "teks" = Teks & Dokumen (text-only + documents)
-                      if (activeTab === "foto" && !hasImage && !hasYoutube) return null;
-                      if (activeTab === "teks" && (hasImage || hasYoutube)) return null;
+                      if (activeTab === "foto" && !hasImage && !hasYoutube)
+                        return null;
+                      if (activeTab === "teks" && (hasImage || hasYoutube))
+                        return null;
 
                       return (
                         <Link
