@@ -14,6 +14,14 @@ interface LoginFormData {
   password: string;
 }
 
+// ================================================
+// 🎓 AKUN DUMMY SISWA UNTUK TESTING
+// Email: siswa@demo.com
+// Password: siswa123
+// ================================================
+const DUMMY_STUDENT_EMAIL = "siswa@demo.com";
+const DUMMY_STUDENT_PASSWORD = "siswa123";
+
 export default function LoginEmailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -21,6 +29,15 @@ export default function LoginEmailPage() {
 
   const { mutate: submit, isPending: loading } = useMutation({
     mutationFn: async (data: LoginFormData) => {
+      // Cek apakah login dengan akun dummy siswa
+      if (data.email === DUMMY_STUDENT_EMAIL && data.password === DUMMY_STUDENT_PASSWORD) {
+        // Set flag di localStorage untuk simulasi siswa
+        localStorage.setItem("demo_student_mode", "true");
+        return { access_token: "demo_student_token", is_demo_student: true };
+      }
+      
+      // Jika bukan akun dummy, hapus flag dan lanjut ke API biasa
+      localStorage.removeItem("demo_student_mode");
       const res = await API.post("/login", data);
       if (res.status === 200) return res.data;
     },
@@ -29,9 +46,16 @@ export default function LoginEmailPage() {
       toast.error(errorMessage);
     },
     onSuccess: async (data) => {
-      localStorage.setItem("access_token", data?.access_token);
-      await queryClient.invalidateQueries({ queryKey: ["auth"] });
-      router.push("/");
+      if (data?.is_demo_student) {
+        // Untuk akun demo siswa, langsung invalidate dan redirect ke kelas
+        await queryClient.invalidateQueries({ queryKey: ["auth"] });
+        toast.success("Login berhasil sebagai Siswa Demo!");
+        router.push("/kelas");
+      } else {
+        localStorage.setItem("access_token", data?.access_token);
+        await queryClient.invalidateQueries({ queryKey: ["auth"] });
+        router.push("/");
+      }
     },
   });
 
@@ -89,6 +113,13 @@ export default function LoginEmailPage() {
           >
             {loading ? "Loading..." : "Masuk"}
           </button>
+
+          {/* Demo Student Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <p className="text-sm font-medium text-blue-700 mb-2">🎓 Akun Demo Siswa:</p>
+            <p className="text-xs text-blue-600">Email: <span className="font-mono">siswa@demo.com</span></p>
+            <p className="text-xs text-blue-600">Password: <span className="font-mono">siswa123</span></p>
+          </div>
         </div>
 
         {/* Bottom Buttons */}
@@ -112,3 +143,4 @@ export default function LoginEmailPage() {
     </div>
   );
 }
+
