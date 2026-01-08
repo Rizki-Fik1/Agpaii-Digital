@@ -557,5 +557,134 @@ export const getClassById = (id: number): ClassInfo | undefined => {
   return MOCK_CLASSES.find((c) => c.id === id);
 };
 
+// ================================================
+// ATTENDANCE / PRESENSI FEATURE
+// ================================================
+
+// Interface siswa dalam satu kelas
+export interface StudentInClass {
+  id: number;
+  name: string;
+  nisn: string;
+}
+
+// Status kehadiran
+export type AttendanceStatus = "hadir" | "tidak_hadir" | "izin" | "sakit";
+
+// Interface record presensi
+export interface AttendanceRecord {
+  classId: number;
+  studentId: number;
+  date: string; // YYYY-MM-DD
+  status: AttendanceStatus;
+}
+
+// Mock data siswa per kelas
+export const MOCK_STUDENTS_BY_CLASS: { [classId: number]: StudentInClass[] } = {
+  1: [
+    { id: 101, name: "Ahmad Fauzan", nisn: "0012345601" },
+    { id: 102, name: "Siti Aisyah", nisn: "0012345602" },
+    { id: 103, name: "Muhammad Rizki", nisn: "0012345603" },
+    { id: 104, name: "Fatimah Azzahra", nisn: "0012345604" },
+    { id: 105, name: "Umar Hadi", nisn: "0012345605" },
+    { id: 106, name: "Khadijah Nur", nisn: "0012345606" },
+    { id: 107, name: "Ali Akbar", nisn: "0012345607" },
+    { id: 108, name: "Zahra Putri", nisn: "0012345608" },
+  ],
+  2: [
+    { id: 201, name: "Budi Santoso", nisn: "0012345701" },
+    { id: 202, name: "Dewi Lestari", nisn: "0012345702" },
+    { id: 203, name: "Eko Prasetyo", nisn: "0012345703" },
+    { id: 204, name: "Fitriani Wulandari", nisn: "0012345704" },
+    { id: 205, name: "Galih Pratama", nisn: "0012345705" },
+    { id: 206, name: "Hana Safitri", nisn: "0012345706" },
+  ],
+};
+
+// Mock data presensi (beberapa hari terakhir)
+export const MOCK_ATTENDANCE_RECORDS: AttendanceRecord[] = [
+  // Kelas 1 - 2026-01-06
+  { classId: 1, studentId: 101, date: "2026-01-06", status: "hadir" },
+  { classId: 1, studentId: 102, date: "2026-01-06", status: "hadir" },
+  { classId: 1, studentId: 103, date: "2026-01-06", status: "tidak_hadir" },
+  { classId: 1, studentId: 104, date: "2026-01-06", status: "hadir" },
+  { classId: 1, studentId: 105, date: "2026-01-06", status: "izin" },
+  { classId: 1, studentId: 106, date: "2026-01-06", status: "hadir" },
+  { classId: 1, studentId: 107, date: "2026-01-06", status: "hadir" },
+  { classId: 1, studentId: 108, date: "2026-01-06", status: "sakit" },
+  // Kelas 1 - 2026-01-07
+  { classId: 1, studentId: 101, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 102, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 103, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 104, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 105, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 106, date: "2026-01-07", status: "tidak_hadir" },
+  { classId: 1, studentId: 107, date: "2026-01-07", status: "hadir" },
+  { classId: 1, studentId: 108, date: "2026-01-07", status: "hadir" },
+  // Kelas 1 - 2026-01-08
+  { classId: 1, studentId: 101, date: "2026-01-08", status: "hadir" },
+  { classId: 1, studentId: 102, date: "2026-01-08", status: "izin" },
+  { classId: 1, studentId: 103, date: "2026-01-08", status: "hadir" },
+  { classId: 1, studentId: 104, date: "2026-01-08", status: "hadir" },
+  { classId: 1, studentId: 105, date: "2026-01-08", status: "hadir" },
+  { classId: 1, studentId: 106, date: "2026-01-08", status: "hadir" },
+  { classId: 1, studentId: 107, date: "2026-01-08", status: "sakit" },
+  { classId: 1, studentId: 108, date: "2026-01-08", status: "hadir" },
+  // Kelas 2 - 2026-01-06
+  { classId: 2, studentId: 201, date: "2026-01-06", status: "hadir" },
+  { classId: 2, studentId: 202, date: "2026-01-06", status: "hadir" },
+  { classId: 2, studentId: 203, date: "2026-01-06", status: "hadir" },
+  { classId: 2, studentId: 204, date: "2026-01-06", status: "tidak_hadir" },
+  { classId: 2, studentId: 205, date: "2026-01-06", status: "hadir" },
+  { classId: 2, studentId: 206, date: "2026-01-06", status: "hadir" },
+  // Kelas 2 - 2026-01-07
+  { classId: 2, studentId: 201, date: "2026-01-07", status: "hadir" },
+  { classId: 2, studentId: 202, date: "2026-01-07", status: "izin" },
+  { classId: 2, studentId: 203, date: "2026-01-07", status: "hadir" },
+  { classId: 2, studentId: 204, date: "2026-01-07", status: "hadir" },
+  { classId: 2, studentId: 205, date: "2026-01-07", status: "hadir" },
+  { classId: 2, studentId: 206, date: "2026-01-07", status: "hadir" },
+];
+
+// Helper: Get students in a class
+export const getStudentsInClass = (classId: number): StudentInClass[] => {
+  return MOCK_STUDENTS_BY_CLASS[classId] || [];
+};
+
+// Helper: Get attendance records for a class on a specific date
+export const getAttendanceByClassAndDate = (classId: number, date: string): AttendanceRecord[] => {
+  return MOCK_ATTENDANCE_RECORDS.filter(
+    (record) => record.classId === classId && record.date === date
+  );
+};
+
+// Helper: Get all attendance records for a specific student in a class
+export const getStudentAttendance = (classId: number, studentId: number): AttendanceRecord[] => {
+  return MOCK_ATTENDANCE_RECORDS.filter(
+    (record) => record.classId === classId && record.studentId === studentId
+  );
+};
+
+// Helper: Calculate attendance statistics for a student in a class
+export const getStudentAttendanceStats = (classId: number, studentId: number) => {
+  const records = getStudentAttendance(classId, studentId);
+  const total = records.length;
+  const hadir = records.filter((r) => r.status === "hadir").length;
+  const tidakHadir = records.filter((r) => r.status === "tidak_hadir").length;
+  const izin = records.filter((r) => r.status === "izin").length;
+  const sakit = records.filter((r) => r.status === "sakit").length;
+  const percentage = total > 0 ? Math.round((hadir / total) * 100) : 0;
+  
+  return { total, hadir, tidakHadir, izin, sakit, percentage };
+};
+
+// Helper: Get unique dates with attendance for a class
+export const getAttendanceDates = (classId: number): string[] => {
+  const dates = MOCK_ATTENDANCE_RECORDS
+    .filter((record) => record.classId === classId)
+    .map((record) => record.date);
+  return [...new Set(dates)].sort().reverse();
+};
+
 // Keep old MOCK_CLASS_INFO for backward compatibility
 export const MOCK_CLASS_INFO = MOCK_CLASSES[0];

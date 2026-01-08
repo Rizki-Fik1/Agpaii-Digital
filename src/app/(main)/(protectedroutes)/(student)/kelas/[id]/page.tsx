@@ -17,6 +17,10 @@ import {
   DocumentTextIcon,
   ChevronDownIcon,
   PlayIcon,
+  CalendarDaysIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -27,6 +31,10 @@ import {
   getClassById,
   Material,
   Exercise,
+  getAttendanceDates,
+  getAttendanceByClassAndDate,
+  MOCK_STUDENTS_BY_CLASS,
+  AttendanceStatus,
 } from "@/constants/student-data";
 import Link from "next/link";
 import { getImage } from "@/utils/function/function";
@@ -54,7 +62,7 @@ const InitialsAvatar = ({ name, size = "md", bgColor = "teal" }: { name: string;
   );
 };
 
-type TabType = "materi" | "latihan" | "diskusi" | "profile";
+type TabType = "materi" | "latihan" | "diskusi" | "kehadiran" | "profile";
 
 export default function KelasDetailPage() {
   const { auth } = useAuth();
@@ -92,8 +100,70 @@ export default function KelasDetailPage() {
     { id: "materi", label: "Materi", icon: <BookOpenIcon className="size-5" /> },
     { id: "latihan", label: "Latihan", icon: <ClipboardDocumentListIcon className="size-5" /> },
     { id: "diskusi", label: "Diskusi", icon: <ChatBubbleBottomCenterTextIcon className="size-5" /> },
+    { id: "kehadiran", label: "Hadir", icon: <CalendarDaysIcon className="size-5" /> },
     { id: "profile", label: "Profile", icon: <UserCircleIcon className="size-5" /> },
   ];
+
+  // Attendance data for student
+  const attendanceDates = getAttendanceDates(classId);
+  const students = MOCK_STUDENTS_BY_CLASS[classId] || [];
+  // Use first student as demo (in real app, use auth.id)
+  const demoStudentId = students[0]?.id;
+  
+  const attendanceRecords = attendanceDates.map((date) => {
+    const records = getAttendanceByClassAndDate(classId, date);
+    const studentRecord = records.find((r) => r.studentId === demoStudentId);
+    return {
+      date,
+      status: studentRecord?.status || null,
+    };
+  }).filter((r) => r.status !== null);
+  
+  const attendanceStats = {
+    total: attendanceRecords.length,
+    hadir: attendanceRecords.filter((r) => r.status === "hadir").length,
+    tidakHadir: attendanceRecords.filter((r) => r.status === "tidak_hadir").length,
+    izin: attendanceRecords.filter((r) => r.status === "izin").length,
+    sakit: attendanceRecords.filter((r) => r.status === "sakit").length,
+  };
+  const attendancePercentage = attendanceStats.total > 0 
+    ? Math.round((attendanceStats.hadir / attendanceStats.total) * 100) 
+    : 0;
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("id-ID", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getStatusIcon = (status: AttendanceStatus) => {
+    switch (status) {
+      case "hadir":
+        return <CheckCircleIcon className="size-5 text-green-500" />;
+      case "tidak_hadir":
+        return <XCircleIcon className="size-5 text-red-500" />;
+      case "izin":
+        return <ClockIcon className="size-5 text-blue-500" />;
+      case "sakit":
+        return <ExclamationTriangleIcon className="size-5 text-orange-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusLabel = (status: AttendanceStatus) => {
+    switch (status) {
+      case "hadir": return "Hadir";
+      case "tidak_hadir": return "Tidak Hadir";
+      case "izin": return "Izin";
+      case "sakit": return "Sakit";
+      default: return "-";
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -425,6 +495,110 @@ export default function KelasDetailPage() {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Kehadiran Tab */}
+        {activeTab === "kehadiran" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-slate-700 mb-4">Riwayat Kehadiran</h2>
+            
+            {/* Summary Card */}
+            <div className={clsx(
+              "rounded-xl p-4 shadow-sm border",
+              attendancePercentage >= 80 
+                ? "bg-green-50 border-green-200"
+                : attendancePercentage >= 60
+                ? "bg-yellow-50 border-yellow-200"
+                : "bg-red-50 border-red-200"
+            )}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-slate-700">Total Kehadiran</span>
+                <span className={clsx(
+                  "text-2xl font-bold",
+                  attendancePercentage >= 80 
+                    ? "text-green-600"
+                    : attendancePercentage >= 60
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                )}>
+                  {attendancePercentage}%
+                </span>
+              </div>
+              <div className="w-full bg-white/50 rounded-full h-3">
+                <div 
+                  className={clsx(
+                    "h-3 rounded-full transition-all",
+                    attendancePercentage >= 80 
+                      ? "bg-green-500"
+                      : attendancePercentage >= 60
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
+                  )}
+                  style={{ width: `${attendancePercentage}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs mt-2 text-slate-500">
+                <span>Hadir {attendanceStats.hadir} dari {attendanceStats.total} hari</span>
+                <span>
+                  {attendanceStats.izin > 0 && `${attendanceStats.izin} izin`}
+                  {attendanceStats.sakit > 0 && `, ${attendanceStats.sakit} sakit`}
+                </span>
+              </div>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-green-600">{attendanceStats.hadir}</p>
+                <p className="text-[10px] text-green-700">Hadir</p>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-red-600">{attendanceStats.tidakHadir}</p>
+                <p className="text-[10px] text-red-700">Tidak</p>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-blue-600">{attendanceStats.izin}</p>
+                <p className="text-[10px] text-blue-700">Izin</p>
+              </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-orange-600">{attendanceStats.sakit}</p>
+                <p className="text-[10px] text-orange-700">Sakit</p>
+              </div>
+            </div>
+            
+            {/* History List */}
+            <div>
+              <h3 className="text-sm font-medium text-slate-500 mb-3">Detail per Tanggal</h3>
+              <div className="space-y-2">
+                {attendanceRecords.length > 0 ? (
+                  attendanceRecords.map((record, index) => (
+                    <div 
+                      key={index}
+                      className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        {getStatusIcon(record.status as AttendanceStatus)}
+                        <span className="text-sm text-slate-700">{formatDate(record.date)}</span>
+                      </div>
+                      <span className={clsx(
+                        "text-xs font-medium px-2 py-1 rounded-full",
+                        record.status === "hadir" && "bg-green-100 text-green-700",
+                        record.status === "tidak_hadir" && "bg-red-100 text-red-700",
+                        record.status === "izin" && "bg-blue-100 text-blue-700",
+                        record.status === "sakit" && "bg-orange-100 text-orange-700"
+                      )}>
+                        {getStatusLabel(record.status as AttendanceStatus)}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-sm text-slate-500 py-8">
+                    Belum ada data kehadiran
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
