@@ -32,9 +32,14 @@ import {
   Material,
   Exercise,
   Question,
+  searchRegisteredStudents,
+  RegisteredStudent,
+  StudentInClass,
 } from "@/constants/student-data";
 
-type TabType = "presensi" | "materi" | "latihan" | "rekap";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+
+type TabType = "siswa" | "presensi" | "materi" | "latihan";
 
 // Status options for attendance
 const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string; icon: React.ReactNode }[] = [
@@ -50,7 +55,7 @@ export default function KelasGuruDetailPage() {
   const classInfo = getClassById(classId);
   const students = getStudentsInClass(classId);
   
-  const [activeTab, setActiveTab] = useState<TabType>("presensi");
+  const [activeTab, setActiveTab] = useState<TabType>("siswa");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -73,6 +78,34 @@ export default function KelasGuruDetailPage() {
   // Local materials & exercises state (for demo)
   const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
   const [exercises, setExercises] = useState<Exercise[]>(MOCK_EXERCISES);
+  
+  // Student management state
+  const [classStudents, setClassStudents] = useState<RegisteredStudent[]>([]);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [studentSearch, setStudentSearch] = useState("");
+  const [studentSearchResults, setStudentSearchResults] = useState<RegisteredStudent[]>([]);
+  
+  // Search students handler - filter by class school
+  const handleStudentSearch = (query: string) => {
+    setStudentSearch(query);
+    if (query.length >= 2 && classInfo) {
+      const excludeIds = classStudents.map((s) => s.id);
+      const results = searchRegisteredStudents(query, classInfo.school, excludeIds);
+      setStudentSearchResults(results);
+    } else {
+      setStudentSearchResults([]);
+    }
+  };
+  
+  const addStudentToClass = (student: RegisteredStudent) => {
+    setClassStudents([...classStudents, student]);
+    setStudentSearch("");
+    setStudentSearchResults([]);
+  };
+  
+  const removeStudentFromClass = (studentId: number) => {
+    setClassStudents(classStudents.filter((s) => s.id !== studentId));
+  };
   
   // Modal states
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
@@ -298,10 +331,10 @@ export default function KelasGuruDetailPage() {
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-200 overflow-x-auto">
         {[
+          { id: "siswa" as TabType, label: "Siswa" },
           { id: "presensi" as TabType, label: "Presensi" },
           { id: "materi" as TabType, label: "Materi" },
           { id: "latihan" as TabType, label: "Latihan" },
-          { id: "rekap" as TabType, label: "Rekap" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -320,6 +353,73 @@ export default function KelasGuruDetailPage() {
 
       {/* Content */}
       <div className="p-4">
+        {/* Siswa Tab */}
+        {activeTab === "siswa" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-slate-700">Daftar Siswa ({classStudents.length + students.length})</h3>
+              <button
+                onClick={() => setShowAddStudentModal(true)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                <PlusIcon className="size-4" />
+                Tambah Siswa
+              </button>
+            </div>
+            
+            {/* Combined students list */}
+            {(classStudents.length + students.length) === 0 ? (
+              <div className="text-center py-8 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                <UserGroupIcon className="size-12 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">Belum ada siswa terdaftar</p>
+                <p className="text-xs text-slate-400">Klik "Tambah Siswa" untuk menambahkan</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {/* Existing students from mock data */}
+                {students.map((student, index) => (
+                  <div key={`existing-${student.id}`} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-slate-700">{student.name}</p>
+                          <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Added students */}
+                {classStudents.map((student, index) => (
+                  <div key={`added-${student.id}`} className="bg-green-50 border border-green-200 rounded-xl p-3 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold">
+                          {students.length + index + 1}
+                        </span>
+                        <div>
+                          <p className="font-medium text-slate-700">{student.name}</p>
+                          <p className="text-xs text-slate-400">NISN: {student.nisn} • {student.school}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeStudentFromClass(student.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                      >
+                        <TrashIcon className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Presensi Tab */}
         {activeTab === "presensi" && (
           <>
@@ -356,45 +456,74 @@ export default function KelasGuruDetailPage() {
                 <span className="text-xs text-slate-500">{stats.filled}/{stats.total} terisi</span>
               </div>
               
-              {students.map((student, index) => (
-                <div key={student.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="w-7 h-7 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="font-medium text-slate-700">{student.name}</p>
-                      <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
+              {/* Scrollable student list */}
+              <div className="max-h-[400px] overflow-y-auto space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                {students.map((student, index) => (
+                  <div key={student.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-7 h-7 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="font-medium text-slate-700">{student.name}</p>
+                        <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-2">
+                      {STATUS_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleStatusChange(student.id, option.value)}
+                          className={clsx(
+                            "flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition text-xs",
+                            attendanceData[student.id] === option.value
+                              ? option.value === "hadir"
+                                ? "border-green-500 bg-green-50"
+                                : option.value === "tidak_hadir"
+                                ? "border-red-500 bg-red-50"
+                                : option.value === "izin"
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-orange-500 bg-orange-50"
+                              : "border-slate-200 hover:border-slate-300"
+                          )}
+                        >
+                          <span className={option.color}>{option.icon}</span>
+                          <span className={clsx("font-medium", attendanceData[student.id] === option.value ? option.color : "text-slate-500")}>
+                            {option.label}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-4 gap-2">
-                    {STATUS_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleStatusChange(student.id, option.value)}
-                        className={clsx(
-                          "flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition text-xs",
-                          attendanceData[student.id] === option.value
-                            ? option.value === "hadir"
-                              ? "border-green-500 bg-green-50"
-                              : option.value === "tidak_hadir"
-                              ? "border-red-500 bg-red-50"
-                              : option.value === "izin"
-                              ? "border-blue-500 bg-blue-50"
-                              : "border-orange-500 bg-orange-50"
-                            : "border-slate-200 hover:border-slate-300"
-                        )}
-                      >
-                        <span className={option.color}>{option.icon}</span>
-                        <span className={clsx("font-medium", attendanceData[student.id] === option.value ? option.color : "text-slate-500")}>
-                          {option.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Rekap Kehadiran */}
+            <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <h4 className="font-medium text-slate-700 mb-3">Rekap Kehadiran</h4>
+              <div className="grid grid-cols-4 gap-2">
+                <div className="bg-green-100 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-green-600">{stats.hadir}</p>
+                  <p className="text-[10px] text-green-700">Hadir</p>
                 </div>
-              ))}
+                <div className="bg-red-100 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-red-600">{stats.tidakHadir}</p>
+                  <p className="text-[10px] text-red-700">Tidak Hadir</p>
+                </div>
+                <div className="bg-blue-100 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-blue-600">{stats.izin}</p>
+                  <p className="text-[10px] text-blue-700">Izin</p>
+                </div>
+                <div className="bg-orange-100 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-orange-600">{stats.sakit}</p>
+                  <p className="text-[10px] text-orange-700">Sakit</p>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 text-center mt-3">
+                {stats.filled} dari {stats.total} siswa tercatat
+              </p>
             </div>
           </>
         )}
@@ -516,58 +645,6 @@ export default function KelasGuruDetailPage() {
                 ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Rekap Tab */}
-        {activeTab === "rekap" && (
-          <div className="space-y-4">
-            <h3 className="font-medium text-slate-700">Rekap Kehadiran</h3>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold text-green-600">{stats.hadir}</p>
-                <p className="text-xs text-green-700">Hadir</p>
-              </div>
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold text-red-600">{stats.tidakHadir}</p>
-                <p className="text-xs text-red-700">Tidak Hadir</p>
-              </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold text-blue-600">{stats.izin}</p>
-                <p className="text-xs text-blue-700">Izin</p>
-              </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold text-orange-600">{stats.sakit}</p>
-                <p className="text-xs text-orange-700">Sakit</p>
-              </div>
-            </div>
-            
-            <div className="mt-6">
-              <h4 className="text-sm font-medium text-slate-500 mb-3">Riwayat Tanggal</h4>
-              <div className="space-y-2">
-                {getAttendanceDates(classId).slice(0, 5).map((date) => {
-                  const records = getAttendanceByClassAndDate(classId, date);
-                  const hadirCount = records.filter((r) => r.status === "hadir").length;
-                  
-                  return (
-                    <button
-                      key={date}
-                      onClick={() => {
-                        handleDateChange(date);
-                        setActiveTab("presensi");
-                      }}
-                      className="w-full flex items-center justify-between bg-slate-50 rounded-lg px-4 py-3 hover:bg-slate-100 transition"
-                    >
-                      <span className="text-sm text-slate-700">{formatDate(date)}</span>
-                      <span className="text-xs text-green-600 font-medium">
-                        {hadirCount}/{records.length} hadir
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
       </div>
@@ -849,6 +926,99 @@ export default function KelasGuruDetailPage() {
               >
                 Simpan Latihan ({newQuestions.length} soal)
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Student Modal */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => {
+            setShowAddStudentModal(false);
+            setStudentSearch("");
+            setStudentSearchResults([]);
+          }} />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-700">Tambah Siswa</h3>
+              <button 
+                onClick={() => {
+                  setShowAddStudentModal(false);
+                  setStudentSearch("");
+                  setStudentSearchResults([]);
+                }} 
+                className="p-1 hover:bg-slate-100 rounded-full"
+              >
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Search Input */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Cari Siswa
+                </label>
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => handleStudentSearch(e.target.value)}
+                    placeholder="Cari nama atau NISN siswa..."
+                    className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 placeholder-slate-400"
+                    autoFocus
+                  />
+                </div>
+                {studentSearch.length > 0 && studentSearch.length < 2 && (
+                  <p className="text-xs text-slate-400 mt-1">Ketik minimal 2 karakter</p>
+                )}
+              </div>
+              
+              {/* Search Results */}
+              {studentSearchResults.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-500">Hasil Pencarian ({studentSearchResults.length})</p>
+                  {studentSearchResults.map((student) => (
+                    <div 
+                      key={student.id}
+                      className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                          <span className="text-teal-600 font-bold text-lg">
+                            {student.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700">{student.name}</p>
+                          <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
+                          <p className="text-xs text-slate-400">{student.school}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => addStudentToClass(student)}
+                        className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+                      >
+                        Tambah
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : studentSearch.length >= 2 ? (
+                <div className="text-center py-6 bg-slate-50 rounded-lg">
+                  <p className="text-sm text-slate-500">Tidak ada siswa dengan nama tersebut di {classInfo?.school}</p>
+                  <p className="text-xs text-slate-400 mt-1">Pastikan siswa sudah mendaftar dan memilih sekolah yang sama</p>
+                </div>
+              ) : null}
+              
+              {/* Info */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                <p className="text-xs text-blue-700">
+                  <strong>Tips:</strong> Cari berdasarkan nama lengkap atau NISN siswa. Siswa harus mendaftar terlebih dahulu melalui aplikasi.
+                </p>
+              </div>
             </div>
           </div>
         </div>

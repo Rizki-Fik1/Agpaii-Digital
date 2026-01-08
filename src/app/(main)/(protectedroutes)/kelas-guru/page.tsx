@@ -7,6 +7,7 @@ import {
   UserGroupIcon,
   BookOpenIcon,
   ClipboardDocumentListIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { MOCK_CLASSES, getStudentsInClass, MOCK_MATERIALS, MOCK_EXERCISES } from "@/constants/student-data";
@@ -23,14 +24,24 @@ export default function KelasGuruListPage() {
     <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Link href="/" className="p-1">
-            <ChevronLeftIcon className="size-6" />
-          </Link>
-          <div>
-            <h1 className="text-lg font-semibold">Kelas Saya</h1>
-            <p className="text-xs text-teal-100">Kelola kelas dan presensi siswa</p>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="p-1">
+              <ChevronLeftIcon className="size-6" />
+            </Link>
+            <div>
+              <h1 className="text-lg font-semibold">Kelas Saya</h1>
+              <p className="text-xs text-teal-100">Kelola kelas dan presensi siswa</p>
+            </div>
           </div>
+          {/* Add Class Button */}
+          <Link 
+            href="/kelas-guru/tambah" 
+            className="bg-white hover:bg-white/90 text-teal-600 rounded-lg px-3 py-2 flex items-center gap-1 text-sm font-medium transition"
+          >
+            <PlusIcon className="size-5" />
+            <span className="hidden sm:inline">Tambah</span>
+          </Link>
         </div>
         
         {/* Summary Card */}
@@ -90,11 +101,10 @@ export default function KelasGuruListPage() {
         {/* Info Text */}
         <div className="mt-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
           <p className="text-xs text-slate-500 text-center">
-            Klik pada kelas untuk mengelola presensi, materi, dan latihan soal
+            Klik pada kelas untuk mengelola siswa, presensi, materi, dan latihan soal
           </p>
         </div>
       </div>
     </div>
   );
 }
-
