@@ -686,5 +686,85 @@ export const getAttendanceDates = (classId: number): string[] => {
   return [...new Set(dates)].sort().reverse();
 };
 
+// ================================================
+// MOCK SCHOOLS DATA
+// ================================================
+
+export interface School {
+  id: number;
+  name: string;
+  city: string;
+  type: "SMP" | "SMA" | "SMK" | "MI" | "MTs" | "MA";
+}
+
+export const MOCK_SCHOOLS: School[] = [
+  { id: 1, name: "SMKN 1 Semarang", city: "Semarang", type: "SMK" },
+  { id: 2, name: "SMAN 1 Semarang", city: "Semarang", type: "SMA" },
+  { id: 3, name: "SMPN 1 Semarang", city: "Semarang", type: "SMP" },
+  { id: 4, name: "MAN 1 Semarang", city: "Semarang", type: "MA" },
+  { id: 5, name: "MTsN 1 Semarang", city: "Semarang", type: "MTs" },
+  { id: 6, name: "SMKN 2 Surabaya", city: "Surabaya", type: "SMK" },
+  { id: 7, name: "SMAN 1 Surabaya", city: "Surabaya", type: "SMA" },
+  { id: 8, name: "SMPN 1 Jakarta", city: "Jakarta", type: "SMP" },
+  { id: 9, name: "SMAN 8 Jakarta", city: "Jakarta", type: "SMA" },
+  { id: 10, name: "SMKN 1 Bandung", city: "Bandung", type: "SMK" },
+  { id: 11, name: "MAN 1 Yogyakarta", city: "Yogyakarta", type: "MA" },
+  { id: 12, name: "SMPN 1 Malang", city: "Malang", type: "SMP" },
+];
+
+// Search schools by name
+export const searchSchools = (query: string): School[] => {
+  if (!query || query.length < 2) return [];
+  const lowerQuery = query.toLowerCase();
+  return MOCK_SCHOOLS.filter(
+    (school) =>
+      school.name.toLowerCase().includes(lowerQuery) ||
+      school.city.toLowerCase().includes(lowerQuery)
+  ).slice(0, 5);
+};
+
+// Student registration status (for demo - whether registered by teacher to a class)
+export const MOCK_STUDENT_REGISTERED_TO_CLASS = false;
+
+// ================================================
+// REGISTERED STUDENTS (siswa yang sudah daftar, belum masuk kelas)
+// ================================================
+
+export interface RegisteredStudent {
+  id: number;
+  name: string;
+  email: string;
+  nisn: string;
+  school: string;
+  registeredAt: string;
+}
+
+// Siswa yang sudah mendaftar tapi belum didaftarkan ke kelas oleh guru
+export const MOCK_REGISTERED_STUDENTS: RegisteredStudent[] = [
+  { id: 101, name: "Ahmad Fauzi", email: "ahmad.fauzi@siswa.id", nisn: "0012345678", school: "SMKN 1 Semarang", registeredAt: "2024-01-05" },
+  { id: 102, name: "Siti Aminah", email: "siti.aminah@siswa.id", nisn: "0012345679", school: "SMKN 1 Semarang", registeredAt: "2024-01-06" },
+  { id: 103, name: "Budi Santoso", email: "budi.santoso@siswa.id", nisn: "0012345680", school: "SMKN 1 Semarang", registeredAt: "2024-01-07" },
+  { id: 104, name: "Dewi Lestari", email: "dewi.lestari@siswa.id", nisn: "0012345681", school: "SMKN 1 Semarang", registeredAt: "2024-01-08" },
+  { id: 105, name: "Rizky Pratama", email: "rizky.pratama@siswa.id", nisn: "0012345682", school: "SMKN 1 Semarang", registeredAt: "2024-01-09" },
+  { id: 106, name: "Nur Hidayah", email: "nur.hidayah@siswa.id", nisn: "0012345683", school: "SMKN 1 Semarang", registeredAt: "2024-01-10" },
+  { id: 107, name: "Eko Prasetyo", email: "eko.prasetyo@siswa.id", nisn: "0012345684", school: "SMAN 1 Semarang", registeredAt: "2024-01-11" },
+  { id: 108, name: "Fitri Handayani", email: "fitri.handayani@siswa.id", nisn: "0012345685", school: "SMAN 1 Semarang", registeredAt: "2024-01-12" },
+];
+
+// Search registered students by name or NISN (filtered by school)
+export const searchRegisteredStudents = (query: string, school: string, excludeIds: number[] = []): RegisteredStudent[] => {
+  if (!query || query.length < 2) return [];
+  const lowerQuery = query.toLowerCase();
+  return MOCK_REGISTERED_STUDENTS.filter(
+    (student) =>
+      !excludeIds.includes(student.id) &&
+      student.school === school && // Filter by school
+      (student.name.toLowerCase().includes(lowerQuery) ||
+       student.nisn.includes(query) ||
+       student.email.toLowerCase().includes(lowerQuery))
+  ).slice(0, 5);
+};
+
 // Keep old MOCK_CLASS_INFO for backward compatibility
 export const MOCK_CLASS_INFO = MOCK_CLASSES[0];
+
