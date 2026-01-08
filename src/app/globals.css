@@ -47,3 +47,18 @@ select * {
 .animate-ping {
 	animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+@keyframes slide-down {
+	from {
+		transform: translate(-50%, -100%);
+		opacity: 0;
+	}
+	to {
+		transform: translate(-50%, 0);
+		opacity: 1;
+	}
+}
+
+.animate-slide-down {
+	animation: slide-down 0.3s ease-out;
+}

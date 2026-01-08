@@ -77,6 +77,8 @@ export default function KelasGuruDetailPage() {
   // Modal states
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
+  const [showExerciseDetailModal, setShowExerciseDetailModal] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   
   // New material form state
   const [newMaterial, setNewMaterial] = useState({
@@ -96,43 +98,54 @@ export default function KelasGuruDetailPage() {
     deadline: "",
   });
   
-  // Questions for new exercise
-  const [newQuestions, setNewQuestions] = useState<{
-    question: string;
-    options: string[];
-    correctAnswer: number;
-  }[]>([]);
+  // Bank soal mock data - nanti ambil dari API
+  const MOCK_BANK_QUESTIONS = [
+    {
+      id: "1",
+      question: "Apa rukun Islam yang pertama?",
+      options: ["Shalat", "Syahadat", "Puasa", "Zakat"],
+      correctAnswer: 1,
+      subject: "Pendidikan Agama Islam",
+      difficulty: "mudah" as const,
+    },
+    {
+      id: "2",
+      question: "Berapa jumlah rakaat shalat Subuh?",
+      options: ["2 rakaat", "3 rakaat", "4 rakaat", "5 rakaat"],
+      correctAnswer: 0,
+      subject: "Pendidikan Agama Islam",
+      difficulty: "mudah" as const,
+    },
+    {
+      id: "3",
+      question: "Apa nama malaikat yang bertugas menyampaikan wahyu?",
+      options: ["Mikail", "Jibril", "Israfil", "Izrail"],
+      correctAnswer: 1,
+      subject: "Pendidikan Agama Islam",
+      difficulty: "sedang" as const,
+    },
+    {
+      id: "4",
+      question: "Berapa jumlah surat dalam Al-Quran?",
+      options: ["110", "114", "120", "124"],
+      correctAnswer: 1,
+      subject: "Pendidikan Agama Islam",
+      difficulty: "sedang" as const,
+    },
+    {
+      id: "5",
+      question: "Apa nama kitab suci umat Islam?",
+      options: ["Taurat", "Injil", "Zabur", "Al-Quran"],
+      correctAnswer: 3,
+      subject: "Pendidikan Agama Islam",
+      difficulty: "mudah" as const,
+    },
+  ];
   
-  const addQuestion = () => {
-    setNewQuestions([
-      ...newQuestions,
-      {
-        question: "",
-        options: ["", "", "", ""],
-        correctAnswer: 0,
-      },
-    ]);
-  };
-  
-  const removeQuestion = (index: number) => {
-    setNewQuestions(newQuestions.filter((_, i) => i !== index));
-  };
-  
-  const updateQuestion = (index: number, field: string, value: string | number) => {
-    const updated = [...newQuestions];
-    if (field === "question") {
-      updated[index].question = value as string;
-    } else if (field === "correctAnswer") {
-      updated[index].correctAnswer = value as number;
-    }
-    setNewQuestions(updated);
-  };
-  
-  const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
-    const updated = [...newQuestions];
-    updated[questionIndex].options[optionIndex] = value;
-    setNewQuestions(updated);
-  };
+  // State untuk modal detail latihan
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [showSelectQuestionModal, setShowSelectQuestionModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Handlers
   const handleDateChange = (newDate: string) => {
@@ -188,47 +201,105 @@ export default function KelasGuruDetailPage() {
   
   const handleAddExercise = () => {
     if (!newExercise.title || !newExercise.description || !newExercise.deadline) return;
-    if (newQuestions.length === 0) {
-      alert("Tambahkan minimal 1 soal");
-      return;
-    }
-    
-    // Validate all questions have content
-    const hasEmptyQuestion = newQuestions.some(
-      (q) => !q.question.trim() || q.options.some((opt) => !opt.trim())
-    );
-    if (hasEmptyQuestion) {
-      alert("Lengkapi semua soal dan pilihan jawaban");
-      return;
-    }
-    
-    const questions: Question[] = newQuestions.map((q, idx) => ({
-      id: idx + 1,
-      question: q.question,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-    }));
     
     const exercise: Exercise = {
       id: Date.now(),
       title: newExercise.title,
       description: newExercise.description,
-      totalQuestions: newQuestions.length,
+      totalQuestions: 0,
       duration: newExercise.duration,
       deadline: newExercise.deadline,
       isCompleted: false,
-      questions: questions,
+      questions: [],
     };
     
     setExercises([exercise, ...exercises]);
     setNewExercise({ title: "", description: "", duration: 10, deadline: "" });
-    setNewQuestions([]);
     setShowAddExerciseModal(false);
   };
   
   const handleDeleteExercise = (id: number) => {
     setExercises(exercises.filter((e) => e.id !== id));
   };
+  
+  // Handler untuk modal detail latihan
+  const handleOpenExerciseDetail = (exercise: Exercise) => {
+    setSelectedExercise(exercise);
+    setSelectedQuestions(exercise.questions?.map(q => String(q.id)) || []);
+    setShowExerciseDetailModal(true);
+  };
+  
+  const handleToggleQuestion = (questionId: string) => {
+    if (selectedQuestions.includes(questionId)) {
+      setSelectedQuestions(selectedQuestions.filter((id) => id !== questionId));
+    } else {
+      setSelectedQuestions([...selectedQuestions, questionId]);
+    }
+  };
+  
+  const handleRemoveQuestion = (questionId: string) => {
+    if (confirm("Yakin ingin menghapus soal ini dari latihan?")) {
+      setSelectedQuestions(selectedQuestions.filter((id) => id !== questionId));
+    }
+  };
+  
+  const handleSaveExerciseQuestions = () => {
+    if (!selectedExercise) return;
+    
+    // Update exercise dengan soal yang dipilih
+    const updatedExercises = exercises.map(ex => {
+      if (ex.id === selectedExercise.id) {
+        const selectedQuestionsData = MOCK_BANK_QUESTIONS.filter(q => 
+          selectedQuestions.includes(q.id)
+        ).map((q, idx) => ({
+          id: idx + 1,
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+        }));
+        
+        return {
+          ...ex,
+          questions: selectedQuestionsData,
+          totalQuestions: selectedQuestionsData.length,
+        };
+      }
+      return ex;
+    });
+    
+    setExercises(updatedExercises);
+    setShowExerciseDetailModal(false);
+    setSelectedExercise(null);
+    setSelectedQuestions([]);
+  };
+  
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "mudah":
+        return "bg-green-100 text-green-700";
+      case "sedang":
+        return "bg-yellow-100 text-yellow-700";
+      case "sulit":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+  
+  // Filter soal berdasarkan search
+  const filteredBankQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
+    q.question.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  // Soal yang sudah dipilih untuk latihan ini
+  const exerciseQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
+    selectedQuestions.includes(q.id)
+  );
+  
+  // Soal yang belum dipilih (untuk ditampilkan di modal)
+  const availableQuestions = filteredBankQuestions.filter(
+    (q) => !selectedQuestions.includes(q.id)
+  );
   
   // Stats
   const stats = useMemo(() => {
@@ -464,13 +535,24 @@ export default function KelasGuruDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-slate-700">Daftar Latihan Soal</h3>
-              <button
-                onClick={() => setShowAddExerciseModal(true)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
-              >
-                <PlusIcon className="size-4" />
-                Tambah
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/bank-soal"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition"
+                >
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  Bank Soal
+                </Link>
+                <button
+                  onClick={() => setShowAddExerciseModal(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+                >
+                  <PlusIcon className="size-4" />
+                  Tambah
+                </button>
+              </div>
             </div>
             
             {exercises.length === 0 ? (
@@ -480,10 +562,11 @@ export default function KelasGuruDetailPage() {
             ) : (
               <div className="space-y-3">
                 {exercises.map((exercise) => (
-                  <div
+                  <button
                     key={exercise.id}
+                    onClick={() => handleOpenExerciseDetail(exercise)}
                     className={clsx(
-                      "bg-white border rounded-xl p-4 shadow-sm",
+                      "w-full bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition text-left",
                       exercise.isCompleted ? "border-green-300 bg-green-50/50" : "border-slate-200"
                     )}
                   >
@@ -506,13 +589,16 @@ export default function KelasGuruDetailPage() {
                         <p className="text-xs text-slate-400 mt-1">Deadline: {exercise.deadline}</p>
                       </div>
                       <button
-                        onClick={() => handleDeleteExercise(exercise.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteExercise(exercise.id);
+                        }}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                       >
                         <TrashIcon className="size-5" />
                       </button>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -760,94 +846,264 @@ export default function KelasGuruDetailPage() {
                 </div>
               </div>
               
-              {/* Questions Section */}
-              <div className="border-t border-slate-200 pt-4 mt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-slate-700">Daftar Soal ({newQuestions.length})</h4>
-                  <button
-                    onClick={addQuestion}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-teal-100 text-teal-700 text-xs font-medium rounded-lg hover:bg-teal-200 transition"
-                  >
-                    <PlusIcon className="size-4" />
-                    Tambah Soal
-                  </button>
-                </div>
-                
-                {newQuestions.length === 0 ? (
-                  <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                    <ClipboardDocumentListIcon className="size-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">Belum ada soal</p>
-                    <p className="text-xs text-slate-400">Klik "Tambah Soal" untuk membuat soal</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {newQuestions.map((q, qIndex) => (
-                      <div key={qIndex} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="text-xs font-bold text-teal-600 bg-teal-100 px-2 py-0.5 rounded-full">
-                            Soal {qIndex + 1}
-                          </span>
-                          <button
-                            onClick={() => removeQuestion(qIndex)}
-                            className="p-1 text-red-500 hover:bg-red-50 rounded"
-                          >
-                            <TrashIcon className="size-4" />
-                          </button>
-                        </div>
-                        
-                        <textarea
-                          value={q.question}
-                          onChange={(e) => updateQuestion(qIndex, "question", e.target.value)}
-                          placeholder="Tulis pertanyaan di sini..."
-                          rows={2}
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none mb-3"
-                        />
-                        
-                        <p className="text-xs font-medium text-slate-500 mb-2">Pilihan Jawaban (klik untuk pilih jawaban benar)</p>
-                        <div className="space-y-2">
-                          {q.options.map((opt, optIndex) => (
-                            <div key={optIndex} className="flex items-center gap-2">
-                              <button
-                                onClick={() => updateQuestion(qIndex, "correctAnswer", optIndex)}
-                                className={clsx(
-                                  "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition flex-shrink-0",
-                                  q.correctAnswer === optIndex
-                                    ? "bg-green-500 text-white"
-                                    : "bg-white border-2 border-slate-300 text-slate-500 hover:border-green-400"
-                                )}
-                              >
-                                {String.fromCharCode(65 + optIndex)}
-                              </button>
-                              <input
-                                type="text"
-                                value={opt}
-                                onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
-                                placeholder={`Pilihan ${String.fromCharCode(65 + optIndex)}`}
-                                className={clsx(
-                                  "flex-1 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20",
-                                  q.correctAnswer === optIndex
-                                    ? "border-green-400 bg-green-50"
-                                    : "border-slate-300"
-                                )}
-                              />
-                              {q.correctAnswer === optIndex && (
-                                <CheckCircleSolidIcon className="size-5 text-green-500 flex-shrink-0" />
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {/* Questions Section - REMOVED */}
+              {/* Soal akan dikelola dari Bank Soal */}
               
               <button
                 onClick={handleAddExercise}
-                disabled={!newExercise.title || !newExercise.description || !newExercise.deadline || newQuestions.length === 0}
+                disabled={!newExercise.title || !newExercise.description || !newExercise.deadline}
                 className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Simpan Latihan ({newQuestions.length} soal)
+                Simpan Latihan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* Exercise Detail Modal */}
+      {showExerciseDetailModal && selectedExercise && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => {
+            setShowExerciseDetailModal(false);
+            setSelectedExercise(null);
+            setSearchQuery("");
+          }} />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <button 
+                  onClick={() => {
+                    setShowExerciseDetailModal(false);
+                    setSelectedExercise(null);
+                    setSearchQuery("");
+                  }}
+                  className="p-1"
+                >
+                  <ChevronLeftIcon className="size-6" />
+                </button>
+                <div className="flex-1">
+                  <h1 className="text-lg font-semibold">{selectedExercise.title}</h1>
+                  <p className="text-xs text-teal-100">{selectedExercise.description}</p>
+                </div>
+              </div>
+
+              {/* Info Cards */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <p className="text-xs text-teal-100">Soal</p>
+                  <p className="text-lg font-bold">{selectedQuestions.length}</p>
+                </div>
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <p className="text-xs text-teal-100">Durasi</p>
+                  <p className="text-lg font-bold">{selectedExercise.duration} min</p>
+                </div>
+                <div className="bg-white/20 rounded-lg p-2 text-center">
+                  <p className="text-xs text-teal-100">Deadline</p>
+                  <p className="text-[10px] font-bold">{selectedExercise.deadline}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Question Button */}
+            <div className="p-4 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowSelectQuestionModal(true)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                <PlusIcon className="size-5" />
+                Pilih Soal dari Bank Soal
+              </button>
+            </div>
+
+            {/* Selected Questions List */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <h2 className="text-lg font-semibold text-slate-700 mb-3">
+                Daftar Soal ({selectedQuestions.length})
+              </h2>
+
+              {exerciseQuestions.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-slate-200">
+                  <ClipboardDocumentListIcon className="size-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">Belum ada soal</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Klik tombol di atas untuk memilih soal dari bank soal
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {exerciseQuestions.map((question, index) => (
+                    <div
+                      key={question.id}
+                      className="bg-white rounded-xl p-4 shadow-sm border border-slate-200"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-teal-600 bg-teal-100 px-2 py-0.5 rounded-full">
+                            #{index + 1}
+                          </span>
+                          <span
+                            className={clsx(
+                              "text-xs font-medium px-2 py-0.5 rounded-full",
+                              getDifficultyColor(question.difficulty)
+                            )}
+                          >
+                            {question.difficulty.charAt(0).toUpperCase() +
+                              question.difficulty.slice(1)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveQuestion(question.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition"
+                        >
+                          <TrashIcon className="size-4" />
+                        </button>
+                      </div>
+
+                      <p className="text-slate-800 font-medium mb-3">{question.question}</p>
+
+                      <div className="space-y-2">
+                        {question.options.map((option, optIndex) => (
+                          <div
+                            key={optIndex}
+                            className={clsx(
+                              "flex items-center gap-2 p-2 rounded-lg text-sm",
+                              question.correctAnswer === optIndex
+                                ? "bg-green-50 border border-green-300"
+                                : "bg-slate-50 border border-slate-200"
+                            )}
+                          >
+                            <span
+                              className={clsx(
+                                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0",
+                                question.correctAnswer === optIndex
+                                  ? "bg-green-500 text-white"
+                                  : "bg-slate-300 text-slate-600"
+                              )}
+                            >
+                              {String.fromCharCode(65 + optIndex)}
+                            </span>
+                            <span
+                              className={
+                                question.correctAnswer === optIndex
+                                  ? "text-green-700 font-medium"
+                                  : "text-slate-600"
+                              }
+                            >
+                              {option}
+                            </span>
+                            {question.correctAnswer === optIndex && (
+                              <CheckCircleSolidIcon className="size-5 text-green-500 ml-auto" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-200 bg-white">
+              <button
+                onClick={handleSaveExerciseQuestions}
+                className="w-full px-4 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select Questions Modal */}
+      {showSelectQuestionModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[400] p-4">
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-700">Pilih Soal</h3>
+                <p className="text-xs text-slate-500">
+                  {selectedQuestions.length} soal dipilih
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSelectQuestionModal(false);
+                  setSearchQuery("");
+                }}
+                className="p-1 hover:bg-slate-100 rounded-full"
+              >
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="p-4 border-b border-slate-200 bg-slate-50">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari soal..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+              />
+            </div>
+
+            {/* Questions List */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {availableQuestions.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-500">
+                    {searchQuery
+                      ? "Tidak ada soal yang cocok"
+                      : "Semua soal sudah dipilih"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {availableQuestions.map((question) => (
+                    <button
+                      key={question.id}
+                      onClick={() => handleToggleQuestion(question.id)}
+                      className="w-full text-left bg-slate-50 hover:bg-slate-100 rounded-xl p-3 border border-slate-200 transition"
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        <span
+                          className={clsx(
+                            "text-xs font-medium px-2 py-0.5 rounded-full",
+                            getDifficultyColor(question.difficulty)
+                          )}
+                        >
+                          {question.difficulty.charAt(0).toUpperCase() +
+                            question.difficulty.slice(1)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-700 font-medium">
+                        {question.question}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {question.options.length} pilihan jawaban
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 bg-white">
+              <button
+                onClick={() => {
+                  setShowSelectQuestionModal(false);
+                  setSearchQuery("");
+                }}
+                className="w-full px-4 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                Selesai ({selectedQuestions.length} soal dipilih)
               </button>
             </div>
           </div>
