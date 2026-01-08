@@ -473,9 +473,11 @@ const DetailModulAjarPage: React.FC = () => {
           <div className="flex-shrink-0">
             <img
               src={
-                materialData.image?.startsWith("/")
-                  ? materialData.image
-                  : `${process.env.NEXT_PUBLIC_MITRA_URL}/public/${materialData.image}`
+                materialData.thumbnail
+                  ? materialData.thumbnail.startsWith("http")
+                    ? materialData.thumbnail
+                    : `https://file.agpaiidigital.org/${materialData.thumbnail}`
+                  : "/img/thumbnailmodul.png"
               }
               alt={materialData.judul || materialData.topic}
               className="w-24 h-32 object-cover rounded-lg"
@@ -632,7 +634,7 @@ const DetailModulAjarPage: React.FC = () => {
             </svg>
             Lihat dokumen ATP (Alur Tujuan Pembelajaran)
           </button>*/}
-        </div> 
+        </div>
 
         {/* Stats Section */}
         <div className="flex gap-4 mb-6">

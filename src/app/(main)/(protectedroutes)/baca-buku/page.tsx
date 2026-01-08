@@ -166,7 +166,10 @@ const BacaBukuPage = () => {
     setShowFabMenu(false);
     router.push("/baca-buku/koleksi");
   };
-
+  const trimText = (text: string, maxLength = 18) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
+  };
   // Book Card Component with Image Cover (supports PDF thumbnail)
   const BookCard = ({ book }: { book: Book }) => {
     // Use coverDataUrl (PDF generated) if available, otherwise use cover URL
@@ -208,8 +211,11 @@ const BacaBukuPage = () => {
 
           {/* Category Badge */}
           <div className="absolute top-1.5 right-1.5">
-            <span className="bg-amber-500 text-white text-[7px] px-1.5 py-0.5 rounded-full font-semibold shadow-sm">
-              {book.category}
+            <span
+              className="bg-amber-500 text-white text-[9px] px-2 py-0.5 rounded-full font-semibold shadow-sm"
+              title={book.category} // full text saat hover
+            >
+              {trimText(book.category, 10)}
             </span>
           </div>
 
@@ -324,7 +330,7 @@ const BacaBukuPage = () => {
                   Paling banyak disukai
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => router.push("/baca-buku/semua?sort=likes")}
                 className="text-teal-600 text-sm font-medium hover:text-teal-700"
               >
@@ -373,7 +379,7 @@ const BacaBukuPage = () => {
                   Paling banyak dilihat
                 </p>
               </div>
-              <button 
+              <button
                 onClick={() => router.push("/baca-buku/semua?sort=views")}
                 className="text-teal-600 text-sm font-medium hover:text-teal-700"
               >

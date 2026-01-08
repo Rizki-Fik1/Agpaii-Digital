@@ -4,193 +4,278 @@ import TopBar from "@/components/nav/topbar";
 import { useRouter, useParams } from "next/navigation";
 import API from "@/utils/api/config";
 import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
-import "moment/locale/id";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
 import { useAuth } from "@/utils/context/auth_context";
 import { getImage } from "@/utils/function/function";
-import Link from "next/link";
+
+dayjs.locale("id");
 
 export default function EventDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const router = useRouter();
   const { auth } = useAuth();
 
   const fetchEvent = async () => {
-    const res = await API.get("/event/" + id);
+    const res = await API.get(`/event/${id}`);
     return res.status === 200 ? res.data : null;
   };
 
-  const { data: event } = useQuery({
+  const { data: event, isLoading } = useQuery({
     queryKey: ["event", id],
     queryFn: fetchEvent,
   });
 
-  const formatWaktu = (date) =>
-    moment(date).locale("id").format("dddd, DD MMMM YYYY - HH:mm") + " WIB";
+  const formatWaktu = (date: string) =>
+    dayjs(date).format("dddd, DD MMMM YYYY - HH:mm") + " WIB";
 
-  if (!event) return null;
+  const getJangkauanLabel = (type: string) => {
+    switch (type) {
+      case "ALL":
+        return { label: "Semua Wilayah", badge: "bg-blue-100 text-blue-800" };
+      case "DPP":
+        return { label: "DPP (Pusat)", badge: "bg-purple-100 text-purple-800" };
+      case "DPW":
+        return {
+          label: "DPW (Provinsi)",
+          badge: "bg-orange-100 text-orange-800",
+        };
+      case "DPD":
+        return {
+          label: "DPD (Kota/Kabupaten)",
+          badge: "bg-green-100 text-green-800",
+        };
+      default:
+        return { label: type, badge: "bg-gray-100 text-gray-800" };
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#009788] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat detail acara...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="pt-[4.21rem] px-5 pb-10 text-center">
+        <TopBar withBackButton>Detail Event</TopBar>
+        <p className="mt-10 text-gray-500">Acara tidak ditemukan.</p>
+      </div>
+    );
+  }
+
+  const jangkauan = getJangkauanLabel(event.event_type);
 
   return (
-    <div className="pt-[4.21rem] px-5 pb-10">
-      <TopBar withBackButton href="https://web.agpaiidigital.org/event/">
+    <div className="pt-[4.21rem] px-5 pb-10 bg-gray-50 min-h-screen">
+      <TopBar withBackButton href="/event">
         Detail Event
       </TopBar>
 
-
-      {/* Gambar */}
-      <div className="mt-6 w-full aspect-video rounded-md overflow-hidden">
+      {/* Banner */}
+      <div className="mt-6 w-full aspect-video rounded-xl overflow-hidden shadow-md">
         <img
-          src={
-            event.image ? getImage(event.image) : "/img/agpaii_splash.svg"
-          }
+          src={event.image ? getImage(event.image) : "/img/agpaii_splash.svg"}
+          alt={event.name}
           className="w-full h-full object-cover"
         />
       </div>
 
       {/* Author */}
-      <div className="flex items-center gap-3 mt-4 bg-white shadow px-3 py-2 rounded-md w-fit">
+      <div className="flex items-center gap-3 mt-5 bg-white shadow-sm px-4 py-3 rounded-xl">
         <img
-          src={event.user?.avatar ? getImage(event.user.avatar) : "/img/avatar.png"}
-          className="w-8 h-8 rounded-full object-cover"
+          src={
+            event.user?.avatar ? getImage(event.user.avatar) : "/img/avatar.png"
+          }
+          alt={event.user?.name}
+          className="w-10 h-10 rounded-full object-cover ring-2 ring-[#009788]/20"
         />
-        <p className="text-sm font-medium">{event.user?.name}</p>
+        <div>
+          <p className="text-xs text-gray-500">Dibuat oleh</p>
+          <p className="font-semibold text-gray-800">
+            {event.user?.name || "Unknown"}
+          </p>
+        </div>
       </div>
 
-      {/* Nama */}
-      <h1 className="font-semibold text-xl mt-5">{event.name}</h1>
+      {/* Nama Acara */}
+      <h1 className="font-bold text-2xl mt-6 text-gray-900">{event.name}</h1>
 
-      {/* Info Detail */}
-      <div className="mt-4 flex flex-col gap-3 text-sm text-gray-700">
-        <div>
-          <span className="font-semibold text-gray-500">Waktu:</span>
+      {/* Jangkauan Acara - Badge */}
+      <div className="mt-3">
+        <span className="text-sm font-medium text-gray-600">Jangkauan:</span>
+        <span
+          className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold ${jangkauan.badge}`}
+        >
+          {jangkauan.label}
+        </span>
+      </div>
+
+      {/* Detail Info */}
+      <div className="mt-6 bg-white rounded-xl shadow-sm p-5 space-y-4 text-gray-700">
+        <div className="flex items-start gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Waktu:
+          </span>
           <div className="font-medium">
-            {formatWaktu(event.start_at)}
-            <br />
-            {formatWaktu(event.end_at)}
+            <div>{formatWaktu(event.start_at)}</div>
+            <div className="text-gray-500">s/d</div>
+            <div>{formatWaktu(event.end_at)}</div>
           </div>
         </div>
 
-        <div>
-          <span className="font-semibold text-gray-500">Kategori:</span>{" "}
-          {event.category?.name}
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Kategori:
+          </span>
+          <span>{event.category?.name || "-"}</span>
         </div>
 
-        <div>
-          <span className="font-semibold text-gray-500">Tingkat:</span>{" "}
-          {event.fk_event_level?.name}
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Tingkat:
+          </span>
+          <span>{event.fk_event_level?.name || "-"}</span>
         </div>
 
-        <div>
-          <span className="font-semibold text-gray-500">Sesi:</span>{" "}
-          {event.session_detail?.length} sesi
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Sesi:
+          </span>
+          <span>{event.session_detail?.length || 0} sesi</span>
         </div>
 
+        {/* Lokasi atau Link */}
         {event.type === "Luring" ? (
           <>
-            <div>
-              <span className="font-semibold text-gray-500">Tempat:</span>{" "}
-              {event.address}
+            <div className="flex items-start gap-3">
+              <span className="font-semibold text-gray-500 min-w-[80px]">
+                Tempat:
+              </span>
+              <span>{event.address || "-"}</span>
             </div>
 
-            {event.city && (
-              <div>
-                <span className="font-semibold text-gray-500">Kota:</span>{" "}
-                {event.city?.name + " - " + event.province?.name}
+            {(event.event_type === "DPW" || event.event_type === "DPD") &&
+              event.province && (
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-gray-500 min-w-[80px]">
+                    Provinsi:
+                  </span>
+                  <span className="font-medium text-[#009788]">
+                    {event.province?.name}
+                  </span>
+                </div>
+              )}
+
+            {event.event_type === "DPD" && event.city && (
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-gray-500 min-w-[80px]">
+                  Kota/Kab:
+                </span>
+                <span className="font-medium text-[#009788]">
+                  {event.city?.name}, {event.province?.name}
+                </span>
               </div>
             )}
           </>
         ) : (
-          <div>
-            <span className="font-semibold text-gray-500">Tautan:</span>{" "}
+          <div className="flex items-start gap-3">
+            <span className="font-semibold text-gray-500 min-w-[80px]">
+              Tautan:
+            </span>
             <a
               href={event.link}
-              className="text-blue-500 underline"
               target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#009788] underline break-all"
             >
-              {event.link}
+              {event.link || "-"}
             </a>
           </div>
         )}
 
-        <div>
-          <span className="font-semibold text-gray-500">Fasilitas:</span>{" "}
-          {event.facilities}
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Jenis:
+          </span>
+          <span className="px-3 py-1 bg-[#009788]/10 text-[#009788] rounded-full text-sm font-medium">
+            {event.type}
+          </span>
         </div>
 
-        <div>
-          <span className="font-semibold text-gray-500">Jenis:</span>{" "}
-          {event.type}
+        <div className="flex items-start gap-3">
+          <span className="font-semibold text-gray-500 min-w-[80px]">
+            Fasilitas:
+          </span>
+          <span>{event.facilities || "-"}</span>
         </div>
       </div>
 
       {/* Deskripsi */}
-      <div className="mt-6">
-        <h1 className="font-semibold text-lg mb-2">Deskripsi</h1>
+      <div className="mt-7 bg-white rounded-xl shadow-sm p-5">
+        <h2 className="font-bold text-lg mb-3 text-gray-900">
+          Deskripsi Acara
+        </h2>
         <div
-          className="text-gray-700 text-sm"
+          className="text-gray-700 text-sm leading-relaxed whitespace-pre-line"
           dangerouslySetInnerHTML={{
-            __html: event.description
-              ?.replace(/\n/g, "<br>")
+            __html: (event.description || "")
+              .replace(/\n/g, "<br>")
               .replace(
-                /(https?:\/\/[^\s]+)/g,
-                '<a href="$&" target="_blank" class="text-blue-500 underline">$&</a>'
+                /(https?:\/\/[^\s<]+[^\s<.,!?])/g,
+                '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-[#009788] underline">$1</a>'
               ),
           }}
-        ></div>
+        />
       </div>
 
       {/* Tombol Aksi */}
       <div className="mt-10 flex flex-col gap-3">
         {auth?.id === event.user_id ? (
           <>
-            {/* Generate Token */}
             <button
               onClick={() => router.push(`/event/${event.id}/token`)}
-              className="w-full py-3 bg-[#009788] text-white rounded-md"
+              className="w-full py-3.5 bg-[#009788] text-white rounded-xl font-semibold hover:bg-[#007a6e] transition"
             >
               Generate Token Acara
             </button>
-        
-         {/* List Peserta */}
+
             <button
-              onClick={() =>
-                router.push(`/event/${event.id}/peserta`)
-              }
-              className="w-full py-3 bg-[#009788] text-white rounded-md"
+              onClick={() => router.push(`/event/${event.id}/peserta`)}
+              className="w-full py-3.5 bg-[#009788] text-white rounded-xl font-semibold hover:bg-[#007a6e] transition"
             >
-              List Peserta
+              Lihat Daftar Peserta
             </button>
 
-            {/* Edit */}
             <button
-              onClick={() =>
-                router.push(`/event/edit/${event.id}`)
-              }
-              className="w-full py-3 bg-[#009788] text-white rounded-md"
+              onClick={() => router.push(`/event/edit/${event.id}`)}
+              className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition"
             >
-              Edit
+              Edit Acara
             </button>
 
-            {/* Hapus */}
             <button
               onClick={() => router.push(`/event/${event.id}/delete`)}
-              className="w-full py-3 bg-red-500 text-white rounded-md"
+              className="w-full py-3.5 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition"
             >
               Hapus Acara
             </button>
           </>
         ) : (
-          <>
-            {/* Tombol PRESENSI */}
-            <button
-              onClick={() =>
-                router.push(`/event/${event.id}/presensi?user=${auth?.id}`)
-              }
-              className="w-full py-3 bg-[#009788] text-white rounded-md"
-            >
-              Presensi
-            </button>
-          </>
+          <button
+            onClick={() =>
+              router.push(`/event/${event.id}/presensi?user=${auth?.id}`)
+            }
+            className="w-full py-4 bg-[#009788] text-white rounded-xl font-bold text-lg hover:bg-[#007a6e] transition shadow-lg"
+          >
+            PRESENSI SEKARANG
+          </button>
         )}
       </div>
     </div>

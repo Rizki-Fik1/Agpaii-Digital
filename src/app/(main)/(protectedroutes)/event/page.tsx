@@ -1,20 +1,18 @@
 "use client";
-import TopBar from "@/components/nav/topbar";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 
+import TopBar from "@/components/nav/topbar";
+import { useSearchParams, useRouter } from "next/navigation";
 import API from "@/utils/api/config";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { LinkIcon } from "@heroicons/react/20/solid";
-import { MapPinIcon, TvIcon, TrashIcon } from "@heroicons/react/24/solid";
+import {
+  PlusIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
 import clsx from "clsx";
-import moment from "moment";
-import "moment/locale/id";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -25,75 +23,109 @@ import { useAuth } from "@/utils/context/auth_context";
 import Event from "@/components/event/event";
 
 export default function TypeEvent() {
-  const queryClient = useQueryClient();
-  const [eventToDelete, setEventToDelete] = useState("");
-  const [modalOpen, setmodalOpen] = useState(false);
-  const { ref, inView } = useInView();
-  const { auth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const { auth } = useAuth();
+  const { ref, inView } = useInView();
+
   const defaultTab = searchParams.get("tab") || "all";
 
+  /* =======================
+   * STATE
+   * ======================= */
   const [type, setType] = useState(defaultTab);
+  const [eventType, setEventType] = useState<"ALL" | "DPP" | "DPW" | "DPD">("ALL");
+  const [eventToDelete, setEventToDelete] = useState<string>("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  // Debug log: Cek auth saat component mount
-  //   useEffect(() => {
-  //     console.log("TypeEvent: Auth data =", auth);
-  //   }, [auth]);
+  const provinceId = auth?.profile?.province_id;
+  const cityId = auth?.profile?.city_id;
 
-  const getEventApi = (type: string) => {
-    switch (type) {
-      case "me":
-        return `event/created/${auth.id}?page=`;
-      case "all":
-        return "event?page=";
-      default:
-        return "";
+  /* =======================
+   * HELPERS
+   * ======================= */
+  const getEventRegionLabel = () => {
+    if (eventType === "DPW" && auth?.profile?.province?.name) {
+      return `DPW ${auth.profile.province.name}`;
     }
+    if (eventType === "DPD" && auth?.profile?.city?.name) {
+      return `DPD ${auth.profile.city.name}`;
+    }
+    return null;
   };
 
+  const getEventApi = (tab: string, filter: string) => {
+    if (tab === "me") {
+      return `event/created/${auth.id}?page=`;
+    }
+
+    if (tab === "all") {
+      const params = new URLSearchParams();
+      params.append("filter_type", filter);
+
+      if (filter === "DPW") {
+        if (!provinceId) return "";
+        params.append("province_id", String(provinceId));
+      }
+
+      if (filter === "DPD") {
+        if (!provinceId || !cityId) return "";
+        params.append("province_id", String(provinceId));
+        params.append("city_id", String(cityId));
+      }
+
+      return `event?${params.toString()}&page=`;
+    }
+
+    return "";
+  };
+
+  /* =======================
+   * DATA FETCH
+   * ======================= */
   const {
     data: events,
-    isFetchingNextPage,
     fetchNextPage,
+    isFetchingNextPage,
   } = useInfiniteQuery({
     initialPageParam: 1,
+    queryKey: ["events", type, eventType, provinceId, cityId],
     queryFn: async ({ pageParam }) => {
-      const apiPath = getEventApi(type);
+      const apiPath = getEventApi(type, eventType);
       if (!apiPath) return { data: [] };
+
       const res = await API.get(apiPath + pageParam);
       if (res.status === 200) {
         return {
-          currentPage: res.data.current_page,
           data: res.data.data,
-          nextPage:
-            res.data.next_page_url !== null
-              ? parseInt(res.data.next_page_url.split("=")[1])
-              : undefined,
+          nextPage: res.data.next_page_url
+            ? parseInt(res.data.next_page_url.split("=").pop()!)
+            : undefined,
         };
       }
     },
-    queryKey: ["events", type],
     getNextPageParam: (lastPage) => lastPage?.nextPage,
   });
 
-  const { mutate: deleteEvent, isPending: deletePending } = useMutation({
+  /* =======================
+   * DELETE EVENT
+   * ======================= */
+  const { mutate: deleteEvent, isPending } = useMutation({
     mutationFn: async () => {
-      const res = await API.delete("/event/" + eventToDelete);
+      const res = await API.delete(`/event/${eventToDelete}`);
       if (res.status === 200) return res.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["events", "me"] });
-      setmodalOpen(false);
-      toast.success("Acara Berhasil dihapus");
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      setModalOpen(false);
+      toast.success("Acara berhasil dihapus");
     },
   });
 
-  const handleDeleteClick = (eventId: string) => {
-    setEventToDelete(eventId);
-    setmodalOpen(true);
-  };
-
+  /* =======================
+   * EFFECTS
+   * ======================= */
   useEffect(() => {
     if (inView && !isFetchingNextPage) {
       fetchNextPage();
@@ -104,137 +136,123 @@ export default function TypeEvent() {
     setType(defaultTab);
   }, [defaultTab]);
 
-  // Debug log: Saat type berubah
-  //   useEffect(() => {
-  //     console.log("TypeEvent: Current type =", type);
-  //   }, [type]);
-
+  /* =======================
+   * RENDER
+   * ======================= */
   return (
     <div className="pt-[3.9rem]">
-      <Modal show={modalOpen} onClose={() => setmodalOpen(false)}>
-        <img src="/img/trash.svg" className="size-44" alt="" />
-        <p>
-          Apakah anda yakin ingin menghapus <br /> Acara ini?
+      {/* DELETE MODAL */}
+      <Modal show={modalOpen} onClose={() => setModalOpen(false)}>
+        <img src="/img/trash.svg" className="size-44 mx-auto" />
+        <p className="text-center">
+          Apakah anda yakin ingin menghapus <br /> acara ini?
         </p>
-        <div className="flex justify-center *:flex-grow pt-8 gap-3">
-          {deletePending ? (
-            <Loader className="size-8" />
+        <div className="flex gap-3 pt-8">
+          {isPending ? (
+            <Loader className="mx-auto size-8" />
           ) : (
             <>
-              <span
+              <button
                 onClick={deleteEvent as any}
-                className="px-4 py-2 rounded-md cursor-default bg-[#009788] text-white"
+                className="flex-1 py-2 rounded-md bg-[#009788] text-white"
               >
                 Hapus Acara
-              </span>
-              <span
-                onClick={() => setmodalOpen(false)}
-                className="px-4 py-2 rounded-md border border-slate-300 cursor-default"
+              </button>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="flex-1 py-2 rounded-md border"
               >
                 Batal
-              </span>
+              </button>
             </>
           )}
         </div>
       </Modal>
 
+      {/* FLOATING ADD */}
+      <Link
+        href="/event/new"
+        className={clsx(
+          type !== "me" && "hidden",
+          "fixed bottom-6 right-6 z-50"
+        )}
+      >
+        <PlusIcon className="size-10 p-2 rounded-full bg-[#009788] text-white" />
+      </Link>
+
       <TopBar withBackButton href="/">
         Acara
       </TopBar>
-      <div className="flex justify-between text-center border-b border-b-slate-300 text-sm text-neutral-600 *:py-5 *:w-1/3 *:px-6 *:cursor-pointer max-sm:text-sm sticky top-[4rem] z-[90] bg-white">
-        <div
-          onClick={() => router.push("/event?tab=all")}
-          className={clsx(
-            "relative",
-            type == "all" &&
-              "text-[#009788] before:absolute before:w-full before:py-0.5 before:bg-[#009788] before:left-0 before:bottom-0"
-          )}
-        >
-          Semua Acara
-        </div>
-        <div
-          onClick={() => router.push("/event?tab=followed")}
-          className={clsx(
-            "relative",
-            type == "followed" &&
-              "text-[#009788] before:absolute before:w-full before:py-0.5 before:bg-[#009788] before:left-0 before:bottom-0"
-          )}
-        >
-          Acara Diikuti
-        </div>
-        <div
-          onClick={() => router.push("/event?tab=me")}
-          className={clsx(
-            "relative flex items-center",
-            type == "me" &&
-              "text-[#009788] before:absolute before:w-full before:py-0.5 before:bg-[#009788] before:left-0 before:bottom-0 "
-          )}
-        >
-          Acara Saya
-        </div>
-      </div>
-      <div className="px-4 sm:px-6 mt-6 flex gap-3">
-        <div className="relative flex-grow">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="size-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-            />
-          </svg>
 
-          <input
-            type="text"
-            placeholder="Cari Acara..."
-            className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-full focus:outline-none focus:border-[#009788]"
-          />
-        </div>
-        {type === "me" && (
-          <Link
-            href="/event/new/"
-            className="flex-shrink-0 size-[50px] bg-[#009788] text-white rounded-full flex items-center justify-center hover:bg-[#007a6e] transition-colors"
+      {/* TABS */}
+      <div className="flex border-b sticky top-[4rem] bg-white z-[90] text-sm">
+        {[
+          { key: "all", label: "Semua Acara" },
+          { key: "followed", label: "Acara Diikuti" },
+          { key: "me", label: "Acara Saya" },
+        ].map((t) => (
+          <div
+            key={t.key}
+            onClick={() => router.push(`/event?tab=${t.key}`)}
+            className={clsx(
+              "flex-1 text-center py-4 cursor-pointer relative",
+              type === t.key &&
+                "text-[#009788] before:absolute before:left-0 before:bottom-0 before:h-0.5 before:w-full before:bg-[#009788]"
+            )}
           >
-            <PlusIcon className="size-6" />
-          </Link>
-        )}
+            {t.label}
+          </div>
+        ))}
       </div>
-      <div className="flex flex-col gap-4 px-4 sm:px-6 py-8">
-        {events?.pages.map((page, index) => {
-          // Debug log: Saat render events
-          return (
-            <div key={index} className="flex flex-col gap-4">
-              {page?.data?.length > 0 ? (
-                page.data.map((event: any, i: number) => {
-                  return (
-                    <Event
-                      key={i}
-                      event={event}
-                      type={type}
-                      auth={auth}
-                      onDelete={handleDeleteClick}
-                    />
-                  );
-                })
-              ) : (
-                <div className="text-slate-500 text-sm">Tidak Ada Acara</div>
-              )}
-            </div>
-          );
-        })}
-        <div
-          ref={ref}
-          className={clsx(
-            isFetchingNextPage &&
-              "py-4 px-6 pb-8 text-center text-slate-600 text-sm"
-          )}
+
+      {/* FILTER */}
+      <div className="sticky top-[7.6rem] z-[80] bg-white px-4 py-3">
+        <select
+          value={eventType}
+          onChange={(e) => setEventType(e.target.value as any)}
+          className="w-full border rounded-md px-3 py-2 text-sm"
         >
+          <option value="ALL">Semua Tipe Acara</option>
+          <option value="DPP">DPP</option>
+          <option value="DPW" disabled={!provinceId}>
+            DPW
+          </option>
+          <option value="DPD" disabled={!provinceId || !cityId}>
+            DPD
+          </option>
+        </select>
+      </div>
+
+      {getEventRegionLabel() && (
+        <div className="mt-6 mx-6 text-xl font-bold text-[#009788]">
+          {getEventRegionLabel()}
+        </div>
+      )}
+
+      {/* LIST */}
+      <div className="px-4 py-8 flex flex-col gap-4">
+        {events?.pages.map((page, idx) => (
+          <div key={idx} className="flex flex-col gap-4">
+            {page?.data?.length ? (
+              page.data.map((event: any) => (
+                <Event
+                  key={event.id}
+                  event={event}
+                  type={type}
+                  auth={auth}
+                  onDelete={(id: string) => {
+                    setEventToDelete(id);
+                    setModalOpen(true);
+                  }}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">Tidak Ada Acara</p>
+            )}
+          </div>
+        ))}
+
+        <div ref={ref} className="text-center py-6 text-sm text-slate-500">
           {isFetchingNextPage && "Harap tunggu..."}
         </div>
       </div>
