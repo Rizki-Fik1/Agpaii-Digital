@@ -44,16 +44,10 @@ const DetailModulAjarPage: React.FC = () => {
           "error"
         );
         setLoading(false);
-        setMaterialData(null);
-        setMateri([]);
-        setAssessments([]);
-        setLikesCount(0);
-        setIsLiked(false);
         return;
       }
 
       try {
-        // Build query params
         const params: any = {};
         if (user?.id) {
           params.user_id = user.id;
@@ -73,10 +67,6 @@ const DetailModulAjarPage: React.FC = () => {
         console.error("Error fetching module data:", error);
         showToast("Gagal memuat modul", "error");
         setMaterialData(null);
-        setMateri([]);
-        setAssessments([]);
-        setLikesCount(0);
-        setIsLiked(false);
       } finally {
         setLoading(false);
       }
@@ -98,14 +88,10 @@ const DetailModulAjarPage: React.FC = () => {
     setIsLiked(willLike);
     setLikesCount(willLike ? likesCount + 1 : likesCount - 1);
 
-    if (!API_URL) {
-      showToast(willLike ? "Berhasil menyukai" : "Batal menyukai", "success");
-      return;
-    }
+    if (!API_URL) return;
 
     try {
       const token = localStorage.getItem("token");
-      // Include user_id with the like request (backend expects this)
       await axios.post(
         `${API_URL}/modules-learn/${materialId}/like`,
         { user_id: user?.id },
@@ -115,8 +101,6 @@ const DetailModulAjarPage: React.FC = () => {
       );
       showToast(willLike ? "Berhasil menyukai" : "Batal menyukai", "success");
     } catch (error) {
-      console.error("Error liking material:", error);
-      // Revert optimistic UI on error
       setIsLiked(previousIsLiked);
       setLikesCount(previousLikesCount);
       showToast("Gagal menyukai modul", "error");
@@ -150,7 +134,6 @@ const DetailModulAjarPage: React.FC = () => {
 
         const link = document.createElement("a");
         link.href = fileUrl;
-        // Prefer content.name if it already includes an extension, otherwise use basename of file_path
         const getBasename = (p: string) => p.split("/").pop() || "";
         const hasExt = (n: string) => /\.[0-9a-z]+$/i.test(n);
         const fileNameFromPath = getBasename(filePath);
@@ -324,32 +307,55 @@ const DetailModulAjarPage: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // === FUNGSI HAPUS MODUL ===
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "Apakah Anda yakin ingin menghapus modul ajar ini? Tindakan ini tidak dapat dibatalkan."
+    );
+
+    if (!confirmed) return;
+
+    if (!API_URL) {
+      showToast("Konfigurasi API tidak ditemukan", "error");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_URL}/modules-learn/${materialId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      showToast("Modul ajar berhasil dihapus!", "success");
+      setTimeout(() => {
+        router.push("/modul-ajar");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Gagal menghapus modul:", error);
+      showToast(
+        error.response?.data?.message || "Gagal menghapus modul.",
+        "error"
+      );
+    }
+  };
+
   const getYouTubeEmbedUrl = (url: string): string | null => {
     if (!url) return null;
 
     try {
       const parsed = new URL(url);
-
-      // youtu.be/VIDEO_ID
       if (parsed.hostname === "youtu.be") {
         return `https://www.youtube.com/embed${parsed.pathname}`;
       }
-
-      // youtube.com/watch?v=VIDEO_ID
       if (parsed.searchParams.get("v")) {
         return `https://www.youtube.com/embed/${parsed.searchParams.get("v")}`;
       }
-
-      // youtube.com/shorts/VIDEO_ID
       if (parsed.pathname.startsWith("/shorts/")) {
         return `https://www.youtube.com/embed/${parsed.pathname.split("/")[2]}`;
       }
-
-      // already embed
       if (parsed.pathname.startsWith("/embed/")) {
         return url;
       }
-
       return null;
     } catch {
       return null;
@@ -357,9 +363,7 @@ const DetailModulAjarPage: React.FC = () => {
   };
 
   const getContentType = (content: any): string => {
-    if (content?.youtube_url) {
-      return "YOUTUBE";
-    }
+    if (content?.youtube_url) return "YOUTUBE";
     return (
       (content.file_type || content.format_doc || "").toUpperCase() || "FILE"
     );
@@ -392,7 +396,6 @@ const DetailModulAjarPage: React.FC = () => {
     );
   };
 
-  // Early returns
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-white">
@@ -415,13 +418,11 @@ const DetailModulAjarPage: React.FC = () => {
     );
   }
 
-  // Pindahkan deklarasi ini KE ATAS sebelum return utama
   const displayedMateri = showAllFiles ? materi : materi.slice(0, 3);
   const displayedAssessments = showAllFiles
     ? assessments
     : assessments.slice(0, 3);
 
-  // Main return
   return (
     <div className="bg-white min-h-screen pt-[5.21rem] pb-28">
       {/* Toast Notification */}
@@ -453,6 +454,51 @@ const DetailModulAjarPage: React.FC = () => {
           </span>
         </div>
       </TopBar>
+
+      {/* === TOMBOL EDIT & DELETE (HANYA UNTUK PEMILIK MODUL) === */}
+      {user?.id && materialData?.user_id === user.id && (
+        <div className="px-4 mt-4 flex justify-end gap-3">
+          <button
+            onClick={() => router.push(`/modul-ajar/edit/${materialId}`)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-amber-50 text-amber-700 rounded-xl font-medium hover:bg-amber-100 transition-colors shadow-sm"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            Edit Modul
+          </button>
+
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-700 rounded-xl font-medium hover:bg-red-100 transition-colors shadow-sm"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Hapus Modul
+          </button>
+        </div>
+      )}
 
       <div className="px-4 py-4">
         {/* Category Badge */}
@@ -625,15 +671,6 @@ const DetailModulAjarPage: React.FC = () => {
               "Memahami fikih mu'amalah dan al-kulliyyat al-khamsah (lima prinsip dasar hukum Islam dalam rangka menumbuhkan jiwa kewirausahaan, kepedulian, dan kepekaan sosial)."}
             "
           </p>
-          {/* <button
-            onClick={() => window.open("/files/SMP.D.ISL.MUA.1.pdf", "_blank")}
-            className="flex items-center gap-2 text-[#006557] text-sm font-medium hover:underline"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-            </svg>
-            Lihat dokumen ATP (Alur Tujuan Pembelajaran)
-          </button>*/}
         </div>
 
         {/* Stats Section */}
@@ -936,7 +973,7 @@ const DetailModulAjarPage: React.FC = () => {
             </button>
 
             <button
-              onClick={() => handleDownloadAll()}
+              onClick={handleDownloadAll}
               disabled={downloading}
               className="flex-1 py-3 bg-[#006557] text-white rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
             >
