@@ -24,12 +24,13 @@ interface FaseOption {
 
 interface CardData {
   id: string;
+  user_id?: number;
   type: string;
   grade?: { id: number; description: string };
+  fase?: { id: number; nama_fase: string; deskripsi: string };
   topic: string;
   created_at: string;
   image: string;
-  user_id?: number;
   downloads?: number;
   likes_count?: number;
   jenjangId?: number;
@@ -150,7 +151,12 @@ const ModulAjarPage: React.FC = () => {
               description:
                 module.fase?.deskripsi || module.fase?.nama_fase || "Kelas",
             },
-            image: module.image || "/img/thumbnailmodul.png",
+            fase: {
+              id: module.fase?.id_fase || 0,
+              nama_fase: module.fase?.nama_fase || "",
+              deskripsi: module.fase?.deskripsi || "",
+            },
+            image: module.thumbnail,
             created_at: module.created_at || new Date().toISOString(),
             downloads: module.downloads_count || 0,
             likes_count: module.likes_count || 0,
@@ -237,6 +243,23 @@ const ModulAjarPage: React.FC = () => {
     // trigger useEffect via dependency searchQuery
   };
 
+  const resolveThumbnail = (thumbnail?: string) => {
+    if (!thumbnail) return "/img/thumbnailmodul.png";
+
+    // kalau sudah full URL
+    if (thumbnail.startsWith("http://") || thumbnail.startsWith("https://")) {
+      return thumbnail;
+    }
+
+    // kalau path lokal frontend
+    if (thumbnail.startsWith("/")) {
+      return thumbnail;
+    }
+
+    // default: dari file server
+    return `http://file.agpaiidigital.org/${thumbnail}`;
+  };
+
   return (
     <div className="pt-[5.21rem] bg-white min-h-screen">
       <TopBar withBackButton tambahButton="/perangkat-ajar/tambah">
@@ -298,32 +321,59 @@ const ModulAjarPage: React.FC = () => {
         </p>
 
         <div className="flex gap-2 mb-3">
-          <select
-            className="flex-1 p-3 border border-gray-300 rounded-lg text-sm text-gray-600 bg-white"
-            value={selectedJenjang}
-            onChange={(e) => setSelectedJenjang(e.target.value)}
-          >
-            <option value="">Pilih Jenjang</option>
-            {jenjangOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
-              </option>
-            ))}
-          </select>
+          {/* Jenjang */}
+          <div className="w-1/2">
+            <select
+              className="
+        w-full
+        p-3
+        border border-gray-300
+        rounded-lg
+        text-sm text-gray-600
+        bg-white
+        focus:outline-none
+        focus:ring-2 focus:ring-[#006557]
+      "
+              value={selectedJenjang}
+              onChange={(e) => setSelectedJenjang(e.target.value)}
+            >
+              <option value="">Pilih Jenjang</option>
+              {jenjangOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            className="flex-1 p-3 border border-gray-300 rounded-lg text-sm text-gray-600 bg-white"
-            value={selectedFase}
-            onChange={(e) => setSelectedFase(e.target.value)}
-            disabled={!selectedJenjang}
-          >
-            <option value="">Pilih Fase</option>
-            {faseOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name} ({option.kelas})
-              </option>
-            ))}
-          </select>
+          {/* Fase */}
+          <div className="w-1/2">
+            <select
+              className="
+                w-full
+                p-3
+                border border-gray-300
+                rounded-lg
+                text-sm text-gray-600
+                bg-white
+                whitespace-nowrap
+                overflow-hidden
+                text-ellipsis
+                focus:outline-none
+                focus:ring-2 focus:ring-[#006557]
+              "
+              value={selectedFase}
+              onChange={(e) => setSelectedFase(e.target.value)}
+              disabled={!selectedJenjang}
+            >
+              <option value="">Pilih Fase</option>
+              {faseOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.name} ({option.kelas})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -400,23 +450,20 @@ const ModulAjarPage: React.FC = () => {
               >
                 <div className="flex-shrink-0">
                   <img
-                    src={
-                      item.image?.startsWith("/")
-                        ? item.image
-                        : `${process.env.NEXT_PUBLIC_MITRA_URL}/public/${item.image}`
-                    }
+                    src={resolveThumbnail(item.image)}
                     alt={item.topic}
                     className="w-16 h-16 rounded-lg object-cover bg-gray-100"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
-                        "/img/modul-placeholder.png";
+                        "/img/thumbnailmodul.png";
                     }}
                   />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <span className="text-xs text-[#006557] font-medium">
-                    • {item.grade?.description || "Kelas"}
+                    • {item.fase?.nama_fase || ""} (
+                    {item.grade?.description || "Kelas"})
                   </span>
                   <h3 className="font-semibold text-gray-800 mt-1 line-clamp-1">
                     {item.topic}

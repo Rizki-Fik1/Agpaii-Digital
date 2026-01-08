@@ -1,4 +1,5 @@
 "use client";
+
 import TopBar from "@/components/nav/topbar";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ interface FormData {
   deskripsi_singkat: string;
   tentang_modul: string;
   tujuan_pembelajaran: string;
+  thumbnail?: File | null;
   contents: ContentItem[];
 }
 
@@ -53,8 +55,11 @@ const TambahPerangkatAjar: React.FC = () => {
     deskripsi_singkat: "",
     tentang_modul: "",
     tujuan_pembelajaran: "",
+    thumbnail: null,
     contents: [],
   });
+
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -112,6 +117,14 @@ const TambahPerangkatAjar: React.FC = () => {
     setFormData((prev) => ({ ...prev, fase_id: "" }));
   }, [selectedJenjang, allFaseOptions]);
 
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview) {
+        URL.revokeObjectURL(thumbnailPreview);
+      }
+    };
+  }, [thumbnailPreview]);
+
   const handleAddContent = () => {
     setFormData((prev) => ({
       ...prev,
@@ -156,6 +169,16 @@ const TambahPerangkatAjar: React.FC = () => {
     setFormData({ ...formData, contents: newContents });
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setFormData((prev) => ({ ...prev, thumbnail: file }));
+    if (file) {
+      setThumbnailPreview(URL.createObjectURL(file));
+    } else {
+      setThumbnailPreview(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user?.id) {
       alert("User tidak ditemukan. Silakan login ulang.");
@@ -177,88 +200,55 @@ const TambahPerangkatAjar: React.FC = () => {
     setLoading(true);
 
     try {
-      const hasFiles = formData.contents.some((c) => (c as any).file);
+      const data = new FormData();
+      data.append("judul", formData.judul);
+      data.append("fase_id", formData.fase_id);
+      data.append("jenjang_id", formData.jenjang_id);
+      data.append("deskripsi_singkat", formData.deskripsi_singkat);
+      data.append("tentang_modul", formData.tentang_modul);
+      data.append("tujuan_pembelajaran", formData.tujuan_pembelajaran);
+      data.append("user_id", String(user.id));
 
-      if (hasFiles) {
-        const data = new FormData();
-        data.append("judul", formData.judul);
-        data.append("fase_id", formData.fase_id);
-        data.append("jenjang_id", formData.jenjang_id);
-        data.append("deskripsi_singkat", formData.deskripsi_singkat);
-        data.append("tentang_modul", formData.tentang_modul);
-        data.append("tujuan_pembelajaran", formData.tujuan_pembelajaran);
-        data.append("user_id", String(user.id));
+      if (formData.thumbnail) {
+        data.append("thumbnail", formData.thumbnail);
+      }
 
-        formData.contents.forEach((c, idx) => {
-          data.append(`contents[${idx}][content_type]`, c.content_type);
-          data.append(`contents[${idx}][judul]`, c.judul);
-          data.append(`contents[${idx}][file_type]`, c.file_type);
+      formData.contents.forEach((c, idx) => {
+        data.append(`contents[${idx}][content_type]`, c.content_type);
+        data.append(`contents[${idx}][judul]`, c.judul);
+        data.append(`contents[${idx}][file_type]`, c.file_type);
 
-          if (c.file_type === "youtube") {
-            data.append(`contents[${idx}][youtube_url]`, c.youtube_url || "");
+        if (c.file_type === "youtube") {
+          data.append(`contents[${idx}][youtube_url]`, c.youtube_url || "");
+        } else {
+          // attach file if present
+          if ((c as any).file) {
+            data.append(`contents_files[${idx}]`, (c as any).file as File);
+            data.append(
+              `contents[${idx}][file_path]`,
+              (c as any).file?.name || ""
+            );
           } else {
-            // attach file if present
-            if ((c as any).file) {
-              data.append(`contents_files[${idx}]`, (c as any).file as File);
-              data.append(
-                `contents[${idx}][file_path]`,
-                (c as any).file?.name || ""
-              );
-            } else {
-              data.append(`contents[${idx}][file_path]`, c.file_path || "");
-            }
+            data.append(`contents[${idx}][file_path]`, c.file_path || "");
           }
-        });
-
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn`,
-          data,
-          {
-            headers: {
-              Accept: "application/json",
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        if (response.data.success) {
-          router.push("/modul-ajar");
-        } else {
-          alert(response.data.message || "Gagal menyimpan data");
         }
+      });
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn`,
+        data,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        router.push("/modul-ajar");
       } else {
-        const payload: any = {
-          judul: formData.judul,
-          fase_id: formData.fase_id,
-          jenjang_id: formData.jenjang_id,
-          deskripsi_singkat: formData.deskripsi_singkat,
-          tentang_modul: formData.tentang_modul,
-          tujuan_pembelajaran: formData.tujuan_pembelajaran,
-          user_id: user.id,
-          contents: formData.contents.map((c) => ({
-            content_type: c.content_type,
-            judul: c.judul,
-            file_type: c.file_type,
-            youtube_url: c.file_type === "youtube" ? c.youtube_url : null,
-            file_path: c.file_type === "youtube" ? null : c.file_path,
-          })),
-        };
-
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn`,
-          payload,
-          {
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
-
-        if (response.data.success) {
-          router.push("/perangkat-ajar");
-        } else {
-          alert(response.data.message || "Gagal menyimpan data");
-        }
+        alert(response.data.message || "Gagal menyimpan data");
       }
     } catch (error: any) {
       console.error("Error submitting data:", error);
@@ -286,7 +276,7 @@ const TambahPerangkatAjar: React.FC = () => {
             }
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-0">
           <select
             className="flex-1 p-2 border rounded"
             value={formData.jenjang_id}
@@ -303,7 +293,7 @@ const TambahPerangkatAjar: React.FC = () => {
             ))}
           </select>
           <select
-            className="flex-1 p-2 border rounded"
+            className="flex-1 min-w-0 p-2 border rounded truncate"
             value={formData.fase_id}
             onChange={(e) =>
               setFormData({ ...formData, fase_id: e.target.value })
@@ -355,6 +345,26 @@ const TambahPerangkatAjar: React.FC = () => {
               setFormData({ ...formData, tujuan_pembelajaran: e.target.value })
             }
           />
+        </div>
+        <div>
+          <label className="block mb-2 text-sm font-medium">
+            Thumbnail (ratio 1:2)
+          </label>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            onChange={handleThumbnailChange}
+          />
+          {thumbnailPreview && (
+            <div className="mt-2 relative w-24 h-48 overflow-hidden rounded-lg">
+              <img
+                src={thumbnailPreview}
+                alt="Thumbnail Preview"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+          )}
         </div>
         <div>
           <label className="block mb-2 text-sm font-medium">Konten</label>

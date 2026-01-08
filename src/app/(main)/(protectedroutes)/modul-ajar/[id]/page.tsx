@@ -324,6 +324,74 @@ const DetailModulAjarPage: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    if (!url) return null;
+
+    try {
+      const parsed = new URL(url);
+
+      // youtu.be/VIDEO_ID
+      if (parsed.hostname === "youtu.be") {
+        return `https://www.youtube.com/embed${parsed.pathname}`;
+      }
+
+      // youtube.com/watch?v=VIDEO_ID
+      if (parsed.searchParams.get("v")) {
+        return `https://www.youtube.com/embed/${parsed.searchParams.get("v")}`;
+      }
+
+      // youtube.com/shorts/VIDEO_ID
+      if (parsed.pathname.startsWith("/shorts/")) {
+        return `https://www.youtube.com/embed/${parsed.pathname.split("/")[2]}`;
+      }
+
+      // already embed
+      if (parsed.pathname.startsWith("/embed/")) {
+        return url;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getContentType = (content: any): string => {
+    if (content?.youtube_url) {
+      return "YOUTUBE";
+    }
+    return (
+      (content.file_type || content.format_doc || "").toUpperCase() || "FILE"
+    );
+  };
+
+  const getContentIcon = (content: any) => {
+    if (content?.youtube_url) {
+      return (
+        <svg
+          className="w-6 h-6 text-red-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+        </svg>
+      );
+    }
+    return (
+      <svg
+        className="w-6 h-6 text-red-500"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fillRule="evenodd"
+          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+          clipRule="evenodd"
+        />
+      </svg>
+    );
+  };
+
   // Early returns
   if (loading) {
     return (
@@ -474,7 +542,7 @@ const DetailModulAjarPage: React.FC = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 12v.01M12 12v.01M20 12v.01M8 12l4-4 4 4"
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
               />
             </svg>
             <span className="text-sm font-medium">Bagikan</span>
@@ -482,11 +550,17 @@ const DetailModulAjarPage: React.FC = () => {
         </div>
 
         {/* Author Section */}
-        <div className="flex items-center gap-3 mb-6">
+        <div
+          className="flex items-center gap-3 mb-6 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
+          onClick={() =>
+            materialData.user?.id &&
+            router.push(`/profile/${materialData.user.id}`)
+          }
+        >
           <img
             src={
               materialData.user?.avatar
-                ? `${process.env.NEXT_PUBLIC_MITRA_URL}/public/${materialData.user.avatar}`
+                ? `https://file.agpaiidigital.org/${materialData.user.avatar}`
                 : "https://avatar.iran.liara.run/public"
             }
             alt={materialData.user?.name}
@@ -494,10 +568,10 @@ const DetailModulAjarPage: React.FC = () => {
           />
           <div>
             <p className="font-semibold text-gray-900">
-              {materialData.user?.name || "Ardianita S.Pd"}
+              {materialData.user?.name || "-"}
             </p>
             <p className="text-sm text-gray-500">
-              {materialData.user?.school || "SMA Negeri 1 Boja"}
+              {materialData.user?.profile?.school_place || "-"}
             </p>
           </div>
         </div>
@@ -549,7 +623,7 @@ const DetailModulAjarPage: React.FC = () => {
               "Memahami fikih mu'amalah dan al-kulliyyat al-khamsah (lima prinsip dasar hukum Islam dalam rangka menumbuhkan jiwa kewirausahaan, kepedulian, dan kepekaan sosial)."}
             "
           </p>
-          <button
+          {/* <button
             onClick={() => window.open("/files/SMP.D.ISL.MUA.1.pdf", "_blank")}
             className="flex items-center gap-2 text-[#006557] text-sm font-medium hover:underline"
           >
@@ -557,8 +631,8 @@ const DetailModulAjarPage: React.FC = () => {
               <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
             </svg>
             Lihat dokumen ATP (Alur Tujuan Pembelajaran)
-          </button>
-        </div>
+          </button>*/}
+        </div> 
 
         {/* Stats Section */}
         <div className="flex gap-4 mb-6">
@@ -616,63 +690,65 @@ const DetailModulAjarPage: React.FC = () => {
           </p>
 
           <div className="space-y-3">
-            {displayedMateri.map((content: any, index: number) => (
-              <div
-                key={`materi-${content.id || index}`}
-                className="flex items-center gap-3 p-2 rounded-lg"
-              >
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-red-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#006557]">
-                    Materi -{" "}
-                    {content.name || content.judul || content.value || "Materi"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {(
-                      content.file_type ||
-                      content.format_doc ||
-                      ""
-                    ).toUpperCase() || "File"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDownload(content)}
-                  className="w-10 h-10 bg-[#006557] rounded-lg flex items-center justify-center hover:bg-[#005547] transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {displayedMateri.map((content: any, index: number) => {
+              const embedUrl = getYouTubeEmbedUrl(content?.youtube_url || "");
+              return (
+                <React.Fragment key={`materi-${content.id || index}`}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg">
+                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      {getContentIcon(content)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#006557]">
+                        Materi -{" "}
+                        {content.name ||
+                          content.judul ||
+                          content.value ||
+                          "Materi"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {getContentType(content)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDownload(content)}
+                      className="w-10 h-10 bg-[#006557] rounded-lg flex items-center justify-center hover:bg-[#005547] transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {embedUrl && (
+                    <div className="mt-2 bg-gray-100 rounded-lg overflow-hidden">
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-48"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           {materi.length > 3 && (
@@ -708,66 +784,65 @@ const DetailModulAjarPage: React.FC = () => {
           </p>
 
           <div className="space-y-3">
-            {displayedAssessments.map((content: any, index: number) => (
-              <div
-                key={`asesmen-${content.id || index}`}
-                className="flex items-center gap-3 p-2 rounded-lg"
-              >
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-red-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-[#006557]">
-                    Asesmen -{" "}
-                    {content.name ||
-                      content.judul ||
-                      content.value ||
-                      "Asesmen"}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {(
-                      content.file_type ||
-                      content.format_doc ||
-                      ""
-                    ).toUpperCase() || "File"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDownload(content)}
-                  className="w-10 h-10 bg-[#006557] rounded-lg flex items-center justify-center hover:bg-[#005547] transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {displayedAssessments.map((content: any, index: number) => {
+              const embedUrl = getYouTubeEmbedUrl(content?.youtube_url || "");
+              return (
+                <React.Fragment key={`asesmen-${content.id || index}`}>
+                  <div className="flex items-center gap-3 p-2 rounded-lg">
+                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      {getContentIcon(content)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#006557]">
+                        Asesmen -{" "}
+                        {content.name ||
+                          content.judul ||
+                          content.value ||
+                          "Asesmen"}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {getContentType(content)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDownload(content)}
+                      className="w-10 h-10 bg-[#006557] rounded-lg flex items-center justify-center hover:bg-[#005547] transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {embedUrl && (
+                    <div className="mt-2 bg-gray-100 rounded-lg overflow-hidden">
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-48"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           {assessments.length > 3 && (
@@ -793,12 +868,7 @@ const DetailModulAjarPage: React.FC = () => {
             </button>
           )}
 
-          <p className="text-sm text-gray-600 mb-6">
-            Peserta didik diminta mengisi lembar penilaian diri dengan cara
-            membubuhkan tanda centang (✓) pada kolom yang sesuai.
-          </p>
-
-          <div className="bg-[#006557] rounded-2xl p-4 flex items-center gap-4 mb-6">
+          <div className="bg-[#006557] rounded-2xl p-4 mt-4 flex items-center gap-4 mb-6">
             <div className="flex-1">
               <h3 className="text-white font-bold text-lg mb-1">
                 Merasa Terbantu Dengan
