@@ -17,6 +17,7 @@ import {
   DocumentTextIcon,
   PlayIcon,
   TrashIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -29,6 +30,7 @@ import {
   AttendanceStatus,
   MOCK_MATERIALS,
   MOCK_EXERCISES,
+  PUBLIC_EXERCISES,
   Material,
   Exercise,
   Question,
@@ -112,6 +114,9 @@ export default function KelasGuruDetailPage() {
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
   const [showExerciseDetailModal, setShowExerciseDetailModal] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  
+  // Repost modal state
+  const [showRepostExerciseModal, setShowRepostExerciseModal] = useState(false);
   
   // New material form state
   const [newMaterial, setNewMaterial] = useState({
@@ -252,7 +257,91 @@ export default function KelasGuruDetailPage() {
   };
   
   const handleDeleteExercise = (id: number) => {
-    setExercises(exercises.filter((e) => e.id !== id));
+    if (confirm("Hapus latihan ini?")) {
+      setExercises(exercises.filter((e) => e.id !== id));
+    }
+  };
+  
+  // Repost exercise handler
+  const handleRepostExercise = (publicExercise: typeof PUBLIC_EXERCISES[0]) => {
+    const newExercise: Exercise = {
+      id: Date.now(),
+      title: publicExercise.title,
+      description: publicExercise.description,
+      totalQuestions: publicExercise.totalQuestions,
+      duration: publicExercise.duration,
+      deadline: publicExercise.deadline,
+      isCompleted: false,
+      questions: publicExercise.questions ? [...publicExercise.questions] : [],
+      repostedFrom: publicExercise.authorName,
+      originalId: publicExercise.id,
+    };
+    setExercises([newExercise, ...exercises]);
+    setShowRepostExerciseModal(false);
+  };
+  
+  // Edit Material state & handlers
+  const [showEditMaterialModal, setShowEditMaterialModal] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [editMaterialData, setEditMaterialData] = useState({
+    title: "",
+    description: "",
+    type: "pdf" as "pdf" | "video",
+    duration: "",
+  });
+  
+  const handleEditMaterial = (material: Material) => {
+    setEditingMaterial(material);
+    setEditMaterialData({
+      title: material.title,
+      description: material.description,
+      type: material.type,
+      duration: material.duration,
+    });
+    setShowEditMaterialModal(true);
+  };
+  
+  const handleSaveEditMaterial = () => {
+    if (!editingMaterial || !editMaterialData.title || !editMaterialData.description) return;
+    setMaterials(prev => prev.map(m => 
+      m.id === editingMaterial.id 
+        ? { ...m, ...editMaterialData } 
+        : m
+    ));
+    setShowEditMaterialModal(false);
+    setEditingMaterial(null);
+  };
+  
+  // Edit Exercise state & handlers
+  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [editExerciseData, setEditExerciseData] = useState({
+    title: "",
+    description: "",
+    duration: 10,
+    deadline: "",
+  });
+  
+  const handleEditExercise = (exercise: Exercise) => {
+    setEditingExercise(exercise);
+    setEditExerciseData({
+      title: exercise.title,
+      description: exercise.description,
+      duration: exercise.duration,
+      deadline: exercise.deadline,
+    });
+    setShowEditExerciseModal(true);
+  };
+  
+  const handleSaveEditExercise = () => {
+    if (!editingExercise || !editExerciseData.title || !editExerciseData.description) return;
+    setExercises(prev => prev.map(e => 
+      e.id === editingExercise.id 
+        ? { ...e, ...editExerciseData } 
+        : e
+    ));
+    setShowEditExerciseModal(false);
+    setEditingExercise(null);
   };
   
   // Handler untuk modal detail latihan
@@ -645,12 +734,24 @@ export default function KelasGuruDetailPage() {
                           </span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteMaterial(material.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                      >
-                        <TrashIcon className="size-5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditMaterial(material)}
+                          className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
+                        >
+                          <PencilIcon className="size-5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Hapus materi ini?")) {
+                              handleDeleteMaterial(material.id);
+                            }
+                          }}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                        >
+                          <TrashIcon className="size-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -674,6 +775,15 @@ export default function KelasGuruDetailPage() {
                   </svg>
                   Bank Soal
                 </Link>
+                <button
+                  onClick={() => setShowRepostExerciseModal(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition"
+                >
+                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Repost
+                </button>
                 <button
                   onClick={() => setShowAddExerciseModal(true)}
                   className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
@@ -708,7 +818,20 @@ export default function KelasGuruDetailPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-slate-700">{exercise.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-slate-700">{exercise.title}</h4>
+                          {exercise.repostedFrom && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-medium rounded-full">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Repost
+                            </span>
+                          )}
+                        </div>
+                        {exercise.repostedFrom && (
+                          <p className="text-[10px] text-purple-600 mt-0.5">Direpost dari {exercise.repostedFrom}</p>
+                        )}
                         <p className="text-xs text-slate-500 mt-1">{exercise.description}</p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                           <span>{exercise.totalQuestions} soal</span>
@@ -717,15 +840,26 @@ export default function KelasGuruDetailPage() {
                         </div>
                         <p className="text-xs text-slate-400 mt-1">Deadline: {exercise.deadline}</p>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteExercise(exercise.id);
-                        }}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                      >
-                        <TrashIcon className="size-5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditExercise(exercise);
+                          }}
+                          className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
+                        >
+                          <PencilIcon className="size-5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteExercise(exercise.id);
+                          }}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                        >
+                          <TrashIcon className="size-5" />
+                        </button>
+                      </div>
                     </div>
                   </button>
                 ))}
@@ -1276,6 +1410,235 @@ export default function KelasGuruDetailPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Material Modal */}
+      {showEditMaterialModal && editingMaterial && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowEditMaterialModal(false)} />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-700">Edit Materi</h3>
+              <button onClick={() => setShowEditMaterialModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Judul Materi *</label>
+                <input
+                  type="text"
+                  value={editMaterialData.title}
+                  onChange={(e) => setEditMaterialData({ ...editMaterialData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Deskripsi *</label>
+                <textarea
+                  value={editMaterialData.description}
+                  onChange={(e) => setEditMaterialData({ ...editMaterialData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tipe Materi</label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setEditMaterialData({ ...editMaterialData, type: "pdf" })}
+                    className={clsx(
+                      "flex-1 py-2 rounded-lg border-2 text-sm font-medium transition",
+                      editMaterialData.type === "pdf"
+                        ? "border-red-500 bg-red-50 text-red-600"
+                        : "border-slate-200 text-slate-500"
+                    )}
+                  >
+                    PDF
+                  </button>
+                  <button
+                    onClick={() => setEditMaterialData({ ...editMaterialData, type: "video" })}
+                    className={clsx(
+                      "flex-1 py-2 rounded-lg border-2 text-sm font-medium transition",
+                      editMaterialData.type === "video"
+                        ? "border-blue-500 bg-blue-50 text-blue-600"
+                        : "border-slate-200 text-slate-500"
+                    )}
+                  >
+                    Video
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Durasi</label>
+                <input
+                  type="text"
+                  value={editMaterialData.duration}
+                  onChange={(e) => setEditMaterialData({ ...editMaterialData, duration: e.target.value })}
+                  placeholder="Contoh: 30 menit"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowEditMaterialModal(false)}
+                  className="flex-1 py-3 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveEditMaterial}
+                  disabled={!editMaterialData.title || !editMaterialData.description}
+                  className="flex-1 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-50"
+                >
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Exercise Modal */}
+      {showEditExerciseModal && editingExercise && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowEditExerciseModal(false)} />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-700">Edit Latihan</h3>
+              <button onClick={() => setShowEditExerciseModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Judul Latihan *</label>
+                <input
+                  type="text"
+                  value={editExerciseData.title}
+                  onChange={(e) => setEditExerciseData({ ...editExerciseData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Deskripsi *</label>
+                <textarea
+                  value={editExerciseData.description}
+                  onChange={(e) => setEditExerciseData({ ...editExerciseData, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Durasi (menit)</label>
+                  <input
+                    type="number"
+                    value={editExerciseData.duration}
+                    onChange={(e) => setEditExerciseData({ ...editExerciseData, duration: parseInt(e.target.value) || 10 })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Deadline</label>
+                  <input
+                    type="date"
+                    value={editExerciseData.deadline}
+                    onChange={(e) => setEditExerciseData({ ...editExerciseData, deadline: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowEditExerciseModal(false)}
+                  className="flex-1 py-3 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveEditExercise}
+                  disabled={!editExerciseData.title || !editExerciseData.description}
+                  className="flex-1 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-50"
+                >
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repost Exercise Modal */}
+      {showRepostExerciseModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowRepostExerciseModal(false)} />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[85vh] overflow-auto mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-700">Repost Latihan</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Pilih latihan dari guru lain untuk direpost ke kelas Anda</p>
+              </div>
+              <button onClick={() => setShowRepostExerciseModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {PUBLIC_EXERCISES.map((exercise) => (
+                <div 
+                  key={exercise.id}
+                  className="border border-slate-200 rounded-xl p-4 hover:border-purple-300 hover:bg-purple-50/30 transition"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <ClipboardDocumentListIcon className="size-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-slate-700 text-sm">{exercise.title}</h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{exercise.description}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[10px] text-slate-400">{exercise.totalQuestions} soal</span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-[10px] text-slate-400">{exercise.duration} menit</span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-2">
+                        <div className="w-5 h-5 bg-slate-200 rounded-full flex items-center justify-center">
+                          <span className="text-[8px] font-bold text-slate-600">{exercise.authorName.charAt(0)}</span>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium text-slate-600">{exercise.authorName}</p>
+                          <p className="text-[9px] text-slate-400">{exercise.authorSchool}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRepostExercise(exercise)}
+                      className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700 transition"
+                    >
+                      Repost
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {PUBLIC_EXERCISES.length === 0 && (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                Tidak ada latihan publik yang tersedia untuk direpost.
+              </div>
+            )}
           </div>
         </div>
       )}

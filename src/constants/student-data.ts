@@ -17,6 +17,10 @@ export interface Material {
   duration: string; // e.g. "15 menit"
   chapters?: string[];
   createdAt: string;
+  // Repost fields
+  repostedFrom?: string; // Original author name
+  originalId?: number; // Original material ID
+  isPublic?: boolean; // Can be reposted by others
 }
 
 // Mock materi kelas dengan detail
@@ -78,6 +82,10 @@ export interface Exercise {
   isCompleted: boolean;
   score?: number;
   questions?: Question[];
+  // Repost fields
+  repostedFrom?: string; // Original author name
+  originalId?: number; // Original exercise ID
+  isPublic?: boolean; // Can be reposted by others
 }
 
 export interface Question {
@@ -237,6 +245,67 @@ export const MOCK_EXERCISES: Exercise[] = [
         correctAnswer: 1
       }
     ]
+  },
+];
+
+// Public exercises from other teachers that can be reposted
+export const PUBLIC_EXERCISES: (Exercise & { authorName: string; authorSchool: string })[] = [
+  {
+    id: 101,
+    title: "Latihan Akhlak Terpuji",
+    description: "Evaluasi pemahaman tentang akhlak mulia dalam Islam",
+    totalQuestions: 5,
+    duration: 15,
+    deadline: "2026-02-15",
+    isCompleted: false,
+    isPublic: true,
+    authorName: "Ustadz Ahmad",
+    authorSchool: "SMP Negeri 2 Surabaya",
+    questions: [
+      { id: 1, question: "Apa yang dimaksud dengan akhlak mahmudah?", options: ["Akhlak tercela", "Akhlak terpuji", "Akhlak biasa", "Tidak ada"], correctAnswer: 1 },
+      { id: 2, question: "Contoh sifat jujur dalam kehidupan sehari-hari adalah?", options: ["Berbohong untuk kebaikan", "Berkata benar meski pahit", "Menyembunyikan kesalahan", "Berbohong agar tidak dihukum"], correctAnswer: 1 },
+      { id: 3, question: "Sabar termasuk akhlak...?", options: ["Tercela", "Terpuji", "Biasa", "Tidak baik"], correctAnswer: 1 },
+      { id: 4, question: "Lawan dari sifat sombong adalah?", options: ["Kikir", "Rendah hati", "Malas", "Bohong"], correctAnswer: 1 },
+      { id: 5, question: "Menjaga lisan artinya?", options: ["Tidak berbicara", "Berbicara yang baik", "Berbicara banyak", "Diam saja"], correctAnswer: 1 },
+    ],
+  },
+  {
+    id: 102,
+    title: "Quiz Sholat 5 Waktu",
+    description: "Tes pemahaman tentang tata cara sholat wajib",
+    totalQuestions: 5,
+    duration: 10,
+    deadline: "2026-02-20",
+    isCompleted: false,
+    isPublic: true,
+    authorName: "Bu Fatimah",
+    authorSchool: "SMP Islam Terpadu Jakarta",
+    questions: [
+      { id: 1, question: "Berapa jumlah rakaat sholat Maghrib?", options: ["2", "3", "4", "5"], correctAnswer: 1 },
+      { id: 2, question: "Sholat apa yang dilakukan saat matahari terbenam?", options: ["Dzuhur", "Ashar", "Maghrib", "Isya"], correctAnswer: 2 },
+      { id: 3, question: "Apa yang dibaca saat ruku?", options: ["Allahu Akbar", "Subhana Rabbiyal Azhim", "Sami Allahu Liman Hamidah", "Rabbana Lakal Hamd"], correctAnswer: 1 },
+      { id: 4, question: "Gerakan setelah ruku adalah?", options: ["Sujud", "Iktidal", "Duduk", "Salam"], correctAnswer: 1 },
+      { id: 5, question: "Kapan waktu sholat Subuh berakhir?", options: ["Saat matahari terbit", "Saat dzuhur", "Saat sore", "Saat malam"], correctAnswer: 0 },
+    ],
+  },
+  {
+    id: 103,
+    title: "Evaluasi Puasa Ramadhan",
+    description: "Uji pemahaman tentang ibadah puasa di bulan Ramadhan",
+    totalQuestions: 5,
+    duration: 12,
+    deadline: "2026-02-25",
+    isCompleted: false,
+    isPublic: true,
+    authorName: "Pak Hasan",
+    authorSchool: "MTs Negeri 1 Bandung",
+    questions: [
+      { id: 1, question: "Apa yang membatalkan puasa?", options: ["Tidur siang", "Makan dan minum sengaja", "Mandi", "Berjemur"], correctAnswer: 1 },
+      { id: 2, question: "Kapan waktu sahur berakhir?", options: ["Saat imsak", "Saat dzuhur", "Saat maghrib", "Saat isya"], correctAnswer: 0 },
+      { id: 3, question: "Hukum puasa Ramadhan adalah?", options: ["Sunnah", "Wajib", "Mubah", "Makruh"], correctAnswer: 1 },
+      { id: 4, question: "Apa yang dibaca saat berbuka?", options: ["Doa sebelum makan", "Doa berbuka puasa", "Doa setelah makan", "Istighfar"], correctAnswer: 1 },
+      { id: 5, question: "Lailatul Qadar terjadi pada?", options: ["Malam ganjil 10 terakhir Ramadhan", "Setiap malam", "Malam pertama", "Malam ke-15"], correctAnswer: 0 },
+    ],
   },
 ];
 

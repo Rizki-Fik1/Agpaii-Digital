@@ -595,6 +595,69 @@ const DetailModulAjarPage: React.FC = () => {
             </svg>
             <span className="text-sm font-medium">Bagikan</span>
           </button>
+
+          {/* Repost Button - only show for modules not owned by current user */}
+          {user?.id && materialData?.user_id !== user.id && (
+            <button
+              onClick={() => {
+                // Save to localStorage as reposted module with FULL data
+                const repostedModules = JSON.parse(localStorage.getItem("repostedModules") || "[]");
+                const alreadyReposted = repostedModules.some((m: any) => m.originalId === materialData.id);
+                
+                if (alreadyReposted) {
+                  showToast("Modul ini sudah ada di koleksi Anda", "error");
+                  return;
+                }
+                
+                // Store full module data so user can edit it as their own
+                const repostedModule = {
+                  id: Date.now(),
+                  originalId: materialData.id,
+                  // Basic info
+                  judul: materialData.judul || materialData.topic,
+                  deskripsi_singkat: materialData.deskripsi_singkat || materialData.description,
+                  tentang_modul: materialData.tentang_modul || "",
+                  tujuan_pembelajaran: materialData.tujuan_pembelajaran || materialData.tujuan || "",
+                  thumbnail: materialData.thumbnail,
+                  category: materialData.category || "Kegiatan Intrakurikuler",
+                  // Grade/Phase info
+                  jenjang: materialData.jenjang,
+                  fase: materialData.fase,
+                  // Content data for editing
+                  materi: materi || [],
+                  assessments: assessments || [],
+                  // Repost metadata
+                  repostedFrom: materialData.user?.name || "Unknown",
+                  repostedFromSchool: materialData.user?.profile?.school_place || "",
+                  repostedAt: new Date().toISOString(),
+                  user_id: user.id,
+                  // Stats (reset for reposted)
+                  likes_count: 0,
+                  downloads_count: 0,
+                };
+                
+                repostedModules.push(repostedModule);
+                localStorage.setItem("repostedModules", JSON.stringify(repostedModules));
+                showToast("Modul berhasil direpost ke koleksi Anda! Anda dapat mengeditnya.", "success");
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span className="text-sm font-medium">Repost</span>
+            </button>
+          )}
         </div>
 
         {/* Author Section */}
