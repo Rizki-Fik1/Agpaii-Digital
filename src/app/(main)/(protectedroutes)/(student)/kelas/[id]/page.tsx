@@ -91,7 +91,18 @@ export default function KelasDetailPage() {
   const [quizScore, setQuizScore] = useState(0);
   
   // Discussion state - local management for edit/delete
-  const [discussions, setDiscussions] = useState<Discussion[]>(MOCK_DISCUSSIONS);
+  // Add a discussion with the current user's name so they can test edit/delete
+  const [discussions, setDiscussions] = useState<Discussion[]>(() => {
+    const userDiscussion: Discussion = {
+      id: 999,
+      authorName: auth?.name || "Siswa",
+      authorAvatar: null,
+      content: "Ini adalah diskusi saya yang bisa saya edit atau hapus. Bagaimana cara menghafal surat-surat pendek dengan cepat?",
+      createdAt: new Date().toLocaleDateString("id-ID", { year: "numeric", month: "2-digit", day: "2-digit" }) + " " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      repliesCount: 0,
+    };
+    return [userDiscussion, ...MOCK_DISCUSSIONS];
+  });
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingDiscussion, setEditingDiscussion] = useState<Discussion | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -276,7 +287,7 @@ export default function KelasDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Link href="/kelas" className="p-1">
-              <ChevronLeftIcon className="size-6" />
+              <ChevronLeftIcon className="size-6 text-white" />
             </Link>
             <div>
               <h1 className="text-lg font-semibold">{classInfo.name}</h1>
@@ -435,34 +446,36 @@ export default function KelasDetailPage() {
                         <p className="font-semibold text-slate-700 text-sm">{discussion.authorName}</p>
                         <p className="text-xs text-slate-400">{discussion.createdAt}</p>
                       </div>
-                      {/* Menu Button */}
-                      <div className="relative">
-                        <button 
-                          onClick={() => toggleMenu(discussion.id)}
-                          className="p-1.5 hover:bg-slate-100 rounded-full transition"
-                        >
-                          <EllipsisVerticalIcon className="w-5 h-5 text-slate-400" />
-                        </button>
-                        {/* Dropdown Menu */}
-                        {activeMenuId === discussion.id && (
-                          <div className="absolute right-0 top-8 w-32 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1">
-                            <button
-                              onClick={() => handleEditDiscussion(discussion)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
-                            >
-                              <PencilIcon className="w-4 h-4" />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteDiscussion(discussion.id)}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                              Hapus
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      {/* Menu Button - Only show for own discussions */}
+                      {auth?.name === discussion.authorName && (
+                        <div className="relative">
+                          <button 
+                            onClick={() => toggleMenu(discussion.id)}
+                            className="p-1.5 hover:bg-slate-100 rounded-full transition"
+                          >
+                            <EllipsisVerticalIcon className="w-5 h-5 text-slate-400" />
+                          </button>
+                          {/* Dropdown Menu */}
+                          {activeMenuId === discussion.id && (
+                            <div className="absolute right-0 top-8 w-32 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1">
+                              <button
+                                onClick={() => handleEditDiscussion(discussion)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
+                              >
+                                <PencilIcon className="w-4 h-4" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteDiscussion(discussion.id)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
+                              >
+                                <TrashIcon className="w-4 h-4" />
+                                Hapus
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm text-slate-600 mt-3 leading-relaxed">{discussion.content}</p>
                   </div>
@@ -799,7 +812,7 @@ export default function KelasDetailPage() {
                   onClick={() => setSelectedMaterial(null)} 
                   className="p-1.5 hover:bg-white/20 rounded-lg transition"
                 >
-                  <ChevronLeftIcon className="size-6" />
+                  <ChevronLeftIcon className="size-6 text-white" />
                 </button>
                 <div className="flex-1">
                   <h1 className="font-bold text-lg">{selectedMaterial.title}</h1>
