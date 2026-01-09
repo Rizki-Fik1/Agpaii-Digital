@@ -69,7 +69,7 @@ export default function ForumPage() {
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <Link href="/beranda" className="p-1">
-            <ChevronLeftIcon className="size-6" />
+            <ChevronLeftIcon className="size-6 text-white" />
           </Link>
           <div>
             <h1 className="text-lg font-semibold">Forum Publik</h1>

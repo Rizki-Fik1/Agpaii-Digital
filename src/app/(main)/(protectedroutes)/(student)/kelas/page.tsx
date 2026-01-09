@@ -47,7 +47,7 @@ export default function KelasListPage() {
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
         <div className="flex items-center gap-3 mb-4">
           <Link href="/other" className="p-1">
-            <ChevronLeftIcon className="size-6" />
+            <ChevronLeftIcon className="size-6 text-white" />
           </Link>
           <div>
             <h1 className="text-lg font-semibold">Kelas Saya</h1>
