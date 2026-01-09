@@ -30,10 +30,20 @@ export default function StudentHomePage() {
   useEffect(() => {
     // Check localStorage for demo student data
     const demoData = localStorage.getItem("demo_student_data");
+    const isEnrolledDemo = localStorage.getItem("demo_student_enrolled") === "true";
+    
     if (demoData) {
       const parsed = JSON.parse(demoData);
       setStudentData(parsed);
-      setIsRegisteredToClass(parsed.isRegisteredToClass || false);
+      setIsRegisteredToClass(parsed.isRegisteredToClass || isEnrolledDemo);
+    } else if (isEnrolledDemo) {
+      // For siswakelas@demo.com account - student enrolled in class
+      setStudentData({
+        name: "Ahmad Fauzan",
+        school: "SMP Negeri 1 Jakarta",
+        isRegisteredToClass: true,
+      });
+      setIsRegisteredToClass(true);
     }
   }, []);
 
@@ -41,6 +51,7 @@ export default function StudentHomePage() {
   const handleLogout = async () => {
     localStorage.removeItem("demo_student_mode");
     localStorage.removeItem("demo_student_data");
+    localStorage.removeItem("demo_student_enrolled");
     localStorage.removeItem("access_token");
     await queryClient.invalidateQueries({ queryKey: ["auth"] });
     router.push("/getting-started");
