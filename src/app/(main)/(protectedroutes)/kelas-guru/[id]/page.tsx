@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ChevronLeftIcon,
   CalendarDaysIcon,
@@ -53,6 +53,7 @@ const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string; i
 
 export default function KelasGuruDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const classId = Number(params.id);
   const classInfo = getClassById(classId);
   const students = getStudentsInClass(classId);
@@ -459,9 +460,9 @@ export default function KelasGuruDetailPage() {
       {/* Header */}
       <div className={clsx("bg-gradient-to-r text-white p-4 pt-6", classInfo.color)}>
         <div className="flex items-center gap-3 mb-4">
-          <Link href="/kelas-guru" className="p-1">
-            <ChevronLeftIcon className="size-6" />
-          </Link>
+          <button onClick={() => router.back()} className="p-1">
+            <ChevronLeftIcon className="size-6 text-white" />
+          </button>
           <div>
             <h1 className="text-lg font-semibold">{classInfo.name}</h1>
             <p className="text-xs text-white/80">{classInfo.school}</p>

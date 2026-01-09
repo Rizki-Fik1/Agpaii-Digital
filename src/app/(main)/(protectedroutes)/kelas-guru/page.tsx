@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/utils/context/auth_context";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -15,6 +16,7 @@ import clsx from "clsx";
 
 export default function KelasGuruListPage() {
   const { auth } = useAuth();
+  const router = useRouter();
   
   // Untuk guru, hanya tampilkan 1 kelas yang diampu (demo: kelas pertama)
   const teacherClass = MOCK_CLASSES[0];
@@ -24,15 +26,13 @@ export default function KelasGuruListPage() {
     <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="p-1">
-              <ChevronLeftIcon className="size-6" />
-            </Link>
-            <div>
-              <h1 className="text-lg font-semibold">Kelas Saya</h1>
-              <p className="text-xs text-teal-100">Kelola kelas dan presensi siswa</p>
-            </div>
+        <div className="flex items-center gap-3 mb-4">
+          <button onClick={() => router.back()} className="p-1">
+            <ChevronLeftIcon className="size-6 text-white" />
+          </button>
+          <div>
+            <h1 className="text-lg font-semibold">Kelas Saya</h1>
+            <p className="text-xs text-teal-100">Kelola kelas dan presensi siswa</p>
           </div>
           {/* Add Class Button */}
           <Link 
