@@ -21,6 +21,9 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ExclamationTriangleIcon,
+  PencilIcon,
+  TrashIcon,
+  EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -31,6 +34,7 @@ import {
   getClassById,
   Material,
   Exercise,
+  Discussion,
   getAttendanceDates,
   getAttendanceByClassAndDate,
   MOCK_STUDENTS_BY_CLASS,
@@ -86,6 +90,13 @@ export default function KelasDetailPage() {
   const [showResult, setShowResult] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   
+  // Discussion state - local management for edit/delete
+  const [discussions, setDiscussions] = useState<Discussion[]>(MOCK_DISCUSSIONS);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDiscussion, setEditingDiscussion] = useState<Discussion | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  
   // Discussion replies state - track which discussions have expanded replies
   const [expandedReplies, setExpandedReplies] = useState<{[key: number]: boolean}>({});
   
@@ -94,6 +105,35 @@ export default function KelasDetailPage() {
       ...prev,
       [discussionId]: !prev[discussionId]
     }));
+  };
+  
+  // Edit/Delete handlers for discussions
+  const handleEditDiscussion = (discussion: Discussion) => {
+    setEditingDiscussion(discussion);
+    setEditContent(discussion.content);
+    setShowEditModal(true);
+    setActiveMenuId(null);
+  };
+  
+  const handleSaveEdit = () => {
+    if (!editingDiscussion || !editContent.trim()) return;
+    setDiscussions(prev => prev.map(d => 
+      d.id === editingDiscussion.id ? { ...d, content: editContent } : d
+    ));
+    setShowEditModal(false);
+    setEditingDiscussion(null);
+    setEditContent("");
+  };
+  
+  const handleDeleteDiscussion = (discussionId: number) => {
+    if (confirm("Hapus diskusi ini?")) {
+      setDiscussions(prev => prev.filter(d => d.id !== discussionId));
+    }
+    setActiveMenuId(null);
+  };
+  
+  const toggleMenu = (discussionId: number) => {
+    setActiveMenuId(activeMenuId === discussionId ? null : discussionId);
   };
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
@@ -380,20 +420,48 @@ export default function KelasDetailPage() {
               </button>
             </div>
 
-            {/* Discussions List */}
+            {/* Discussions List - using local state */}
             <div className="space-y-4">
-              {MOCK_DISCUSSIONS.map((discussion) => (
+              {discussions.map((discussion) => (
                 <div
                   key={discussion.id}
                   className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
                 >
-                  {/* Discussion Header */}
+                  {/* Discussion Header with Menu */}
                   <div className="p-4 pb-3">
                     <div className="flex items-center gap-3">
                       <InitialsAvatar name={discussion.authorName} size="lg" bgColor="teal" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-slate-700 text-sm">{discussion.authorName}</p>
                         <p className="text-xs text-slate-400">{discussion.createdAt}</p>
+                      </div>
+                      {/* Menu Button */}
+                      <div className="relative">
+                        <button 
+                          onClick={() => toggleMenu(discussion.id)}
+                          className="p-1.5 hover:bg-slate-100 rounded-full transition"
+                        >
+                          <EllipsisVerticalIcon className="w-5 h-5 text-slate-400" />
+                        </button>
+                        {/* Dropdown Menu */}
+                        {activeMenuId === discussion.id && (
+                          <div className="absolute right-0 top-8 w-32 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1">
+                            <button
+                              onClick={() => handleEditDiscussion(discussion)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition"
+                            >
+                              <PencilIcon className="w-4 h-4" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteDiscussion(discussion.id)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                              Hapus
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <p className="text-sm text-slate-600 mt-3 leading-relaxed">{discussion.content}</p>
@@ -1059,6 +1127,45 @@ export default function KelasDetailPage() {
                 className="px-5 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition disabled:opacity-50"
               >
                 Kirim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Discussion Modal */}
+      {showEditModal && editingDiscussion && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowEditModal(false)} />
+          <div className="relative w-full max-w-[440px] mx-4 bg-white rounded-2xl p-4 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-700">Edit Diskusi</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                <XMarkIcon className="size-6 text-slate-500" />
+              </button>
+            </div>
+            
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              placeholder="Isi diskusi..."
+              rows={5}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none text-sm"
+            />
+            
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 py-2 border border-slate-300 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={!editContent.trim()}
+                className="flex-1 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition disabled:opacity-50"
+              >
+                Simpan
               </button>
             </div>
           </div>
