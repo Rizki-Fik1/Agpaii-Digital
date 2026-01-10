@@ -30,17 +30,17 @@ export default function KelasGuruListPage() {
           <button onClick={() => router.back()} className="p-1">
             <ChevronLeftIcon className="size-6 text-white" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-semibold">Kelas Saya</h1>
             <p className="text-xs text-teal-100">Kelola kelas dan presensi siswa</p>
           </div>
           {/* Add Class Button */}
           <Link 
             href="/kelas-guru/tambah" 
-            className="bg-white hover:bg-white/90 text-teal-600 rounded-lg px-3 py-2 flex items-center gap-1 text-sm font-medium transition"
+            className="bg-white hover:bg-white/90 text-teal-600 rounded-lg px-3 py-2 flex items-center gap-1.5 text-sm font-medium transition shadow-sm"
           >
-            <PlusIcon className="size-5" />
-            <span className="hidden sm:inline">Tambah</span>
+            <PlusIcon className="size-4" />
+            <span>Tambah</span>
           </Link>
         </div>
         

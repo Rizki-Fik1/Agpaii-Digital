@@ -69,6 +69,8 @@ const ModulAjarPage: React.FC = () => {
     deskripsi_singkat: "",
     tentang_modul: "",
     tujuan_pembelajaran: "",
+    materi: [] as any[],
+    assessments: [] as any[],
   });
 
   const observerRef = useRef<HTMLDivElement | null>(null);
@@ -497,6 +499,8 @@ const ModulAjarPage: React.FC = () => {
                           deskripsi_singkat: item.deskripsi_singkat || "",
                           tentang_modul: item.tentang_modul || "",
                           tujuan_pembelajaran: item.tujuan_pembelajaran || "",
+                          materi: item.materi || [],
+                          assessments: item.assessments || [],
                         });
                         setShowEditRepostModal(true);
                       }}
@@ -693,7 +697,7 @@ const ModulAjarPage: React.FC = () => {
       {showEditRepostModal && editingRepostModule && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowEditRepostModal(false)} />
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden my-8">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden my-4">
             {/* Header - Fixed at top */}
             <div className="bg-gradient-to-r from-[#006557] to-[#00806B] px-4 py-3">
               <div className="flex items-center justify-between">
@@ -725,7 +729,7 @@ const ModulAjarPage: React.FC = () => {
             </div>
             
             {/* Content - Scrollable */}
-            <div className="p-4 overflow-y-auto max-h-[calc(85vh-120px)]">
+            <div className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-4">
                 {/* Judul */}
                 <div>
@@ -794,11 +798,244 @@ const ModulAjarPage: React.FC = () => {
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006557]/30 focus:border-[#006557] focus:bg-white transition resize-none"
                   />
                 </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-200 pt-4 mt-2">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Dokumen Modul
+                  </h4>
+                </div>
+
+                {/* Materi Section */}
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    Materi ({editRepostData.materi?.length || 0})
+                  </label>
+                  {editRepostData.materi && editRepostData.materi.length > 0 ? (
+                    <div className="space-y-2">
+                      {editRepostData.materi.map((item: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            {item.youtube_url ? (
+                              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={item.name || item.judul || `Materi ${index + 1}`}
+                            onChange={(e) => {
+                              const updated = [...editRepostData.materi];
+                              updated[index] = { ...updated[index], name: e.target.value, judul: e.target.value };
+                              setEditRepostData({ ...editRepostData, materi: updated });
+                            }}
+                            className="flex-1 px-3 py-1.5 bg-white border border-blue-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                          <button
+                            onClick={() => {
+                              const updated = editRepostData.materi.filter((_: any, i: number) => i !== index);
+                              setEditRepostData({ ...editRepostData, materi: updated });
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic py-2">Tidak ada materi</p>
+                  )}
+                  {/* Add Materi Button */}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => {
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
+                        fileInput.onchange = (e: any) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Create a local reference for the file
+                            const newMateri = {
+                              id: Date.now(),
+                              name: file.name,
+                              judul: file.name,
+                              file_path: URL.createObjectURL(file),
+                              file_type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+                              localFile: file, // Store file reference for potential upload
+                            };
+                            setEditRepostData({ 
+                              ...editRepostData, 
+                              materi: [...editRepostData.materi, newMateri] 
+                            });
+                          }
+                        };
+                        fileInput.click();
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-50 border border-dashed border-blue-300 rounded-xl text-blue-600 text-sm font-medium hover:bg-blue-100 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      Upload File
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = prompt("Masukkan link YouTube:");
+                        if (url && url.includes("youtube") || url?.includes("youtu.be")) {
+                          const newMateri = {
+                            id: Date.now(),
+                            name: "Video YouTube",
+                            judul: "Video YouTube",
+                            youtube_url: url,
+                          };
+                          setEditRepostData({ 
+                            ...editRepostData, 
+                            materi: [...editRepostData.materi, newMateri] 
+                          });
+                        } else if (url) {
+                          alert("Harap masukkan link YouTube yang valid");
+                        }
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 border border-dashed border-red-300 rounded-xl text-red-600 text-sm font-medium hover:bg-red-100 transition"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+                      </svg>
+                      Link YouTube
+                    </button>
+                  </div>
+                </div>
+
+                {/* Asesmen Section */}
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
+                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Asesmen ({editRepostData.assessments?.length || 0})
+                  </label>
+                  {editRepostData.assessments && editRepostData.assessments.length > 0 ? (
+                    <div className="space-y-2">
+                      {editRepostData.assessments.map((item: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                          <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            {item.youtube_url ? (
+                              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={item.name || item.judul || `Asesmen ${index + 1}`}
+                            onChange={(e) => {
+                              const updated = [...editRepostData.assessments];
+                              updated[index] = { ...updated[index], name: e.target.value, judul: e.target.value };
+                              setEditRepostData({ ...editRepostData, assessments: updated });
+                            }}
+                            className="flex-1 px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                          />
+                          <button
+                            onClick={() => {
+                              const updated = editRepostData.assessments.filter((_: any, i: number) => i !== index);
+                              setEditRepostData({ ...editRepostData, assessments: updated });
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic py-2">Tidak ada asesmen</p>
+                  )}
+                  {/* Add Asesmen Button */}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => {
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
+                        fileInput.onchange = (e: any) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const newAsesmen = {
+                              id: Date.now(),
+                              name: file.name,
+                              judul: file.name,
+                              file_path: URL.createObjectURL(file),
+                              file_type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+                              localFile: file,
+                            };
+                            setEditRepostData({ 
+                              ...editRepostData, 
+                              assessments: [...editRepostData.assessments, newAsesmen] 
+                            });
+                          }
+                        };
+                        fileInput.click();
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-50 border border-dashed border-amber-300 rounded-xl text-amber-600 text-sm font-medium hover:bg-amber-100 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      Upload File
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = prompt("Masukkan link YouTube:");
+                        if (url && url.includes("youtube") || url?.includes("youtu.be")) {
+                          const newAsesmen = {
+                            id: Date.now(),
+                            name: "Video YouTube",
+                            judul: "Video YouTube",
+                            youtube_url: url,
+                          };
+                          setEditRepostData({ 
+                            ...editRepostData, 
+                            assessments: [...editRepostData.assessments, newAsesmen] 
+                          });
+                        } else if (url) {
+                          alert("Harap masukkan link YouTube yang valid");
+                        }
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 border border-dashed border-red-300 rounded-xl text-red-600 text-sm font-medium hover:bg-red-100 transition"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+                      </svg>
+                      Link YouTube
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
             
             {/* Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-100 px-5 py-4">
+            <div className="flex-shrink-0 bg-gray-50 border-t border-gray-100 px-5 py-4">
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowEditRepostModal(false)}
