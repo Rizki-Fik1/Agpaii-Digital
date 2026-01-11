@@ -32,21 +32,31 @@ export default function LoginEmailPage() {
   const { mutate: submit, isPending: loading } = useMutation({
     mutationFn: async (data: LoginFormData) => {
       // Cek apakah login dengan akun dummy siswa (baru, belum terdaftar di kelas)
-      if (data.email === DUMMY_STUDENT_EMAIL && data.password === DUMMY_STUDENT_PASSWORD) {
+      if (
+        data.email === DUMMY_STUDENT_EMAIL &&
+        data.password === DUMMY_STUDENT_PASSWORD
+      ) {
         // Set flag di localStorage untuk simulasi siswa baru
         localStorage.setItem("demo_student_mode", "true");
         localStorage.removeItem("demo_student_enrolled"); // Pastikan tidak enrolled
         return { access_token: "demo_student_token", is_demo_student: true };
       }
-      
+
       // Cek apakah login dengan akun siswa yang sudah terdaftar di kelas
-      if (data.email === DUMMY_STUDENT_ENROLLED_EMAIL && data.password === DUMMY_STUDENT_ENROLLED_PASSWORD) {
+      if (
+        data.email === DUMMY_STUDENT_ENROLLED_EMAIL &&
+        data.password === DUMMY_STUDENT_ENROLLED_PASSWORD
+      ) {
         // Set flag untuk siswa yang sudah terdaftar di kelas
         localStorage.setItem("demo_student_mode", "true");
         localStorage.setItem("demo_student_enrolled", "true");
-        return { access_token: "demo_student_enrolled_token", is_demo_student: true, is_enrolled: true };
+        return {
+          access_token: "demo_student_enrolled_token",
+          is_demo_student: true,
+          is_enrolled: true,
+        };
       }
-      
+
       // Jika bukan akun dummy, hapus flag dan lanjut ke API biasa
       localStorage.removeItem("demo_student_mode");
       localStorage.removeItem("demo_student_enrolled");
@@ -58,16 +68,33 @@ export default function LoginEmailPage() {
       toast.error(errorMessage);
     },
     onSuccess: async (data) => {
-      if (data?.is_demo_student) {
-        // Untuk akun demo siswa, langsung invalidate dan redirect ke kelas
-        await queryClient.invalidateQueries({ queryKey: ["auth"] });
-        toast.success("Login berhasil sebagai Siswa Demo!");
-        router.push("/kelas");
-      } else {
-        localStorage.setItem("access_token", data?.access_token);
-        await queryClient.invalidateQueries({ queryKey: ["auth"] });
-        router.push("/");
+      console.log("LOGIN RESPONSE:", data);
+
+      // if (data?.is_demo_student) {
+      //   await queryClient.invalidateQueries({ queryKey: ["auth"] });
+      //   toast.success("Login berhasil sebagai Siswa Demo!");
+      //   router.push("/beranda");
+      //   return;
+      // }
+
+      localStorage.setItem("access_token", data?.access_token);
+      await queryClient.invalidateQueries({ queryKey: ["auth"] });
+
+      const roleId = data?.data?.role;
+      console.log("Role ID:", roleId);
+
+      // ===============================
+      // 🎓 SISWA
+      // ===============================
+      if (Number(roleId) === 8) {
+        router.push("/beranda");
+        return;
       }
+
+      // ===============================
+      // 👤 ROLE LAIN
+      // ===============================
+      router.push("/");
     },
   });
 
@@ -82,7 +109,10 @@ export default function LoginEmailPage() {
       </div>
 
       {/* Main Content */}
-      <form onSubmit={handleSubmit(submit as any)} className="flex-1 flex flex-col px-6 pt-8">
+      <form
+        onSubmit={handleSubmit(submit as any)}
+        className="flex-1 flex flex-col px-6 pt-8"
+      >
         <div className="space-y-4">
           {/* Email Input */}
           <div>
@@ -113,7 +143,10 @@ export default function LoginEmailPage() {
           {/* Forgot Password */}
           <div className="flex justify-between items-center">
             <span className="text-gray-700">Lupa kata sandi?</span>
-            <Link href="/auth/password-reset" className="text-[#00AF70] font-medium">
+            <Link
+              href="/auth/password-reset"
+              className="text-[#00AF70] font-medium"
+            >
               Atur ulang
             </Link>
           </div>
@@ -128,27 +161,40 @@ export default function LoginEmailPage() {
 
           {/* Demo Student Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 space-y-3">
-            <p className="text-sm font-medium text-blue-700">🎓 Akun Demo Siswa:</p>
-            
+            <p className="text-sm font-medium text-blue-700">
+              🎓 Akun Demo Siswa:
+            </p>
+
             {/* Akun Siswa Baru (belum di kelas) */}
             <div className="bg-white/60 rounded-md p-2">
-              <p className="text-xs text-blue-700 font-medium mb-1">📝 Siswa Baru (belum di kelas)</p>
-              <p className="text-xs text-blue-600">Email: <span className="font-mono">siswa@demo.com</span></p>
-              <p className="text-xs text-blue-600">Password: <span className="font-mono">siswa123</span></p>
+              <p className="text-xs text-blue-700 font-medium mb-1">
+                📝 Siswa Baru (belum di kelas)
+              </p>
+              <p className="text-xs text-blue-600">
+                Email: <span className="font-mono">siswa@demo.com</span>
+              </p>
+              <p className="text-xs text-blue-600">
+                Password: <span className="font-mono">siswa123</span>
+              </p>
             </div>
-            
+
             {/* Akun Siswa Terdaftar di Kelas */}
             <div className="bg-green-100/60 rounded-md p-2">
-              <p className="text-xs text-green-700 font-medium mb-1">✅ Siswa Terdaftar di Kelas</p>
-              <p className="text-xs text-green-600">Email: <span className="font-mono">siswakelas@demo.com</span></p>
-              <p className="text-xs text-green-600">Password: <span className="font-mono">siswa123</span></p>
+              <p className="text-xs text-green-700 font-medium mb-1">
+                ✅ Siswa Terdaftar di Kelas
+              </p>
+              <p className="text-xs text-green-600">
+                Email: <span className="font-mono">siswakelas@demo.com</span>
+              </p>
+              <p className="text-xs text-green-600">
+                Password: <span className="font-mono">siswa123</span>
+              </p>
             </div>
           </div>
         </div>
 
         {/* Bottom Buttons */}
         <div className="mt-auto pb-8 space-y-4">
-
           {/* OR Divider */}
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-gray-300"></div>
@@ -167,4 +213,3 @@ export default function LoginEmailPage() {
     </div>
   );
 }
-

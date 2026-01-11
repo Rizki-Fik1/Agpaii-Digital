@@ -20,6 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
+import { useEffect } from "react";
 import Link from "next/link";
 import {
   getClassById,
@@ -42,28 +43,180 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 type TabType = "siswa" | "presensi" | "materi" | "latihan";
 
 // Status options for attendance
-const STATUS_OPTIONS: { value: AttendanceStatus; label: string; color: string; icon: React.ReactNode }[] = [
-  { value: "hadir", label: "Hadir", color: "text-green-600", icon: <CheckCircleIcon className="size-4" /> },
-  { value: "tidak_hadir", label: "Tidak", color: "text-red-600", icon: <XCircleIcon className="size-4" /> },
-  { value: "izin", label: "Izin", color: "text-blue-600", icon: <ClockIcon className="size-4" /> },
-  { value: "sakit", label: "Sakit", color: "text-orange-600", icon: <ExclamationTriangleIcon className="size-4" /> },
+const STATUS_OPTIONS: {
+  value: AttendanceStatus;
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+}[] = [
+  {
+    value: "hadir",
+    label: "Hadir",
+    color: "text-green-600",
+    icon: <CheckCircleIcon className="size-4" />,
+  },
+  {
+    value: "alpa",
+    label: "Alpa",
+    color: "text-red-600",
+    icon: <XCircleIcon className="size-4" />,
+  },
+  {
+    value: "izin",
+    label: "Izin",
+    color: "text-blue-600",
+    icon: <ClockIcon className="size-4" />,
+  },
+  {
+    value: "sakit",
+    label: "Sakit",
+    color: "text-orange-600",
+    icon: <ExclamationTriangleIcon className="size-4" />,
+  },
 ];
 
 export default function KelasGuruDetailPage() {
   const params = useParams();
   const classId = Number(params.id);
-  const classInfo = getClassById(classId);
-  const students = getStudentsInClass(classId);
-  
+  const [classInfo, setClassInfo] = useState<ClassDetail | null>(null);
+  const [loadingClass, setLoadingClass] = useState(true);
+
+  const fetchAttendance = async (date: string) => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/attendance?date=${date}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal fetch absensi");
+
+      const json = await res.json();
+
+      /**
+       * json.data berbentuk object:
+       * {
+       *   "205078": { student_id: 205078, status: "hadir", ... }
+       * }
+       */
+      const newData: { [studentId: number]: AttendanceStatus } = {};
+
+      Object.values(json.data || {}).forEach((item: any) => {
+        if (item.student_id && item.status) {
+          newData[item.student_id] = item.status;
+        }
+      });
+
+      setAttendanceData(newData);
+    } catch (e) {
+      console.error("Fetch absensi gagal", e);
+      setAttendanceData({});
+    }
+  };
+
+  const fetchMaterials = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/materials`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal fetch materi");
+
+      const json = await res.json();
+      setMaterials(json.data || []);
+    } catch (e) {
+      console.error("Fetch materi gagal", e);
+      setMaterials([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!classId) return;
+
+    const fetchStudents = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/students`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const json = await res.json();
+        setStudents(json.data || []);
+      } catch (e) {
+        console.error("Gagal fetch siswa", e);
+      } finally {
+        setLoadingStudents(false);
+      }
+    };
+
+    fetchStudents();
+  }, [classId]);
+
+  type StudentProfile = {
+    nisn: string;
+    school_place: string;
+  };
+
+  type Student = {
+    id: number;
+    name: string;
+    email?: string;
+    profile: StudentProfile | null;
+  };
+
+  type ClassDetail = {
+    id: number;
+    name: string;
+    subject: string;
+    school_place: string;
+    total_students: number;
+    is_active: boolean;
+  };
+
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+
   const [activeTab, setActiveTab] = useState<TabType>("siswa");
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
+  useEffect(() => {
+    if (activeTab === "presensi") {
+      fetchAttendance(selectedDate);
+    }
+  }, [activeTab, selectedDate]);
+
+  useEffect(() => {
+    if (activeTab === "materi") {
+      fetchMaterials();
+    }
+  }, [activeTab]);
+
   // Local attendance state
-  const [attendanceData, setAttendanceData] = useState<{ [studentId: number]: AttendanceStatus }>(() => {
+  const [attendanceData, setAttendanceData] = useState<{
+    [studentId: number]: AttendanceStatus;
+  }>(() => {
     const initial: { [studentId: number]: AttendanceStatus } = {};
     const records = getAttendanceByClassAndDate(classId, selectedDate);
     records.forEach((record) => {
@@ -71,48 +224,105 @@ export default function KelasGuruDetailPage() {
     });
     return initial;
   });
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  
+
   // Local materials & exercises state (for demo)
-  const [materials, setMaterials] = useState<Material[]>(MOCK_MATERIALS);
+  const [materials, setMaterials] = useState<Material[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>(MOCK_EXERCISES);
-  
+
   // Student management state
-  const [classStudents, setClassStudents] = useState<RegisteredStudent[]>([]);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [studentSearch, setStudentSearch] = useState("");
-  const [studentSearchResults, setStudentSearchResults] = useState<RegisteredStudent[]>([]);
-  
+  const [studentSearchResults, setStudentSearchResults] = useState<
+    RegisteredStudent[]
+  >([]);
+
   // Search students handler - filter by class school
-  const handleStudentSearch = (query: string) => {
+  const handleStudentSearch = async (query: string) => {
     setStudentSearch(query);
-    if (query.length >= 2 && classInfo) {
-      const excludeIds = classStudents.map((s) => s.id);
-      const results = searchRegisteredStudents(query, classInfo.school, excludeIds);
-      setStudentSearchResults(results);
-    } else {
+
+    if (query.length < 2) {
       setStudentSearchResults([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/students/search?q=${query}&class_id=${classId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+      setStudentSearchResults(json.data || []);
+    } catch (e) {
+      console.error("Search siswa gagal", e);
     }
   };
-  
-  const addStudentToClass = (student: RegisteredStudent) => {
-    setClassStudents([...classStudents, student]);
-    setStudentSearch("");
-    setStudentSearchResults([]);
+
+  const addStudentToClass = async (student: Student) => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/students`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            student_id: student.id,
+          }),
+        }
+      );
+
+      // update UI
+      setStudents((prev) => [...prev, student]);
+      setStudentSearch("");
+      setStudentSearchResults([]);
+    } catch (e) {
+      console.error("Gagal menambah siswa", e);
+    }
   };
-  
-  const removeStudentFromClass = (studentId: number) => {
-    setClassStudents(classStudents.filter((s) => s.id !== studentId));
+
+  const removeStudentFromClass = async (studentId: number) => {
+    if (!confirm("Hapus siswa dari kelas?")) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/students/${studentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setStudents((prev) => prev.filter((s) => s.id !== studentId));
+    } catch (e) {
+      console.error("Gagal hapus siswa", e);
+    }
   };
-  
+
   // Modal states
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
   const [showExerciseDetailModal, setShowExerciseDetailModal] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
-  
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null
+  );
+
   // New material form state
   const [newMaterial, setNewMaterial] = useState({
     title: "",
@@ -122,7 +332,7 @@ export default function KelasGuruDetailPage() {
     fileUrl: "",
     duration: "",
   });
-  
+
   // New exercise form state
   const [newExercise, setNewExercise] = useState({
     title: "",
@@ -130,7 +340,7 @@ export default function KelasGuruDetailPage() {
     duration: 10,
     deadline: "",
   });
-  
+
   // Bank soal mock data - nanti ambil dari API
   const MOCK_BANK_QUESTIONS = [
     {
@@ -174,26 +384,20 @@ export default function KelasGuruDetailPage() {
       difficulty: "mudah" as const,
     },
   ];
-  
+
   // State untuk modal detail latihan
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [showSelectQuestionModal, setShowSelectQuestionModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Handlers
   const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
     setShowDatePicker(false);
     setSaveSuccess(false);
-    
-    const records = getAttendanceByClassAndDate(classId, newDate);
-    const newData: { [studentId: number]: AttendanceStatus } = {};
-    records.forEach((record) => {
-      newData[record.studentId] = record.status;
-    });
-    setAttendanceData(newData);
+    fetchAttendance(newDate);
   };
-  
+
   const handleStatusChange = (studentId: number, status: AttendanceStatus) => {
     setAttendanceData((prev) => ({
       ...prev,
@@ -201,40 +405,107 @@ export default function KelasGuruDetailPage() {
     }));
     setSaveSuccess(false);
   };
-  
+
   const handleSaveAttendance = async () => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSaving(false);
-    setSaveSuccess(true);
+    try {
+      setIsSaving(true);
+      setSaveSuccess(false);
+
+      const token = localStorage.getItem("access_token");
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/attendance`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            date: selectedDate,
+            records: attendanceData,
+          }),
+        }
+      );
+
+      setSaveSuccess(true);
+    } catch (e) {
+      console.error("Gagal simpan presensi", e);
+      alert("Gagal menyimpan presensi");
+    } finally {
+      setIsSaving(false);
+    }
   };
-  
-  const handleAddMaterial = () => {
+
+  const handleAddMaterial = async () => {
     if (!newMaterial.title || !newMaterial.description) return;
-    
-    const material: Material = {
-      id: Date.now(),
-      title: newMaterial.title,
-      description: newMaterial.description,
-      content: newMaterial.content || newMaterial.description,
-      type: newMaterial.type,
-      fileUrl: newMaterial.fileUrl || (newMaterial.type === "pdf" ? "/materials/new.pdf" : "https://www.youtube.com/embed/example"),
-      duration: newMaterial.duration || "15 menit",
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    
-    setMaterials([material, ...materials]);
-    setNewMaterial({ title: "", description: "", content: "", type: "pdf", fileUrl: "", duration: "" });
-    setShowAddMaterialModal(false);
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/materials`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: newMaterial.title,
+            description: newMaterial.description,
+            type: newMaterial.type,
+            file_url: newMaterial.fileUrl,
+            duration: newMaterial.duration,
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal simpan materi");
+
+      await fetchMaterials(); // refresh dari server
+
+      setShowAddMaterialModal(false);
+      setNewMaterial({
+        title: "",
+        description: "",
+        content: "",
+        type: "pdf",
+        fileUrl: "",
+        duration: "",
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menyimpan materi");
+    }
   };
-  
-  const handleDeleteMaterial = (id: number) => {
-    setMaterials(materials.filter((m) => m.id !== id));
+
+  const handleDeleteMaterial = async (id: number) => {
+    if (!confirm("Hapus materi ini?")) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      fetchMaterials();
+    } catch (e) {
+      console.error("Gagal hapus materi", e);
+    }
   };
-  
+
   const handleAddExercise = () => {
-    if (!newExercise.title || !newExercise.description || !newExercise.deadline) return;
-    
+    if (!newExercise.title || !newExercise.description || !newExercise.deadline)
+      return;
+
     const exercise: Exercise = {
       id: Date.now(),
       title: newExercise.title,
@@ -245,23 +516,23 @@ export default function KelasGuruDetailPage() {
       isCompleted: false,
       questions: [],
     };
-    
+
     setExercises([exercise, ...exercises]);
     setNewExercise({ title: "", description: "", duration: 10, deadline: "" });
     setShowAddExerciseModal(false);
   };
-  
+
   const handleDeleteExercise = (id: number) => {
     setExercises(exercises.filter((e) => e.id !== id));
   };
-  
+
   // Handler untuk modal detail latihan
   const handleOpenExerciseDetail = (exercise: Exercise) => {
     setSelectedExercise(exercise);
-    setSelectedQuestions(exercise.questions?.map(q => String(q.id)) || []);
+    setSelectedQuestions(exercise.questions?.map((q) => String(q.id)) || []);
     setShowExerciseDetailModal(true);
   };
-  
+
   const handleToggleQuestion = (questionId: string) => {
     if (selectedQuestions.includes(questionId)) {
       setSelectedQuestions(selectedQuestions.filter((id) => id !== questionId));
@@ -269,20 +540,20 @@ export default function KelasGuruDetailPage() {
       setSelectedQuestions([...selectedQuestions, questionId]);
     }
   };
-  
+
   const handleRemoveQuestion = (questionId: string) => {
     if (confirm("Yakin ingin menghapus soal ini dari latihan?")) {
       setSelectedQuestions(selectedQuestions.filter((id) => id !== questionId));
     }
   };
-  
+
   const handleSaveExerciseQuestions = () => {
     if (!selectedExercise) return;
-    
+
     // Update exercise dengan soal yang dipilih
-    const updatedExercises = exercises.map(ex => {
+    const updatedExercises = exercises.map((ex) => {
       if (ex.id === selectedExercise.id) {
-        const selectedQuestionsData = MOCK_BANK_QUESTIONS.filter(q => 
+        const selectedQuestionsData = MOCK_BANK_QUESTIONS.filter((q) =>
           selectedQuestions.includes(q.id)
         ).map((q, idx) => ({
           id: idx + 1,
@@ -290,7 +561,7 @@ export default function KelasGuruDetailPage() {
           options: q.options,
           correctAnswer: q.correctAnswer,
         }));
-        
+
         return {
           ...ex,
           questions: selectedQuestionsData,
@@ -299,13 +570,13 @@ export default function KelasGuruDetailPage() {
       }
       return ex;
     });
-    
+
     setExercises(updatedExercises);
     setShowExerciseDetailModal(false);
     setSelectedExercise(null);
     setSelectedQuestions([]);
   };
-  
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "mudah":
@@ -318,28 +589,28 @@ export default function KelasGuruDetailPage() {
         return "bg-slate-100 text-slate-700";
     }
   };
-  
+
   // Filter soal berdasarkan search
   const filteredBankQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
     q.question.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Soal yang sudah dipilih untuk latihan ini
   const exerciseQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
     selectedQuestions.includes(q.id)
   );
-  
+
   // Soal yang belum dipilih (untuk ditampilkan di modal)
   const availableQuestions = filteredBankQuestions.filter(
     (q) => !selectedQuestions.includes(q.id)
   );
-  
+
   // Stats
   const stats = useMemo(() => {
     const values = Object.values(attendanceData);
     return {
       hadir: values.filter((v) => v === "hadir").length,
-      tidakHadir: values.filter((v) => v === "tidak_hadir").length,
+      tidakHadir: values.filter((v) => v === "alpa").length,
       izin: values.filter((v) => v === "izin").length,
       sakit: values.filter((v) => v === "sakit").length,
       total: students.length,
@@ -357,9 +628,48 @@ export default function KelasGuruDetailPage() {
     });
   };
 
+  useEffect(() => {
+    if (!classId) return;
+
+    const fetchClassDetail = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Gagal fetch kelas");
+
+        const json = await res.json();
+        setClassInfo(json.data);
+      } catch (e) {
+        console.error("Gagal fetch detail kelas", e);
+        setClassInfo(null);
+      } finally {
+        setLoadingClass(false);
+      }
+    };
+
+    fetchClassDetail();
+  }, [classId]);
+
+  if (loadingClass) {
+    return (
+      <div className="w-full max-w-[480px] mx-auto min-h-screen flex items-center justify-center">
+        <p className="text-slate-400">Memuat kelas...</p>
+      </div>
+    );
+  }
+
   if (!classInfo) {
     return (
-      <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-[480px] mx-auto min-h-screen flex items-center justify-center">
         <p className="text-slate-500">Kelas tidak ditemukan</p>
       </div>
     );
@@ -368,22 +678,24 @@ export default function KelasGuruDetailPage() {
   return (
     <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen pb-24">
       {/* Header */}
-      <div className={clsx("bg-gradient-to-r text-white p-4 pt-6", classInfo.color)}>
+      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
         <div className="flex items-center gap-3 mb-4">
           <Link href="/kelas-guru" className="p-1">
             <ChevronLeftIcon className="size-6" />
           </Link>
           <div>
             <h1 className="text-lg font-semibold">{classInfo.name}</h1>
-            <p className="text-xs text-white/80">{classInfo.school}</p>
+            <p className="text-xs text-white/80">{classInfo.school_place}</p>
           </div>
         </div>
-        
+
         <div className="bg-white/20 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <UserGroupIcon className="size-5" />
-              <span className="text-sm">{students.length} Siswa</span>
+              <span className="text-sm">
+                {classInfo.total_students ?? students.length} Siswa
+              </span>
             </div>
             <div className="flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1">
@@ -428,7 +740,9 @@ export default function KelasGuruDetailPage() {
         {activeTab === "siswa" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-slate-700">Daftar Siswa ({classStudents.length + students.length})</h3>
+              <h3 className="font-medium text-slate-700">
+                Daftar Siswa ({students.length})
+              </h3>
               <button
                 onClick={() => setShowAddStudentModal(true)}
                 className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
@@ -437,56 +751,44 @@ export default function KelasGuruDetailPage() {
                 Tambah Siswa
               </button>
             </div>
-            
+
             {/* Combined students list */}
-            {(classStudents.length + students.length) === 0 ? (
-              <div className="text-center py-8 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                <UserGroupIcon className="size-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Belum ada siswa terdaftar</p>
-                <p className="text-xs text-slate-400">Klik "Tambah Siswa" untuk menambahkan</p>
+            {loadingStudents ? (
+              <p className="text-sm text-slate-400">Memuat siswa...</p>
+            ) : students.length === 0 ? (
+              <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed">
+                <UserGroupIcon className="size-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">Belum ada siswa</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* Existing students from mock data */}
-                {students.map((student, index) => (
-                  <div key={`existing-${student.id}`} className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-sm font-bold">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <p className="font-medium text-slate-700">{student.name}</p>
-                          <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
-                        </div>
-                      </div>
+              students.map((student, index) => (
+                <div
+                  key={student.id}
+                  className="bg-white border rounded-xl p-3 flex justify-between"
+                >
+                  <div className="flex gap-3">
+                    <span className="w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-sm font-bold">
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="font-medium">{student.name}</p>
+                      <p className="text-xs text-slate-400">
+                        NISN: {student.profile?.nisn ?? "-"}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Nama Sekolah: {student.profile?.school_place ?? "-"}
+                      </p>
                     </div>
                   </div>
-                ))}
-                
-                {/* Added students */}
-                {classStudents.map((student, index) => (
-                  <div key={`added-${student.id}`} className="bg-green-50 border border-green-200 rounded-xl p-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold">
-                          {students.length + index + 1}
-                        </span>
-                        <div>
-                          <p className="font-medium text-slate-700">{student.name}</p>
-                          <p className="text-xs text-slate-400">NISN: {student.nisn} • {student.school}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeStudentFromClass(student.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-                      >
-                        <TrashIcon className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+
+                  <button
+                    onClick={() => removeStudentFromClass(student.id)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <TrashIcon className="size-4" />
+                  </button>
+                </div>
+              ))
             )}
           </div>
         )}
@@ -503,12 +805,19 @@ export default function KelasGuruDetailPage() {
                   <CalendarDaysIcon className="size-5 text-teal-600" />
                   <div>
                     <p className="text-xs text-slate-500">Tanggal</p>
-                    <p className="font-medium text-slate-700">{formatDate(selectedDate)}</p>
+                    <p className="font-medium text-slate-700">
+                      {formatDate(selectedDate)}
+                    </p>
                   </div>
                 </div>
-                <ChevronDownIcon className={clsx("size-5 text-slate-400 transition", showDatePicker && "rotate-180")} />
+                <ChevronDownIcon
+                  className={clsx(
+                    "size-5 text-slate-400 transition",
+                    showDatePicker && "rotate-180"
+                  )}
+                />
               </button>
-              
+
               {showDatePicker && (
                 <div className="mt-2 p-2 bg-white border border-slate-200 rounded-lg shadow-lg">
                   <input
@@ -524,34 +833,48 @@ export default function KelasGuruDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-slate-700">Daftar Siswa</h3>
-                <span className="text-xs text-slate-500">{stats.filled}/{stats.total} terisi</span>
+                <span className="text-xs text-slate-500">
+                  {stats.filled}/{stats.total} terisi
+                </span>
               </div>
-              
+
               {/* Scrollable student list */}
               <div className="max-h-[400px] overflow-y-auto space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                 {students.map((student, index) => (
-                  <div key={student.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div
+                    key={student.id}
+                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
+                  >
                     <div className="flex items-center gap-3 mb-3">
                       <span className="w-7 h-7 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </span>
                       <div>
-                        <p className="font-medium text-slate-700">{student.name}</p>
-                        <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
+                        <p className="font-medium text-slate-700">
+                          {student.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          NISN: {student.profile?.nisn ?? "-"}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Nama Sekolah: {student.profile?.school_place ?? "-"}
+                        </p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-4 gap-2">
                       {STATUS_OPTIONS.map((option) => (
                         <button
                           key={option.value}
-                          onClick={() => handleStatusChange(student.id, option.value)}
+                          onClick={() =>
+                            handleStatusChange(student.id, option.value)
+                          }
                           className={clsx(
                             "flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition text-xs",
                             attendanceData[student.id] === option.value
                               ? option.value === "hadir"
                                 ? "border-green-500 bg-green-50"
-                                : option.value === "tidak_hadir"
+                                : option.value === "alpa"
                                 ? "border-red-500 bg-red-50"
                                 : option.value === "izin"
                                 ? "border-blue-500 bg-blue-50"
@@ -560,7 +883,14 @@ export default function KelasGuruDetailPage() {
                           )}
                         >
                           <span className={option.color}>{option.icon}</span>
-                          <span className={clsx("font-medium", attendanceData[student.id] === option.value ? option.color : "text-slate-500")}>
+                          <span
+                            className={clsx(
+                              "font-medium",
+                              attendanceData[student.id] === option.value
+                                ? option.color
+                                : "text-slate-500"
+                            )}
+                          >
                             {option.label}
                           </span>
                         </button>
@@ -570,25 +900,35 @@ export default function KelasGuruDetailPage() {
                 ))}
               </div>
             </div>
-            
+
             {/* Rekap Kehadiran */}
             <div className="mt-6 bg-slate-50 rounded-xl p-4 border border-slate-200">
-              <h4 className="font-medium text-slate-700 mb-3">Rekap Kehadiran</h4>
+              <h4 className="font-medium text-slate-700 mb-3">
+                Rekap Kehadiran
+              </h4>
               <div className="grid grid-cols-4 gap-2">
                 <div className="bg-green-100 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-green-600">{stats.hadir}</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.hadir}
+                  </p>
                   <p className="text-[10px] text-green-700">Hadir</p>
                 </div>
                 <div className="bg-red-100 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-red-600">{stats.tidakHadir}</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {stats.tidakHadir}
+                  </p>
                   <p className="text-[10px] text-red-700">Tidak Hadir</p>
                 </div>
                 <div className="bg-blue-100 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{stats.izin}</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {stats.izin}
+                  </p>
                   <p className="text-[10px] text-blue-700">Izin</p>
                 </div>
                 <div className="bg-orange-100 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-orange-600">{stats.sakit}</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {stats.sakit}
+                  </p>
                   <p className="text-[10px] text-orange-700">Sakit</p>
                 </div>
               </div>
@@ -612,17 +952,26 @@ export default function KelasGuruDetailPage() {
                 Tambah
               </button>
             </div>
-            
+
             {materials.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-sm">
-                Belum ada materi. Klik tombol Tambah untuk menambahkan materi baru.
+                Belum ada materi. Klik tombol Tambah untuk menambahkan materi
+                baru.
               </div>
             ) : (
               <div className="space-y-3">
                 {materials.map((material) => (
-                  <div key={material.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                  <div
+                    key={material.id}
+                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
+                  >
                     <div className="flex items-start gap-3">
-                      <div className={clsx("p-3 rounded-xl", material.type === "pdf" ? "bg-red-100" : "bg-blue-100")}>
+                      <div
+                        className={clsx(
+                          "p-3 rounded-xl",
+                          material.type === "pdf" ? "bg-red-100" : "bg-blue-100"
+                        )}
+                      >
                         {material.type === "pdf" ? (
                           <DocumentTextIcon className="size-6 text-red-600" />
                         ) : (
@@ -630,17 +979,25 @@ export default function KelasGuruDetailPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-700">{material.title}</h4>
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">{material.description}</p>
+                        <h4 className="font-semibold text-slate-700">
+                          {material.title}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                          {material.description}
+                        </p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                           <span className="flex items-center gap-1">
                             <ClockIcon className="size-3" />
                             {material.duration}
                           </span>
-                          <span className={clsx(
-                            "px-2 py-0.5 rounded-full text-[10px] font-medium uppercase",
-                            material.type === "pdf" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
-                          )}>
+                          <span
+                            className={clsx(
+                              "px-2 py-0.5 rounded-full text-[10px] font-medium uppercase",
+                              material.type === "pdf"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-blue-100 text-blue-600"
+                            )}
+                          >
                             {material.type}
                           </span>
                         </div>
@@ -663,14 +1020,26 @@ export default function KelasGuruDetailPage() {
         {activeTab === "latihan" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-slate-700">Daftar Latihan Soal</h3>
+              <h3 className="font-medium text-slate-700">
+                Daftar Latihan Soal
+              </h3>
               <div className="flex items-center gap-2">
                 <Link
                   href="/bank-soal"
                   className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition"
                 >
-                  <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <svg
+                    className="size-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
                   Bank Soal
                 </Link>
@@ -683,10 +1052,11 @@ export default function KelasGuruDetailPage() {
                 </button>
               </div>
             </div>
-            
+
             {exercises.length === 0 ? (
               <div className="text-center py-8 text-slate-500 text-sm">
-                Belum ada latihan soal. Klik tombol Tambah untuk menambahkan latihan baru.
+                Belum ada latihan soal. Klik tombol Tambah untuk menambahkan
+                latihan baru.
               </div>
             ) : (
               <div className="space-y-3">
@@ -696,11 +1066,20 @@ export default function KelasGuruDetailPage() {
                     onClick={() => handleOpenExerciseDetail(exercise)}
                     className={clsx(
                       "w-full bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition text-left",
-                      exercise.isCompleted ? "border-green-300 bg-green-50/50" : "border-slate-200"
+                      exercise.isCompleted
+                        ? "border-green-300 bg-green-50/50"
+                        : "border-slate-200"
                     )}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={clsx("p-3 rounded-xl", exercise.isCompleted ? "bg-green-100" : "bg-orange-100")}>
+                      <div
+                        className={clsx(
+                          "p-3 rounded-xl",
+                          exercise.isCompleted
+                            ? "bg-green-100"
+                            : "bg-orange-100"
+                        )}
+                      >
                         {exercise.isCompleted ? (
                           <CheckCircleSolidIcon className="size-6 text-green-600" />
                         ) : (
@@ -708,14 +1087,20 @@ export default function KelasGuruDetailPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-slate-700">{exercise.title}</h4>
-                        <p className="text-xs text-slate-500 mt-1">{exercise.description}</p>
+                        <h4 className="font-semibold text-slate-700">
+                          {exercise.title}
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {exercise.description}
+                        </p>
                         <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                           <span>{exercise.totalQuestions} soal</span>
                           <span>•</span>
                           <span>{exercise.duration} menit</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">Deadline: {exercise.deadline}</p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Deadline: {exercise.deadline}
+                        </p>
                       </div>
                       <button
                         onClick={(e) => {
@@ -743,14 +1128,33 @@ export default function KelasGuruDetailPage() {
             disabled={isSaving}
             className={clsx(
               "w-full py-3 rounded-xl font-semibold text-white transition flex items-center justify-center gap-2",
-              saveSuccess ? "bg-green-500" : isSaving ? "bg-teal-400" : "bg-teal-600 hover:bg-teal-700"
+              saveSuccess
+                ? "bg-green-500"
+                : isSaving
+                ? "bg-teal-400"
+                : "bg-teal-600 hover:bg-teal-700"
             )}
           >
             {isSaving ? (
               <>
-                <svg className="animate-spin size-5" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                <svg
+                  className="animate-spin size-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
                 </svg>
                 Menyimpan...
               </>
@@ -769,43 +1173,66 @@ export default function KelasGuruDetailPage() {
       {/* Add Material Modal */}
       {showAddMaterialModal && (
         <div className="fixed inset-0 z-[200] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddMaterialModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowAddMaterialModal(false)}
+          />
           <div className="relative w-full max-w-[480px] bg-white rounded-t-2xl p-4 pb-6 max-h-[80vh] overflow-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-700">Tambah Materi</h3>
-              <button onClick={() => setShowAddMaterialModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+              <h3 className="text-lg font-semibold text-slate-700">
+                Tambah Materi
+              </h3>
+              <button
+                onClick={() => setShowAddMaterialModal(false)}
+                className="p-1 hover:bg-slate-100 rounded-full"
+              >
                 <XMarkIcon className="size-6 text-slate-500" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Judul Materi *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Judul Materi *
+                </label>
                 <input
                   type="text"
                   value={newMaterial.title}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, title: e.target.value })
+                  }
                   placeholder="Contoh: Pengenalan Al-Quran"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Deskripsi *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Deskripsi *
+                </label>
                 <textarea
                   value={newMaterial.description}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewMaterial({
+                      ...newMaterial,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Deskripsi singkat tentang materi ini..."
                   rows={3}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Tipe Materi</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Tipe Materi
+                </label>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setNewMaterial({ ...newMaterial, type: "pdf" })}
+                    onClick={() =>
+                      setNewMaterial({ ...newMaterial, type: "pdf" })
+                    }
                     className={clsx(
                       "flex-1 py-2 rounded-lg border-2 text-sm font-medium transition",
                       newMaterial.type === "pdf"
@@ -816,7 +1243,9 @@ export default function KelasGuruDetailPage() {
                     <DocumentTextIcon className="size-4 inline mr-1" /> PDF
                   </button>
                   <button
-                    onClick={() => setNewMaterial({ ...newMaterial, type: "video" })}
+                    onClick={() =>
+                      setNewMaterial({ ...newMaterial, type: "video" })
+                    }
                     className={clsx(
                       "flex-1 py-2 rounded-lg border-2 text-sm font-medium transition",
                       newMaterial.type === "video"
@@ -828,31 +1257,43 @@ export default function KelasGuruDetailPage() {
                   </button>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  {newMaterial.type === "pdf" ? "URL File PDF" : "URL Video (YouTube)"}
+                  {newMaterial.type === "pdf"
+                    ? "URL File PDF"
+                    : "URL Video (YouTube)"}
                 </label>
                 <input
                   type="text"
                   value={newMaterial.fileUrl}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, fileUrl: e.target.value })}
-                  placeholder={newMaterial.type === "pdf" ? "/materials/filename.pdf" : "https://www.youtube.com/watch?v=..."}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, fileUrl: e.target.value })
+                  }
+                  placeholder={
+                    newMaterial.type === "pdf"
+                      ? "/materials/filename.pdf"
+                      : "https://www.youtube.com/watch?v=..."
+                  }
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Durasi</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Durasi
+                </label>
                 <input
                   type="text"
                   value={newMaterial.duration}
-                  onChange={(e) => setNewMaterial({ ...newMaterial, duration: e.target.value })}
+                  onChange={(e) =>
+                    setNewMaterial({ ...newMaterial, duration: e.target.value })
+                  }
                   placeholder="Contoh: 30 menit"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
-              
+
               <button
                 onClick={handleAddMaterial}
                 disabled={!newMaterial.title || !newMaterial.description}
@@ -868,67 +1309,104 @@ export default function KelasGuruDetailPage() {
       {/* Add Exercise Modal */}
       {showAddExerciseModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAddExerciseModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowAddExerciseModal(false)}
+          />
           <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[90vh] overflow-auto mx-4">
             <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b border-slate-100">
-              <h3 className="text-lg font-semibold text-slate-700">Tambah Latihan Soal</h3>
-              <button onClick={() => setShowAddExerciseModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+              <h3 className="text-lg font-semibold text-slate-700">
+                Tambah Latihan Soal
+              </h3>
+              <button
+                onClick={() => setShowAddExerciseModal(false)}
+                className="p-1 hover:bg-slate-100 rounded-full"
+              >
                 <XMarkIcon className="size-6 text-slate-500" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {/* Basic Info */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Judul Latihan *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Judul Latihan *
+                </label>
                 <input
                   type="text"
                   value={newExercise.title}
-                  onChange={(e) => setNewExercise({ ...newExercise, title: e.target.value })}
+                  onChange={(e) =>
+                    setNewExercise({ ...newExercise, title: e.target.value })
+                  }
                   placeholder="Contoh: Latihan Tajwid Dasar"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Deskripsi *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Deskripsi *
+                </label>
                 <textarea
                   value={newExercise.description}
-                  onChange={(e) => setNewExercise({ ...newExercise, description: e.target.value })}
+                  onChange={(e) =>
+                    setNewExercise({
+                      ...newExercise,
+                      description: e.target.value,
+                    })
+                  }
                   placeholder="Deskripsi singkat tentang latihan ini..."
                   rows={2}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Durasi (menit)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Durasi (menit)
+                  </label>
                   <input
                     type="number"
                     value={newExercise.duration}
-                    onChange={(e) => setNewExercise({ ...newExercise, duration: parseInt(e.target.value) || 10 })}
+                    onChange={(e) =>
+                      setNewExercise({
+                        ...newExercise,
+                        duration: parseInt(e.target.value) || 10,
+                      })
+                    }
                     min={1}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Deadline *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Deadline *
+                  </label>
                   <input
                     type="date"
                     value={newExercise.deadline}
-                    onChange={(e) => setNewExercise({ ...newExercise, deadline: e.target.value })}
+                    onChange={(e) =>
+                      setNewExercise({
+                        ...newExercise,
+                        deadline: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                   />
                 </div>
               </div>
-              
+
               {/* Questions Section - REMOVED */}
               {/* Soal akan dikelola dari Bank Soal */}
-              
+
               <button
                 onClick={handleAddExercise}
-                disabled={!newExercise.title || !newExercise.description || !newExercise.deadline}
+                disabled={
+                  !newExercise.title ||
+                  !newExercise.description ||
+                  !newExercise.deadline
+                }
                 className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Simpan Latihan
@@ -938,20 +1416,22 @@ export default function KelasGuruDetailPage() {
         </div>
       )}
 
-
       {/* Exercise Detail Modal */}
       {showExerciseDetailModal && selectedExercise && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => {
-            setShowExerciseDetailModal(false);
-            setSelectedExercise(null);
-            setSearchQuery("");
-          }} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              setShowExerciseDetailModal(false);
+              setSelectedExercise(null);
+              setSearchQuery("");
+            }}
+          />
           <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4">
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
               <div className="flex items-center gap-3 mb-3">
-                <button 
+                <button
                   onClick={() => {
                     setShowExerciseDetailModal(false);
                     setSelectedExercise(null);
@@ -962,8 +1442,12 @@ export default function KelasGuruDetailPage() {
                   <ChevronLeftIcon className="size-6" />
                 </button>
                 <div className="flex-1">
-                  <h1 className="text-lg font-semibold">{selectedExercise.title}</h1>
-                  <p className="text-xs text-teal-100">{selectedExercise.description}</p>
+                  <h1 className="text-lg font-semibold">
+                    {selectedExercise.title}
+                  </h1>
+                  <p className="text-xs text-teal-100">
+                    {selectedExercise.description}
+                  </p>
                 </div>
               </div>
 
@@ -971,15 +1455,21 @@ export default function KelasGuruDetailPage() {
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/20 rounded-lg p-2 text-center">
                   <p className="text-xs text-teal-100">Soal</p>
-                  <p className="text-lg font-bold">{selectedQuestions.length}</p>
+                  <p className="text-lg font-bold">
+                    {selectedQuestions.length}
+                  </p>
                 </div>
                 <div className="bg-white/20 rounded-lg p-2 text-center">
                   <p className="text-xs text-teal-100">Durasi</p>
-                  <p className="text-lg font-bold">{selectedExercise.duration} min</p>
+                  <p className="text-lg font-bold">
+                    {selectedExercise.duration} min
+                  </p>
                 </div>
                 <div className="bg-white/20 rounded-lg p-2 text-center">
                   <p className="text-xs text-teal-100">Deadline</p>
-                  <p className="text-[10px] font-bold">{selectedExercise.deadline}</p>
+                  <p className="text-[10px] font-bold">
+                    {selectedExercise.deadline}
+                  </p>
                 </div>
               </div>
             </div>
@@ -1039,7 +1529,9 @@ export default function KelasGuruDetailPage() {
                         </button>
                       </div>
 
-                      <p className="text-slate-800 font-medium mb-3">{question.question}</p>
+                      <p className="text-slate-800 font-medium mb-3">
+                        {question.question}
+                      </p>
 
                       <div className="space-y-2">
                         {question.options.map((option, optIndex) => (
@@ -1103,7 +1595,9 @@ export default function KelasGuruDetailPage() {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
               <div>
-                <h3 className="text-lg font-semibold text-slate-700">Pilih Soal</h3>
+                <h3 className="text-lg font-semibold text-slate-700">
+                  Pilih Soal
+                </h3>
                 <p className="text-xs text-slate-500">
                   {selectedQuestions.length} soal dipilih
                 </p>
@@ -1190,26 +1684,31 @@ export default function KelasGuruDetailPage() {
       {/* Add Student Modal */}
       {showAddStudentModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => {
-            setShowAddStudentModal(false);
-            setStudentSearch("");
-            setStudentSearchResults([]);
-          }} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              setShowAddStudentModal(false);
+              setStudentSearch("");
+              setStudentSearchResults([]);
+            }}
+          />
           <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-700">Tambah Siswa</h3>
-              <button 
+              <h3 className="text-lg font-semibold text-slate-700">
+                Tambah Siswa
+              </h3>
+              <button
                 onClick={() => {
                   setShowAddStudentModal(false);
                   setStudentSearch("");
                   setStudentSearchResults([]);
-                }} 
+                }}
                 className="p-1 hover:bg-slate-100 rounded-full"
               >
                 <XMarkIcon className="size-6 text-slate-500" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {/* Search Input */}
               <div>
@@ -1228,16 +1727,20 @@ export default function KelasGuruDetailPage() {
                   />
                 </div>
                 {studentSearch.length > 0 && studentSearch.length < 2 && (
-                  <p className="text-xs text-slate-400 mt-1">Ketik minimal 2 karakter</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Ketik minimal 2 karakter
+                  </p>
                 )}
               </div>
-              
+
               {/* Search Results */}
               {studentSearchResults.length > 0 ? (
                 <div className="space-y-2">
-                  <p className="text-xs text-slate-500">Hasil Pencarian ({studentSearchResults.length})</p>
+                  <p className="text-xs text-slate-500">
+                    Hasil Pencarian ({studentSearchResults.length})
+                  </p>
                   {studentSearchResults.map((student) => (
-                    <div 
+                    <div
                       key={student.id}
                       className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between"
                     >
@@ -1248,9 +1751,16 @@ export default function KelasGuruDetailPage() {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-slate-700">{student.name}</p>
-                          <p className="text-xs text-slate-400">NISN: {student.nisn}</p>
-                          <p className="text-xs text-slate-400">{student.school}</p>
+                          <p className="font-medium text-slate-700">
+                            {student.name}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            NISN: {student.profile?.nisn ?? "-"}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {student.profile?.school_place ||
+                              "Sekolah tidak diketahui"}
+                          </p>
                         </div>
                       </div>
                       <button
@@ -1264,15 +1774,20 @@ export default function KelasGuruDetailPage() {
                 </div>
               ) : studentSearch.length >= 2 ? (
                 <div className="text-center py-6 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-slate-500">Tidak ada siswa dengan nama tersebut di {classInfo?.school}</p>
-                  <p className="text-xs text-slate-400 mt-1">Pastikan siswa sudah mendaftar dan memilih sekolah yang sama</p>
+                  <p className="text-sm text-slate-500">
+                    Tidak ada siswa dengan nama tersebut di {classInfo?.school}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Pastikan siswa sudah mendaftar dan memilih sekolah yang sama
+                  </p>
                 </div>
               ) : null}
-              
+
               {/* Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
                 <p className="text-xs text-blue-700">
-                  <strong>Tips:</strong> Cari berdasarkan nama lengkap atau NISN siswa. Siswa harus mendaftar terlebih dahulu melalui aplikasi.
+                  <strong>Tips:</strong> Cari berdasarkan nama lengkap atau NISN
+                  siswa. Siswa harus mendaftar terlebih dahulu melalui aplikasi.
                 </p>
               </div>
             </div>
