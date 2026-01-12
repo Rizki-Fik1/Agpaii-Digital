@@ -5,7 +5,6 @@ import {
   ChatBubbleLeftRightIcon,
   ChevronRightIcon,
   AcademicCapIcon,
-  ArrowRightOnRectangleIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/solid";
 import {
@@ -14,17 +13,12 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { MOCK_CLASSES, MOCK_FORUM_POSTS } from "@/constants/student-data";
+import { STUDENT_ROLE_ID } from "@/constants/student-data";
 import { getImage } from "@/utils/function/function";
 import { useEffect, useState } from "react";
-import Loader from "@/components/loader/loader";
 
 export default function StudentHomePage() {
-  const { auth, authLoading } = useAuth(); // ✅ FIX DI SINI
-  const router = useRouter();
-  const queryClient = useQueryClient();
+  const { auth, authLoading } = useAuth();
 
   const [isRegisteredToClass, setIsRegisteredToClass] = useState(false);
   const [studentData, setStudentData] = useState<any>(null);
@@ -96,28 +90,13 @@ export default function StudentHomePage() {
   };
 
   useEffect(() => {
-    if (!authLoading && auth?.role_id === 8) {
+    if (!authLoading && auth?.role_id === STUDENT_ROLE_ID) {
       fetchMyClasses();
       setStudentData(auth);
     }
   }, [authLoading, auth]);
 
-  // ===============================
-  // 🔐 AUTH GUARD (FIXED)
-  // ===============================
 
-  // ===============================
-  // ⏳ LOADING STATE
-  // ===============================
-
-  const handleLogout = async () => {
-    localStorage.removeItem("demo_student_mode");
-    localStorage.removeItem("demo_student_data");
-    localStorage.removeItem("demo_student_enrolled");
-    localStorage.removeItem("access_token");
-    await queryClient.invalidateQueries({ queryKey: ["auth"] });
-    router.push("/getting-started");
-  };
 
   return (
     <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen">
@@ -140,14 +119,10 @@ export default function StudentHomePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleLogout}
-              className="p-2 bg-red-50 hover:bg-red-100 rounded-full transition"
-              title="Logout"
+            <Link
+              href="/profile-siswa"
+              className="rounded-full border-2 border-teal-200 flex-shrink-0 hover:border-teal-400 transition"
             >
-              <ArrowRightOnRectangleIcon className="size-5 text-red-500" />
-            </button>
-            <div className="rounded-full border-2 border-white flex-shrink-0">
               <img
                 src={
                   (auth?.avatar && getImage(auth.avatar)) ||
@@ -156,7 +131,7 @@ export default function StudentHomePage() {
                 className="object-cover rounded-full size-10"
                 alt=""
               />
-            </div>
+            </Link>
           </div>
         </div>
       </div>
@@ -285,7 +260,7 @@ export default function StudentHomePage() {
                         {post.user.name}
                       </span>
                       <span className="text-xs text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
-                        {post.user.role_id === 8 ? "Siswa" : "Guru"}
+                        {post.user.role_id === STUDENT_ROLE_ID ? "Siswa" : "Guru"}
                       </span>
                     </div>
 

@@ -18,6 +18,10 @@ import {
   PlayIcon,
   TrashIcon,
   PencilIcon,
+  ChatBubbleBottomCenterTextIcon,
+  ChatBubbleLeftIcon,
+  PhotoIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -42,7 +46,7 @@ import {
 
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-type TabType = "siswa" | "presensi" | "materi" | "latihan";
+type TabType = "siswa" | "presensi" | "materi" | "latihan" | "diskusi";
 
 // Status options for attendance
 const STATUS_OPTIONS: {
@@ -216,6 +220,38 @@ export default function KelasGuruDetailPage() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab !== "diskusi") return;
+
+    const fetchDiscussions = async () => {
+      try {
+        setDiscussionsLoading(true);
+        const token = localStorage.getItem("access_token");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/discussions?class_id=${classId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Gagal fetch diskusi");
+
+        const json = await res.json();
+        setDiscussions(json.data || []);
+      } catch (err) {
+        console.error(err);
+        setDiscussions([]);
+      } finally {
+        setDiscussionsLoading(false);
+      }
+    };
+
+    fetchDiscussions();
+  }, [activeTab, classId]);
+
   // Local attendance state
   const [attendanceData, setAttendanceData] = useState<{
     [studentId: number]: AttendanceStatus;
@@ -234,6 +270,19 @@ export default function KelasGuruDetailPage() {
   // Local materials & exercises state (for demo)
   const [materials, setMaterials] = useState<Material[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>(MOCK_EXERCISES);
+
+  // Discussion state
+  const [discussions, setDiscussions] = useState<any[]>([]);
+  const [discussionsLoading, setDiscussionsLoading] = useState(false);
+  const [newDiscussion, setNewDiscussion] = useState("");
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [showAddDiscussionModal, setShowAddDiscussionModal] = useState(false);
+  const [posting, setPosting] = useState(false);
+  const [replyText, setReplyText] = useState<{ [key: number]: string }>({});
+  const [replying, setReplying] = useState<number | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<{ [key: number]: boolean }>({});
 
   // Student management state
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -532,6 +581,170 @@ export default function KelasGuruDetailPage() {
     }
   };
   
+  // Discussion handlers
+  const toggleReplies = (discussionId: number) => {
+    setExpandedReplies((prev) => ({
+      ...prev,
+      [discussionId]: !prev[discussionId],
+    }));
+  };
+
+  const normalizeYoutubeEmbed = (url?: string) => {
+    if (!url) return null;
+    if (url.includes("youtube.com/embed/")) return url;
+    if (url.includes("youtube.com/watch")) {
+      const videoId = url.split("v=")[1]?.split("&")[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+    if (url.includes("youtu.be/")) {
+      const videoId = url.split("youtu.be/")[1]?.split("?")[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+    if (url.includes("youtube.com/live/")) {
+      const videoId = url.split("youtube.com/live/")[1]?.split("?")[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+    return null;
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const fileArray = Array.from(files);
+    setSelectedImages((prev) => [...prev, ...fileArray]);
+    const previews = fileArray.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...previews]);
+    e.target.value = "";
+  };
+
+  const handleAddDiscussion = async () => {
+    if (!newDiscussion.trim() && selectedImages.length === 0 && !videoUrl) return;
+
+    try {
+      setPosting(true);
+      const token = localStorage.getItem("access_token");
+      const formData = new FormData();
+
+      formData.append("class_id", String(classId));
+      formData.append("content", newDiscussion);
+
+      if (videoUrl) {
+        formData.append("youtube_url", videoUrl);
+      }
+
+      if (selectedImages.length > 0) {
+        formData.append("image", selectedImages[0]);
+      }
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/discussions`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("API Error:", errorData);
+        throw new Error(errorData.message || "Gagal mengirim diskusi");
+      }
+
+      const json = await res.json();
+      setDiscussions((prev) => [json.data, ...prev]);
+      setNewDiscussion("");
+      setSelectedImages([]);
+      setImagePreviews([]);
+      setVideoUrl("");
+      setShowAddDiscussionModal(false);
+    } catch (err: any) {
+      console.error("Error detail:", err);
+      alert(err.message || "Gagal mengirim diskusi");
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const handleSendReply = async (discussionId: number) => {
+    if (!replyText[discussionId]?.trim()) return;
+
+    try {
+      setReplying(discussionId);
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/discussions/${discussionId}/reply`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content: replyText[discussionId],
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal kirim balasan");
+
+      const json = await res.json();
+      setDiscussions((prev) =>
+        prev.map((d) =>
+          d.id === discussionId
+            ? { ...d, replies: [...(d.replies || []), json.data] }
+            : d
+        )
+      );
+      setReplyText((prev) => ({ ...prev, [discussionId]: "" }));
+    } catch (err) {
+      alert("Gagal mengirim balasan");
+    } finally {
+      setReplying(null);
+    }
+  };
+
+  // Simple initials avatar component
+  const InitialsAvatar = ({
+    name,
+    size = "md",
+    bgColor = "teal",
+  }: {
+    name: string;
+    size?: "sm" | "md" | "lg";
+    bgColor?: "teal" | "slate";
+  }) => {
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+    const sizeClasses = {
+      sm: "size-7 text-[10px]",
+      md: "size-8 text-xs",
+      lg: "size-10 text-sm",
+    };
+    const bgClasses = {
+      teal: "bg-teal-600",
+      slate: "bg-slate-500",
+    };
+    return (
+      <div
+        className={clsx(
+          "rounded-full flex items-center justify-center font-semibold text-white flex-shrink-0",
+          sizeClasses[size],
+          bgClasses[bgColor]
+        )}
+      >
+        {initials}
+      </div>
+    );
+  };
+  
   // Repost exercise handler
   const handleRepostExercise = (publicExercise: typeof PUBLIC_EXERCISES[0]) => {
     const newExercise: Exercise = {
@@ -806,6 +1019,7 @@ export default function KelasGuruDetailPage() {
           { id: "presensi" as TabType, label: "Presensi" },
           { id: "materi" as TabType, label: "Materi" },
           { id: "latihan" as TabType, label: "Latihan" },
+          { id: "diskusi" as TabType, label: "Diskusi" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -1236,6 +1450,154 @@ export default function KelasGuruDetailPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Diskusi Tab */}
+        {activeTab === "diskusi" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-700">
+                Diskusi Kelas
+              </h2>
+              <button
+                onClick={() => setShowAddDiscussionModal(true)}
+                className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Baru
+              </button>
+            </div>
+
+            {/* Discussions List */}
+            <div className="space-y-4">
+              {discussionsLoading && (
+                <p className="text-sm text-slate-400">Memuat diskusi...</p>
+              )}
+
+              {!discussionsLoading && discussions.length === 0 && (
+                <p className="text-sm text-slate-400">Belum ada diskusi</p>
+              )}
+
+              {discussions.map((discussion) => (
+                <div
+                  key={discussion.id}
+                  className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
+                >
+                  {/* Discussion Header */}
+                  <div className="p-4 pb-3">
+                    <div className="flex items-center gap-3">
+                      <InitialsAvatar
+                        name={discussion.user.name}
+                        size="lg"
+                        bgColor="teal"
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-700 text-sm">
+                          {discussion.user.name}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {new Date(discussion.created_at).toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 mt-3 leading-relaxed">
+                      {discussion.content}
+                    </p>
+                  </div>
+
+                  {/* Media Image */}
+                  {discussion.image_url && (
+                    <div className="w-full">
+                      <img
+                        src={discussion.image_url}
+                        alt="Diskusi"
+                        className="w-full max-h-64 object-cover cursor-pointer"
+                        onClick={() => window.open(discussion.image_url, "_blank")}
+                      />
+                    </div>
+                  )}
+
+                  {/* Media Video */}
+                  {normalizeYoutubeEmbed(discussion.youtube_url) && (
+                    <div className="relative w-full pt-[56.25%] bg-black">
+                      <iframe
+                        src={normalizeYoutubeEmbed(discussion.youtube_url)!}
+                        className="absolute inset-0 w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="px-4 py-3 bg-white border-t border-slate-100">
+                    <button
+                      onClick={() => toggleReplies(discussion.id)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-teal-600 hover:text-teal-700"
+                    >
+                      <ChatBubbleLeftIcon className="w-4 h-4" />
+                      {expandedReplies[discussion.id]
+                        ? "Tutup balasan"
+                        : discussion.replies?.length > 0
+                        ? `Lihat ${discussion.replies.length} balasan`
+                        : "Tulis balasan"}
+                    </button>
+                  </div>
+
+                  {/* Collapsible Replies Section */}
+                  {expandedReplies[discussion.id] && (
+                    <div className="bg-slate-50 border-t border-slate-100 px-4 py-3 space-y-3">
+                      {/* List Balasan */}
+                      {discussion.replies?.length > 0 ? (
+                        discussion.replies.map((reply: any) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <InitialsAvatar
+                              name={reply.user.name}
+                              size="sm"
+                              bgColor="slate"
+                            />
+                            <div>
+                              <p className="text-xs font-medium text-slate-700">
+                                {reply.user.name}
+                              </p>
+                              <p className="text-xs text-slate-600">
+                                {reply.content}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-slate-400">Belum ada balasan</p>
+                      )}
+
+                      {/* Reply Input */}
+                      <div className="flex gap-2 pt-2">
+                        <input
+                          type="text"
+                          placeholder="Tulis balasan..."
+                          value={replyText[discussion.id] || ""}
+                          onChange={(e) =>
+                            setReplyText((prev) => ({
+                              ...prev,
+                              [discussion.id]: e.target.value,
+                            }))
+                          }
+                          className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-teal-500"
+                        />
+                        <button
+                          onClick={() => handleSendReply(discussion.id)}
+                          disabled={replying === discussion.id}
+                          className="px-4 py-2 bg-teal-600 text-white text-xs rounded-lg disabled:opacity-50"
+                        >
+                          Kirim
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -2139,6 +2501,124 @@ export default function KelasGuruDetailPage() {
                 Tidak ada latihan publik yang tersedia untuk direpost.
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Add Discussion Modal */}
+      {showAddDiscussionModal && (
+        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowAddDiscussionModal(false)}
+          />
+          <div className="relative w-full max-w-[480px] bg-white rounded-t-2xl p-4 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-700">
+                Tambah Diskusi
+              </h3>
+              <button
+                onClick={() => setShowAddDiscussionModal(false)}
+                className="p-1 hover:bg-slate-100 rounded-full"
+              >
+                <XMarkIcon className="w-6 h-6 text-slate-500" />
+              </button>
+            </div>
+
+            <textarea
+              value={newDiscussion}
+              onChange={(e) => setNewDiscussion(e.target.value)}
+              placeholder="Tulis pertanyaan atau diskusi baru..."
+              className="w-full border border-slate-300 rounded-lg p-3 text-sm resize-none focus:outline-none focus:border-teal-500"
+              rows={4}
+              autoFocus
+            />
+
+            {(selectedImages.length > 0 || videoUrl) && (
+              <div className="mt-3 space-y-2">
+                {selectedImages.length > 0 && (
+                  <div className="flex gap-2 flex-wrap">
+                    {imagePreviews.map((src, idx) => (
+                      <div key={src} className="relative">
+                        <img
+                          src={src}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded-lg border"
+                        />
+                        <button
+                          onClick={() => {
+                            setSelectedImages((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            );
+                            setImagePreviews((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            );
+                          }}
+                          className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+                        >
+                          <XMarkIcon className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {videoUrl && (
+                  <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-lg">
+                    <span className="text-xs text-slate-600 truncate flex-1">
+                      {videoUrl}
+                    </span>
+                    <button
+                      onClick={() => setVideoUrl("")}
+                      className="text-red-500 text-xs font-medium"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-3">
+              <label className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg cursor-pointer transition">
+                <PhotoIcon className="w-5 h-5" />
+                Foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </label>
+              <button
+                onClick={() => {
+                  const url = prompt("Masukkan URL video YouTube:");
+                  if (url) {
+                    let embedUrl = url;
+                    if (url.includes("youtube.com/watch")) {
+                      const videoId = url.split("v=")[1]?.split("&")[0];
+                      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    } else if (url.includes("youtu.be/")) {
+                      const videoId = url.split("youtu.be/")[1]?.split("?")[0];
+                      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    }
+                    setVideoUrl(embedUrl);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium rounded-lg transition"
+              >
+                <VideoCameraIcon className="w-5 h-5" />
+                Video
+              </button>
+              <div className="flex-1" />
+              <button
+                onClick={handleAddDiscussion}
+                disabled={posting}
+                className="px-5 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition disabled:opacity-50"
+              >
+                {posting ? "Mengirim..." : "Kirim"}
+              </button>
+            </div>
           </div>
         </div>
       )}

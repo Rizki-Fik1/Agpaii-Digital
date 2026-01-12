@@ -6,7 +6,6 @@ import {
   BookOpenIcon,
   ClipboardDocumentListIcon,
   ChatBubbleBottomCenterTextIcon,
-  UserCircleIcon,
   ChevronLeftIcon,
   ChatBubbleLeftIcon,
   PhotoIcon,
@@ -28,9 +27,6 @@ import {
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import {
-  MOCK_MATERIALS,
-  MOCK_EXERCISES,
-  MOCK_DISCUSSIONS,
   getClassById,
   Material,
   Exercise,
@@ -81,7 +77,7 @@ const InitialsAvatar = ({
   );
 };
 
-type TabType = "materi" | "latihan" | "diskusi" | "kehadiran" | "profile";
+type TabType = "materi" | "latihan" | "diskusi" | "kehadiran";
 
 export default function KelasDetailPage() {
   const normalizeYoutubeEmbed = (url?: string) => {
@@ -157,6 +153,9 @@ export default function KelasDetailPage() {
   const [materials, setMaterials] = useState<any[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(false);
 
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [exercisesLoading, setExercisesLoading] = useState(false);
+
   const [attendanceSummary, setAttendanceSummary] = useState<any>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
@@ -167,6 +166,12 @@ export default function KelasDetailPage() {
   const [posting, setPosting] = useState(false);
 
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  
+  // Edit/Delete modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDiscussion, setEditingDiscussion] = useState<Discussion | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
 
   const toggleReplies = (discussionId: number) => {
     setExpandedReplies((prev) => ({
@@ -224,11 +229,6 @@ export default function KelasDetailPage() {
       id: "kehadiran",
       label: "Hadir",
       icon: <CalendarDaysIcon className="size-5" />,
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      icon: <UserCircleIcon className="size-5" />,
     },
   ];
 
@@ -582,12 +582,6 @@ export default function KelasDetailPage() {
               <p className="text-xs text-white/80">{classInfo.school_place}</p>
             </div>
           </div>
-          <button
-            onClick={() => setActiveTab("profile")}
-            className="p-2 hover:bg-white/20 rounded-full transition"
-          >
-            <UserCircleIcon className="size-7" />
-          </button>
         </div>
         <div className="bg-white/20 rounded-lg p-3">
           <p className="text-sm">
@@ -671,7 +665,15 @@ export default function KelasDetailPage() {
             <h2 className="text-lg font-semibold text-slate-700 mb-4">
               Latihan Soal
             </h2>
-            {MOCK_EXERCISES.map((exercise) => (
+            {exercisesLoading && (
+              <p className="text-sm text-slate-400">Memuat latihan...</p>
+            )}
+
+            {!exercisesLoading && exercises.length === 0 && (
+              <p className="text-sm text-slate-400">Belum ada latihan</p>
+            )}
+
+            {exercises.map((exercise: any) => (
               <div
                 key={exercise.id}
                 className={clsx(
@@ -1027,86 +1029,6 @@ export default function KelasDetailPage() {
             </div>
           </div>
         )}
-
-        {/* Profile Tab */}
-        {activeTab === "profile" && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">
-              Profil Siswa
-            </h2>
-
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm text-center">
-              <img
-                src={
-                  (auth?.avatar && getImage(auth.avatar)) ||
-                  "https://avatar.iran.liara.run/public"
-                }
-                alt={auth?.name}
-                className="size-24 rounded-full mx-auto border-4 border-teal-500"
-              />
-              <h3 className="text-xl font-semibold text-slate-700 mt-4">
-                {auth?.name || "Nama Siswa"}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">
-                {auth?.email || "email@siswa.com"}
-              </p>
-              <span className="inline-block mt-3 px-4 py-1 bg-teal-100 text-teal-700 text-sm font-medium rounded-full">
-                Siswa
-              </span>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <h4 className="font-medium text-slate-700 mb-3">
-                Informasi Kelas
-              </h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Nama Kelas</span>
-                  <span className="text-slate-700 font-medium">
-                    {classInfo.name}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Guru Pengampu</span>
-                  <span className="text-slate-700 font-medium">
-                    {classInfo.teacher.name}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Sekolah</span>
-                  <span className="text-slate-700 font-medium">
-                    {classInfo.school_place}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-              <h4 className="font-medium text-slate-700 mb-3">Statistik</h4>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-teal-600">
-                    {materials.length}
-                  </p>
-                  <p className="text-xs text-slate-500">Materi</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-orange-500">
-                    {MOCK_EXERCISES.filter((e) => e.isCompleted).length}/
-                    {MOCK_EXERCISES.length}
-                  </p>
-                  <p className="text-xs text-slate-500">Latihan</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-blue-500">
-                    {MOCK_DISCUSSIONS.length}
-                  </p>
-                  <p className="text-xs text-slate-500">Diskusi</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Bottom Navigation Bar */}
@@ -1244,8 +1166,8 @@ export default function KelasDetailPage() {
                     <p className="text-xs text-slate-400 mt-1">Dokumen PDF</p>
                     <button
                       onClick={() => {
-                        if (selectedMaterial.file_url) {
-                          window.open(selectedMaterial.file_url, "_blank");
+                        if (selectedMaterial.fileUrl) {
+                          window.open(selectedMaterial.fileUrl, "_blank");
                         }
                       }}
                       className="mt-4 px-6 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-600/20"
@@ -1332,7 +1254,7 @@ export default function KelasDetailPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-500">Tanggal Dibuat</span>
                       <span className="text-slate-700 font-medium">
-                        {selectedMaterial.created_at}
+                        {selectedMaterial.createdAt}
                       </span>
                     </div>
                   </div>

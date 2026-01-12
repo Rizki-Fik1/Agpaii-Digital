@@ -56,19 +56,27 @@ export default function LoginPage() {
       // simpan token
       localStorage.setItem("access_token", data?.access_token);
 
-      // refresh auth query
+      // ambil role dari berbagai kemungkinan struktur response
+      const roleId = Number(
+        data?.data?.role_id ?? 
+        data?.data?.role?.id ?? 
+        data?.data?.role ?? 
+        data?.role_id ?? 
+        data?.role?.id ?? 
+        data?.role
+      );
+
+      // refresh auth query dan tunggu selesai
       await queryClient.invalidateQueries({ queryKey: ["auth"] });
-
-      // ambil role
-      const roleId = Number(data?.data?.role_id);
-
-      console.log("LOGIN ROLE ID:", roleId);
+      
+      // Tunggu sebentar untuk memastikan auth ter-refresh
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // arahkan berdasarkan role
       if (roleId === 8) {
-        router.push("/beranda"); // 🎓 SISWA
+        router.replace("/beranda"); // 🎓 SISWA - gunakan replace agar tidak bisa back
       } else {
-        router.push("/"); // 👤 ROLE LAIN
+        router.replace("/"); // 👤 ROLE LAIN
       }
     },
   });

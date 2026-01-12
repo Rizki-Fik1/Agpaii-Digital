@@ -38,8 +38,25 @@ export default function LoginNikPage() {
     },
     onSuccess: async (data) => {
       localStorage.setItem("access_token", data?.access_token);
+      
+      const roleId = Number(data?.data?.role_id ?? data?.data?.role?.id ?? data?.data?.role);
+
+      // Refresh auth dan tunggu
       await queryClient.invalidateQueries({ queryKey: ["auth"] });
-      router.push("/");
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // ===============================
+      // 🎓 SISWA (role_id = 8)
+      // ===============================
+      if (roleId === 8) {
+        router.replace("/beranda");
+        return;
+      }
+
+      // ===============================
+      // 👤 ROLE LAIN
+      // ===============================
+      router.replace("/");
     },
   });
 
