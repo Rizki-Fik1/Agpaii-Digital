@@ -53,9 +53,23 @@ export default function LoginPage() {
       toast.error(errorMessage);
     },
     onSuccess: async (data) => {
+      // simpan token
       localStorage.setItem("access_token", data?.access_token);
+
+      // refresh auth query
       await queryClient.invalidateQueries({ queryKey: ["auth"] });
-      router.push("/");
+
+      // ambil role
+      const roleId = Number(data?.data?.role_id);
+
+      console.log("LOGIN ROLE ID:", roleId);
+
+      // arahkan berdasarkan role
+      if (roleId === 8) {
+        router.push("/beranda"); // 🎓 SISWA
+      } else {
+        router.push("/"); // 👤 ROLE LAIN
+      }
     },
   });
   // Watch loginType to conditionally render password field
@@ -72,9 +86,11 @@ export default function LoginPage() {
       <div className="flex flex-col sm:px-2 mb-16 px-1 items-center text-center">
         <img src="/svg/agpaii2.svg" className="size-20" alt="agpaii-logo" />
         <p className="font-semibold capitalize text-3xl text-[#009788] sm:text-4xl -mt-2">
-          Login
+          Loginsss
         </p>
-        <p className="text-slate-500 mt-2">Silahkan login menggunakan akun anda</p>
+        <p className="text-slate-500 mt-2">
+          Silahkan login menggunakan akun anda
+        </p>
       </div>
       <form
         onSubmit={handleSubmit(submit as any)}
@@ -152,13 +168,19 @@ export default function LoginPage() {
             <div className="flex flex-col gap-2 justify-center items-center text-sm text-slate-600">
               <div className="flex items-center gap-1 pt-4">
                 <IoLockClosed className="text-sm" />
-                <Link className="text-blue-500 hover:underline" href={"/auth/password-reset"}>
+                <Link
+                  className="text-blue-500 hover:underline"
+                  href={"/auth/password-reset"}
+                >
                   Lupa Password? Reset Sekarang
                 </Link>
               </div>
               <div className="flex items-center gap-1">
                 <IoMailOutline className="text-sm" />
-                <Link className="text-blue-500 hover:underline" href={"/auth/search-email"}>
+                <Link
+                  className="text-blue-500 hover:underline"
+                  href={"/auth/search-email"}
+                >
                   Lupa Email? Cari Sekarang
                 </Link>
               </div>
@@ -176,12 +198,11 @@ export default function LoginPage() {
                     viewBox="0 0 32 32"
                     fill="white"
                   >
-                    <path d="M16.001 3.2c-7.063 0-12.8 5.736-12.8 12.8 0 2.256.588 4.449 1.708 6.377L3.2 28.8l6.557-1.653A12.744 12.744 0 0 0 16 28.8c7.063 0 12.8-5.736 12.8-12.8S23.064 3.2 16.001 3.2zm0 22.4c-2.048 0-4.036-.548-5.78-1.588l-.415-.244-3.889 1.009 1.039-3.792-.256-.396A10.38 10.38 0 0 1 5.6 16c0-5.744 4.657-10.4 10.4-10.4 5.744 0 10.4 4.656 10.4 10.4 0 5.744-4.656 10.4-10.4 10.4zm5.544-7.832c-.3-.15-1.768-.873-2.041-.972-.273-.1-.473-.15-.673.15-.2.3-.773.972-.947 1.172-.173.2-.347.223-.647.074-.3-.149-1.263-.465-2.405-1.482-.889-.793-1.49-1.77-1.664-2.07-.173-.3-.018-.462.13-.61.134-.133.3-.347.45-.52.15-.174.2-.3.3-.5.1-.2.05-.374-.025-.523-.075-.15-.673-1.623-.923-2.226-.243-.583-.49-.505-.673-.514-.173-.008-.373-.01-.573-.01-.2 0-.523.075-.797.374-.273.3-1.045 1.02-1.045 2.487 0 1.468 1.07 2.883 1.218 3.084.149.2 2.11 3.223 5.11 4.522.715.308 1.27.492 1.704.63.716.228 1.368.196 1.884.119.574-.085 1.768-.723 2.017-1.422.248-.7.248-1.301.173-1.422-.074-.12-.273-.196-.572-.346z"/>
+                    <path d="M16.001 3.2c-7.063 0-12.8 5.736-12.8 12.8 0 2.256.588 4.449 1.708 6.377L3.2 28.8l6.557-1.653A12.744 12.744 0 0 0 16 28.8c7.063 0 12.8-5.736 12.8-12.8S23.064 3.2 16.001 3.2zm0 22.4c-2.048 0-4.036-.548-5.78-1.588l-.415-.244-3.889 1.009 1.039-3.792-.256-.396A10.38 10.38 0 0 1 5.6 16c0-5.744 4.657-10.4 10.4-10.4 5.744 0 10.4 4.656 10.4 10.4 0 5.744-4.656 10.4-10.4 10.4zm5.544-7.832c-.3-.15-1.768-.873-2.041-.972-.273-.1-.473-.15-.673.15-.2.3-.773.972-.947 1.172-.173.2-.347.223-.647.074-.3-.149-1.263-.465-2.405-1.482-.889-.793-1.49-1.77-1.664-2.07-.173-.3-.018-.462.13-.61.134-.133.3-.347.45-.52.15-.174.2-.3.3-.5.1-.2.05-.374-.025-.523-.075-.15-.673-1.623-.923-2.226-.243-.583-.49-.505-.673-.514-.173-.008-.373-.01-.573-.01-.2 0-.523.075-.797.374-.273.3-1.045 1.02-1.045 2.487 0 1.468 1.07 2.883 1.218 3.084.149.2 2.11 3.223 5.11 4.522.715.308 1.27.492 1.704.63.716.228 1.368.196 1.884.119.574-.085 1.768-.723 2.017-1.422.248-.7.248-1.301.173-1.422-.074-.12-.273-.196-.572-.346z" />
                   </svg>
                   Hubungi Kami
                 </a>
               </div>
-
             </div>
           </div>
         </div>
