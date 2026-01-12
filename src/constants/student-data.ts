@@ -332,6 +332,30 @@ export interface Discussion {
 
 export const MOCK_DISCUSSIONS: Discussion[] = [
   {
+    id: 0,
+    authorName: "Siswa", // This can be edited if logged in user's name is "Siswa"
+    authorAvatar: null,
+    content: "Ini adalah contoh diskusi yang bisa saya edit. Saya ingin bertanya tentang materi rukun Islam, apakah ada yang bisa menjelaskan secara detail tentang syarat-syarat sholat?",
+    createdAt: "2026-01-09 08:00",
+    repliesCount: 2,
+    repliesData: [
+      {
+        id: 1,
+        authorName: "Ustadz Hasan",
+        authorAvatar: null,
+        content: "Syarat sah sholat ada 5: suci dari hadats, suci badan/pakaian/tempat, menutup aurat, menghadap kiblat, dan masuk waktu sholat.",
+        createdAt: "2026-01-09 08:30",
+      },
+      {
+        id: 2,
+        authorName: "Ahmad",
+        authorAvatar: null,
+        content: "Terima kasih ustadz atas penjelasannya!",
+        createdAt: "2026-01-09 09:00",
+      },
+    ],
+  },
+  {
     id: 1,
     authorName: "Ahmad",
     authorAvatar: null,
