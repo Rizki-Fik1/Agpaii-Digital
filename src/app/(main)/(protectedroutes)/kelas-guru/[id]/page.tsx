@@ -58,7 +58,7 @@ const STATUS_OPTIONS: {
     icon: <CheckCircleIcon className="size-4" />,
   },
   {
-    value: "alpa",
+    value: "tidak_hadir",
     label: "Alpa",
     color: "text-red-600",
     icon: <XCircleIcon className="size-4" />,
@@ -322,6 +322,7 @@ export default function KelasGuruDetailPage() {
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false);
   const [showAddExerciseModal, setShowAddExerciseModal] = useState(false);
   const [showExerciseDetailModal, setShowExerciseDetailModal] = useState(false);
+  const [showRepostExerciseModal, setShowRepostExerciseModal] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
   );
@@ -697,7 +698,7 @@ export default function KelasGuruDetailPage() {
     const values = Object.values(attendanceData);
     return {
       hadir: values.filter((v) => v === "hadir").length,
-      tidakHadir: values.filter((v) => v === "alpa").length,
+      tidakHadir: values.filter((v) => v === "tidak_hadir").length,
       izin: values.filter((v) => v === "izin").length,
       sakit: values.filter((v) => v === "sakit").length,
       total: students.length,
@@ -961,7 +962,7 @@ export default function KelasGuruDetailPage() {
                             attendanceData[student.id] === option.value
                               ? option.value === "hadir"
                                 ? "border-green-500 bg-green-50"
-                                : option.value === "alpa"
+                                : option.value === "tidak_hadir"
                                 ? "border-red-500 bg-red-50"
                                 : option.value === "izin"
                                 ? "border-blue-500 bg-blue-50"
@@ -1874,16 +1875,15 @@ export default function KelasGuruDetailPage() {
                             {student.name}
                           </p>
                           <p className="text-xs text-slate-400">
-                            NISN: {student.profile?.nisn ?? "-"}
+                            NISN: {student.nisn ?? "-"}
                           </p>
                           <p className="text-xs text-slate-400">
-                            {student.profile?.school_place ||
-                              "Sekolah tidak diketahui"}
+                            {student.school || "Sekolah tidak diketahui"}
                           </p>
                         </div>
                       </div>
                       <button
-                        onClick={() => addStudentToClass(student)}
+                        onClick={() => addStudentToClass(student as any)}
                         className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
                       >
                         Tambah
@@ -1894,7 +1894,7 @@ export default function KelasGuruDetailPage() {
               ) : studentSearch.length >= 2 ? (
                 <div className="text-center py-6 bg-slate-50 rounded-lg">
                   <p className="text-sm text-slate-500">
-                    Tidak ada siswa dengan nama tersebut di {classInfo?.school}
+                    Tidak ada siswa dengan nama tersebut di {classInfo?.school_place}
                   </p>
                   <p className="text-xs text-slate-400 mt-1">
                     Pastikan siswa sudah mendaftar dan memilih sekolah yang sama
