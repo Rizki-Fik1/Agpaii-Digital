@@ -21,6 +21,7 @@ type ClassItem = {
   subject: string;
   school_place: string;
   total_students: number;
+  students_count: number;
   is_active: boolean;
 };
 

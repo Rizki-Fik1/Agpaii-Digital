@@ -76,10 +76,55 @@ const STATUS_OPTIONS: {
 ];
 
 export default function KelasGuruDetailPage() {
+  const normalizeQuestion = (q: any) => ({
+    id: String(q.id),
+    question: q.question,
+    options: q.options,
+    correctAnswer: q.correct_answer, // 🔑 FIX UTAMA
+    difficulty: q.difficulty,
+    subject: q.subject,
+  });
   const params = useParams();
   const classId = Number(params.id);
   const [classInfo, setClassInfo] = useState<ClassDetail | null>(null);
   const [loadingClass, setLoadingClass] = useState(true);
+
+  const [bankQuestions, setBankQuestions] = useState<Question[]>([]);
+  const [loadingBankQuestions, setLoadingBankQuestions] = useState(false);
+
+  const fetchBankQuestions = async () => {
+    try {
+      setLoadingBankQuestions(true);
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-questions`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+
+      const mapped = (json.data || []).map((item: any) => ({
+        id: String(item.id),
+        question: item.question,
+        options: item.options,
+        correctAnswer: item.correct_answer,
+        difficulty: item.difficulty,
+        subject: item.subject,
+      }));
+
+      setBankQuestions(mapped);
+    } catch (e) {
+      console.error("Gagal fetch bank soal", e);
+      setBankQuestions([]);
+    } finally {
+      setLoadingBankQuestions(false);
+    }
+  };
 
   const fetchAttendance = async (date: string) => {
     try {
@@ -230,7 +275,8 @@ export default function KelasGuruDetailPage() {
 
   // Local materials & exercises state (for demo)
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>(MOCK_EXERCISES);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [loadingExercises, setLoadingExercises] = useState(true);
 
   // Student management state
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
@@ -238,6 +284,38 @@ export default function KelasGuruDetailPage() {
   const [studentSearchResults, setStudentSearchResults] = useState<
     RegisteredStudent[]
   >([]);
+
+  const fetchExercises = async () => {
+    try {
+      setLoadingExercises(true);
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/exercises`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal fetch latihan");
+
+      const json = await res.json();
+      setExercises(json.data || []);
+    } catch (e) {
+      console.error("Fetch latihan gagal", e);
+      setExercises([]);
+    } finally {
+      setLoadingExercises(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "latihan") {
+      fetchExercises();
+    }
+  }, [activeTab, classId]);
 
   // Search students handler - filter by class school
   const handleStudentSearch = async (query: string) => {
@@ -390,6 +468,12 @@ export default function KelasGuruDetailPage() {
   const [showSelectQuestionModal, setShowSelectQuestionModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    if (showSelectQuestionModal) {
+      fetchBankQuestions();
+    }
+  }, [showSelectQuestionModal]);
+
   // Handlers
   const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
@@ -502,34 +586,83 @@ export default function KelasGuruDetailPage() {
     }
   };
 
-  const handleAddExercise = () => {
+  const handleAddExercise = async () => {
     if (!newExercise.title || !newExercise.description || !newExercise.deadline)
       return;
 
-    const exercise: Exercise = {
-      id: Date.now(),
-      title: newExercise.title,
-      description: newExercise.description,
-      totalQuestions: 0,
-      duration: newExercise.duration,
-      deadline: newExercise.deadline,
-      isCompleted: false,
-      questions: [],
-    };
+    try {
+      const token = localStorage.getItem("access_token");
 
-    setExercises([exercise, ...exercises]);
-    setNewExercise({ title: "", description: "", duration: 10, deadline: "" });
-    setShowAddExerciseModal(false);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/exercises`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: newExercise.title,
+            description: newExercise.description,
+            duration: newExercise.duration,
+            deadline: newExercise.deadline,
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal menambah latihan");
+
+      setShowAddExerciseModal(false);
+      setNewExercise({
+        title: "",
+        description: "",
+        duration: 10,
+        deadline: "",
+      });
+
+      await fetchExercises(); // 🔑 refresh dari server
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menambahkan latihan");
+    }
   };
 
-  const handleDeleteExercise = (id: number) => {
-    setExercises(exercises.filter((e) => e.id !== id));
+  const handleDeleteExercise = async (exerciseId: number) => {
+    if (!confirm("Hapus latihan ini?")) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/exercises/${exerciseId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal hapus latihan");
+
+      await fetchExercises(); // 🔑 refresh ulang
+    } catch (e) {
+      console.error("Gagal hapus latihan", e);
+      alert("Gagal menghapus latihan");
+    }
   };
 
   // Handler untuk modal detail latihan
   const handleOpenExerciseDetail = (exercise: Exercise) => {
-    setSelectedExercise(exercise);
-    setSelectedQuestions(exercise.questions?.map((q) => String(q.id)) || []);
+    setSelectedExercise({
+      ...exercise,
+      questions: (exercise.questions || []).map(normalizeQuestion),
+    });
+
+    setSelectedQuestions(
+      exercise.questions?.map((q: any) => String(q.id)) || []
+    );
+
     setShowExerciseDetailModal(true);
   };
 
@@ -547,34 +680,37 @@ export default function KelasGuruDetailPage() {
     }
   };
 
-  const handleSaveExerciseQuestions = () => {
+  const handleSaveExerciseQuestions = async () => {
     if (!selectedExercise) return;
 
-    // Update exercise dengan soal yang dipilih
-    const updatedExercises = exercises.map((ex) => {
-      if (ex.id === selectedExercise.id) {
-        const selectedQuestionsData = MOCK_BANK_QUESTIONS.filter((q) =>
-          selectedQuestions.includes(q.id)
-        ).map((q, idx) => ({
-          id: idx + 1,
-          question: q.question,
-          options: q.options,
-          correctAnswer: q.correctAnswer,
-        }));
+    try {
+      const token = localStorage.getItem("access_token");
 
-        return {
-          ...ex,
-          questions: selectedQuestionsData,
-          totalQuestions: selectedQuestionsData.length,
-        };
-      }
-      return ex;
-    });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercises/${selectedExercise.id}/questions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            question_ids: selectedQuestions.map(Number),
+          }),
+        }
+      );
 
-    setExercises(updatedExercises);
-    setShowExerciseDetailModal(false);
-    setSelectedExercise(null);
-    setSelectedQuestions([]);
+      if (!res.ok) throw new Error("Gagal menyimpan soal latihan");
+
+      setShowExerciseDetailModal(false);
+      setSelectedExercise(null);
+      setSelectedQuestions([]);
+
+      await fetchExercises(); // 🔑 refresh latihan
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menyimpan soal ke latihan");
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -591,14 +727,12 @@ export default function KelasGuruDetailPage() {
   };
 
   // Filter soal berdasarkan search
-  const filteredBankQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
+  const filteredBankQuestions = bankQuestions.filter((q) =>
     q.question.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Soal yang sudah dipilih untuk latihan ini
-  const exerciseQuestions = MOCK_BANK_QUESTIONS.filter((q) =>
-    selectedQuestions.includes(q.id)
-  );
+  const exerciseQuestions = selectedExercise?.questions || [];
 
   // Soal yang belum dipilih (untuk ditampilkan di modal)
   const availableQuestions = filteredBankQuestions.filter(

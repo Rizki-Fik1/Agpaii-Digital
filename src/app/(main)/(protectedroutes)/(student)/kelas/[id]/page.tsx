@@ -117,8 +117,20 @@ export default function KelasDetailPage() {
   const [newDiscussion, setNewDiscussion] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
+  const [exercises, setExercises] = useState<any[]>([]);
+  const [exercisesLoading, setExercisesLoading] = useState(false);
+
   const [replyText, setReplyText] = useState<{ [key: number]: string }>({});
   const [replying, setReplying] = useState<number | null>(null);
+
+  const [attemptId, setAttemptId] = useState<number | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0); // detik
+  const [timerExpired, setTimerExpired] = useState(false);
+
+  const [resultSummary, setResultSummary] = useState<{
+    correct: number;
+    total: number;
+  } | null>(null);
 
   const [videoUrl, setVideoUrl] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -170,6 +182,39 @@ export default function KelasDetailPage() {
       [discussionId]: !prev[discussionId],
     }));
   };
+
+  useEffect(() => {
+    if (activeTab !== "latihan") return;
+
+    const fetchExercises = async () => {
+      try {
+        setExercisesLoading(true);
+        const token = localStorage.getItem("access_token");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/exercises`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Gagal fetch latihan");
+
+        const json = await res.json();
+
+        setExercises(json.data || []);
+      } catch (err) {
+        console.error(err);
+        setExercises([]);
+      } finally {
+        setExercisesLoading(false);
+      }
+    };
+
+    fetchExercises();
+  }, [activeTab, classId]);
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
     {
@@ -489,32 +534,139 @@ export default function KelasDetailPage() {
     }
   };
 
-  const handleStartQuiz = (exercise: Exercise) => {
-    setSelectedExercise(exercise);
-    setCurrentQuestion(0);
-    setSelectedAnswers({});
-    setShowResult(false);
+  const handleStartQuiz = async (exercise: any) => {
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercises/${exercise.id}/start`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Gagal memulai latihan");
+
+      const json = await res.json();
+
+      setAttemptId(json.attempt_id);
+
+      setSelectedExercise({
+        ...exercise,
+        questions: json.questions,
+      });
+
+      setCurrentQuestion(0);
+      setSelectedAnswers({});
+      setShowResult(false);
+
+      // ⏱️ SET TIMER
+      setRemainingTime(exercise.duration * 60);
+    } catch (err) {
+      alert("Tidak bisa memulai latihan");
+    }
   };
 
-  const handleAnswerSelect = (questionId: number, answerIndex: number) => {
+  const handleAutoFinish = async () => {
+    if (!attemptId) return;
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercise-attempts/${attemptId}/finish`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+
+      setQuizScore(json.score);
+      setShowResult(true);
+      setTimerExpired(true);
+    } catch (err) {
+      alert("Gagal menyelesaikan latihan");
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedExercise || showResult) return;
+    if (remainingTime <= 0) {
+      handleAutoFinish();
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setRemainingTime((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [remainingTime, selectedExercise, showResult]);
+
+  const handleAnswerSelect = async (
+    questionId: number,
+    answerIndex: number
+  ) => {
+    if (!attemptId) return;
+
     setSelectedAnswers((prev) => ({ ...prev, [questionId]: answerIndex }));
+
+    try {
+      const token = localStorage.getItem("access_token");
+
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercise-attempts/${attemptId}/answer`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question_id: questionId,
+            selected_option: answerIndex,
+          }),
+        }
+      );
+    } catch (err) {
+      console.error("Gagal simpan jawaban");
+    }
   };
 
-  const handleSubmitQuiz = () => {
-    if (!selectedExercise?.questions) return;
+  const handleSubmitQuiz = async () => {
+    if (!attemptId) return;
 
-    let correct = 0;
-    selectedExercise.questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correctAnswer) {
-        correct++;
-      }
-    });
+    try {
+      const token = localStorage.getItem("access_token");
 
-    const score = Math.round(
-      (correct / selectedExercise.questions.length) * 100
-    );
-    setQuizScore(score);
-    setShowResult(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercise-attempts/${attemptId}/finish`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+
+      setQuizScore(json.score);
+      setResultSummary({
+        correct: json.correct,
+        total: json.total,
+      });
+      setShowResult(true);
+    } catch (err) {
+      alert("Gagal menyelesaikan latihan");
+    }
   };
 
   if (classLoading) {
@@ -533,6 +685,13 @@ export default function KelasDetailPage() {
     );
   }
   const headerGradient = gradients[classInfo.id % gradients.length];
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen pb-20">
       {/* Header */}
@@ -638,12 +797,20 @@ export default function KelasDetailPage() {
             <h2 className="text-lg font-semibold text-slate-700 mb-4">
               Latihan Soal
             </h2>
-            {MOCK_EXERCISES.map((exercise) => (
+            {exercisesLoading && (
+              <p className="text-sm text-slate-400">Memuat latihan...</p>
+            )}
+
+            {!exercisesLoading && exercises.length === 0 && (
+              <p className="text-sm text-slate-400">Belum ada latihan</p>
+            )}
+
+            {exercises.map((exercise) => (
               <div
                 key={exercise.id}
                 className={clsx(
                   "bg-white border rounded-xl p-4 shadow-sm",
-                  exercise.isCompleted
+                  exercise.is_completed
                     ? "border-green-300 bg-green-50/50"
                     : "border-slate-200"
                 )}
@@ -652,15 +819,16 @@ export default function KelasDetailPage() {
                   <div
                     className={clsx(
                       "p-3 rounded-xl",
-                      exercise.isCompleted ? "bg-green-100" : "bg-orange-100"
+                      exercise.is_completed ? "bg-green-100" : "bg-orange-100"
                     )}
                   >
-                    {exercise.isCompleted ? (
+                    {exercise.is_completed ? (
                       <CheckCircleSolidIcon className="size-6 text-green-600" />
                     ) : (
                       <ClipboardDocumentListIcon className="size-6 text-orange-600" />
                     )}
                   </div>
+
                   <div className="flex-1">
                     <h3 className="font-semibold text-slate-700">
                       {exercise.title}
@@ -678,14 +846,15 @@ export default function KelasDetailPage() {
                     </p>
                   </div>
                 </div>
+
                 <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  {exercise.isCompleted ? (
+                  {exercise.is_completed ? (
                     <>
                       <span className="text-xs text-green-600 font-medium">
                         ✓ Selesai dikerjakan
                       </span>
                       <span className="text-lg font-bold text-green-600">
-                        {exercise.score}/100
+                        {exercise.result_score}
                       </span>
                     </>
                   ) : (
@@ -1153,7 +1322,7 @@ export default function KelasDetailPage() {
             <div
               className={clsx(
                 "bg-gradient-to-r p-4 pt-6 text-white",
-                classInfo.color
+                headerGradient
               )}
             >
               <div className="flex items-center gap-3 mb-3">
@@ -1370,17 +1539,21 @@ export default function KelasDetailPage() {
                   </h2>
                   <p className="text-sm text-slate-500 mb-6">
                     Kamu menjawab{" "}
-                    {
-                      Object.keys(selectedAnswers).filter(
-                        (k) =>
-                          selectedAnswers[Number(k)] ===
-                          selectedExercise.questions?.find(
-                            (q) => q.id === Number(k)
-                          )?.correctAnswer
-                      ).length
-                    }{" "}
-                    dari {selectedExercise.questions?.length} soal dengan benar
+                    <span className="font-semibold text-slate-700">
+                      {resultSummary?.correct}
+                    </span>{" "}
+                    dari{" "}
+                    <span className="font-semibold text-slate-700">
+                      {resultSummary?.total}
+                    </span>{" "}
+                    soal dengan benar
                   </p>
+
+                  {timerExpired && (
+                    <p className="text-sm text-red-500 mb-4">
+                      Latihan berakhir karena waktu habis
+                    </p>
+                  )}
                   <button
                     onClick={() => setSelectedExercise(null)}
                     className="px-6 py-3 bg-teal-600 text-white font-medium rounded-xl"
@@ -1395,6 +1568,12 @@ export default function KelasDetailPage() {
                       Soal {currentQuestion + 1} dari{" "}
                       {selectedExercise.questions?.length}
                     </span>
+                    <p className="text-xs text-black/80">
+                      ⏱️ {formatTime(remainingTime)}
+                    </p>
+                    {timerExpired && (
+                      <p className="text-xs text-red-200 mt-1">Waktu habis</p>
+                    )}
                     <h3 className="text-lg font-medium text-slate-700 mt-2">
                       {selectedExercise.questions?.[currentQuestion]?.question}
                     </h3>
@@ -1456,6 +1635,11 @@ export default function KelasDetailPage() {
                   >
                     Sebelumnya
                   </button>
+                )}
+                {timerExpired && (
+                  <p className="text-sm text-red-500 mt-2">
+                    Latihan berakhir karena waktu habis
+                  </p>
                 )}
                 {currentQuestion <
                 (selectedExercise.questions?.length || 0) - 1 ? (

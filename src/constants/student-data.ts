@@ -24,30 +24,47 @@ export const MOCK_MATERIALS: Material[] = [
   {
     id: 1,
     title: "Pengenalan Al-Quran",
-    description: "Belajar dasar-dasar membaca Al-Quran dengan tajwid yang benar",
-    content: "Materi ini membahas tentang sejarah turunnya Al-Quran, keutamaan membaca Al-Quran, dan pengenalan huruf hijaiyah. Siswa akan mempelajari cara membaca dengan tartil dan memahami makna-makna dasar dalam Al-Quran.",
+    description:
+      "Belajar dasar-dasar membaca Al-Quran dengan tajwid yang benar",
+    content:
+      "Materi ini membahas tentang sejarah turunnya Al-Quran, keutamaan membaca Al-Quran, dan pengenalan huruf hijaiyah. Siswa akan mempelajari cara membaca dengan tartil dan memahami makna-makna dasar dalam Al-Quran.",
     type: "pdf",
     fileUrl: "/materials/al-quran-intro.pdf",
     duration: "30 menit",
-    chapters: ["Sejarah Al-Quran", "Keutamaan Membaca", "Huruf Hijaiyah", "Tanda Baca"],
+    chapters: [
+      "Sejarah Al-Quran",
+      "Keutamaan Membaca",
+      "Huruf Hijaiyah",
+      "Tanda Baca",
+    ],
     createdAt: "2026-01-05",
   },
   {
     id: 2,
     title: "Sejarah Nabi Muhammad SAW",
-    description: "Mempelajari perjalanan hidup Rasulullah SAW dari lahir hingga wafat",
-    content: "Video pembelajaran tentang kelahiran Nabi Muhammad SAW, masa kecil, pengangkatan menjadi rasul, hijrah ke Madinah, dan perjuangan dakwah hingga wafat. Dilengkapi dengan ilustrasi dan penjelasan detail.",
+    description:
+      "Mempelajari perjalanan hidup Rasulullah SAW dari lahir hingga wafat",
+    content:
+      "Video pembelajaran tentang kelahiran Nabi Muhammad SAW, masa kecil, pengangkatan menjadi rasul, hijrah ke Madinah, dan perjuangan dakwah hingga wafat. Dilengkapi dengan ilustrasi dan penjelasan detail.",
     type: "video",
     fileUrl: "https://www.youtube.com/embed/4zLfCnGVeL4",
     duration: "45 menit",
-    chapters: ["Kelahiran", "Masa Kecil", "Pengangkatan Rasul", "Hijrah", "Wafat"],
+    chapters: [
+      "Kelahiran",
+      "Masa Kecil",
+      "Pengangkatan Rasul",
+      "Hijrah",
+      "Wafat",
+    ],
     createdAt: "2026-01-03",
   },
   {
     id: 3,
     title: "Rukun Islam",
-    description: "Memahami 5 rukun Islam dan implementasinya dalam kehidupan sehari-hari",
-    content: "Materi lengkap tentang 5 rukun Islam: Syahadat, Shalat, Zakat, Puasa, dan Haji. Setiap rukun dijelaskan secara detail beserta tata cara pelaksanaan dan hikmahnya.",
+    description:
+      "Memahami 5 rukun Islam dan implementasinya dalam kehidupan sehari-hari",
+    content:
+      "Materi lengkap tentang 5 rukun Islam: Syahadat, Shalat, Zakat, Puasa, dan Haji. Setiap rukun dijelaskan secara detail beserta tata cara pelaksanaan dan hikmahnya.",
     type: "pdf",
     fileUrl: "/materials/rukun-islam.pdf",
     duration: "25 menit",
@@ -58,7 +75,8 @@ export const MOCK_MATERIALS: Material[] = [
     id: 4,
     title: "Hukum Tajwid",
     description: "Mempelajari hukum-hukum bacaan dalam Al-Quran",
-    content: "Materi ini membahas berbagai hukum tajwid seperti Idzhar, Idgham, Iqlab, dan Ikhfa. Dilengkapi dengan contoh-contoh ayat dan latihan pengucapan yang benar.",
+    content:
+      "Materi ini membahas berbagai hukum tajwid seperti Idzhar, Idgham, Iqlab, dan Ikhfa. Dilengkapi dengan contoh-contoh ayat dan latihan pengucapan yang benar.",
     type: "pdf",
     fileUrl: "/materials/tajwid.pdf",
     duration: "40 menit",
@@ -105,55 +123,35 @@ export const MOCK_EXERCISES: Exercise[] = [
           "Membaca dengan jelas tanpa dengung",
           "Membaca dengan dengung",
           "Membaca dengan melebur",
-          "Membaca dengan membalik"
+          "Membaca dengan membalik",
         ],
-        correctAnswer: 0
+        correctAnswer: 0,
       },
       {
         id: 2,
         question: "Huruf-huruf Idzhar Halqi adalah...",
-        options: [
-          "ب ت ث",
-          "ء ه ع ح غ خ",
-          "ي ر م ل و ن",
-          "ق ط ب ج د"
-        ],
-        correctAnswer: 1
+        options: ["ب ت ث", "ء ه ع ح غ خ", "ي ر م ل و ن", "ق ط ب ج د"],
+        correctAnswer: 1,
       },
       {
         id: 3,
         question: "Idgham Bighunnah terjadi ketika Nun Mati bertemu huruf...",
-        options: [
-          "ل ر",
-          "ب",
-          "ي ن م و",
-          "ء ه ع ح غ خ"
-        ],
-        correctAnswer: 2
+        options: ["ل ر", "ب", "ي ن م و", "ء ه ع ح غ خ"],
+        correctAnswer: 2,
       },
       {
         id: 4,
         question: "Hukum Iqlab terjadi ketika Nun Mati bertemu huruf...",
-        options: [
-          "ب",
-          "ل",
-          "ر",
-          "م"
-        ],
-        correctAnswer: 0
+        options: ["ب", "ل", "ر", "م"],
+        correctAnswer: 0,
       },
       {
         id: 5,
         question: "Berapa lama panjang bacaan Mad Wajib Muttashil?",
-        options: [
-          "1 alif",
-          "2-3 alif",
-          "4-5 alif",
-          "6 alif"
-        ],
-        correctAnswer: 2
-      }
-    ]
+        options: ["1 alif", "2-3 alif", "4-5 alif", "6 alif"],
+        correctAnswer: 2,
+      },
+    ],
   },
   {
     id: 2,
@@ -169,33 +167,38 @@ export const MOCK_EXERCISES: Exercise[] = [
         id: 1,
         question: "Nabi Muhammad SAW lahir pada tahun...",
         options: ["570 M", "571 M", "572 M", "573 M"],
-        correctAnswer: 0
+        correctAnswer: 0,
       },
       {
         id: 2,
         question: "Siapa nama ibu Nabi Muhammad SAW?",
         options: ["Halimah", "Aminah", "Khadijah", "Fatimah"],
-        correctAnswer: 1
+        correctAnswer: 1,
       },
       {
         id: 3,
         question: "Di gua manakah Nabi Muhammad menerima wahyu pertama?",
         options: ["Gua Tsur", "Gua Hira", "Gua Kahfi", "Gua Ashabul"],
-        correctAnswer: 1
+        correctAnswer: 1,
       },
       {
         id: 4,
         question: "Peristiwa Hijrah terjadi pada tahun...",
         options: ["620 M", "621 M", "622 M", "623 M"],
-        correctAnswer: 2
+        correctAnswer: 2,
       },
       {
         id: 5,
         question: "Siapa sahabat yang menemani Nabi saat Hijrah?",
-        options: ["Umar bin Khattab", "Abu Bakar", "Ali bin Abi Thalib", "Utsman bin Affan"],
-        correctAnswer: 1
-      }
-    ]
+        options: [
+          "Umar bin Khattab",
+          "Abu Bakar",
+          "Ali bin Abi Thalib",
+          "Utsman bin Affan",
+        ],
+        correctAnswer: 1,
+      },
+    ],
   },
   {
     id: 3,
@@ -210,33 +213,38 @@ export const MOCK_EXERCISES: Exercise[] = [
         id: 1,
         question: "Rukun Islam yang pertama adalah...",
         options: ["Shalat", "Syahadat", "Zakat", "Puasa"],
-        correctAnswer: 1
+        correctAnswer: 1,
       },
       {
         id: 2,
         question: "Berapa rakaat shalat Maghrib?",
         options: ["2 rakaat", "3 rakaat", "4 rakaat", "5 rakaat"],
-        correctAnswer: 1
+        correctAnswer: 1,
       },
       {
         id: 3,
         question: "Zakat fitrah wajib dikeluarkan sebelum...",
-        options: ["Shalat Idul Fitri", "Shalat Tarawih", "Puasa Ramadhan", "Malam Lailatul Qadar"],
-        correctAnswer: 0
+        options: [
+          "Shalat Idul Fitri",
+          "Shalat Tarawih",
+          "Puasa Ramadhan",
+          "Malam Lailatul Qadar",
+        ],
+        correctAnswer: 0,
       },
       {
         id: 4,
         question: "Puasa Ramadhan dilakukan selama...",
         options: ["1 minggu", "2 minggu", "29-30 hari", "40 hari"],
-        correctAnswer: 2
+        correctAnswer: 2,
       },
       {
         id: 5,
         question: "Haji wajib dilaksanakan bagi muslim yang...",
         options: ["Sudah dewasa", "Mampu", "Laki-laki", "Bekerja"],
-        correctAnswer: 1
-      }
-    ]
+        correctAnswer: 1,
+      },
+    ],
   },
 ];
 
@@ -266,7 +274,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
     id: 1,
     authorName: "Ahmad",
     authorAvatar: null,
-    content: "Bagaimana cara membedakan hukum bacaan idzhar dan ikhfa? Berikut contoh tulisannya yang saya foto dari buku tajwid.",
+    content:
+      "Bagaimana cara membedakan hukum bacaan idzhar dan ikhfa? Berikut contoh tulisannya yang saya foto dari buku tajwid.",
     createdAt: "2026-01-06 10:30",
     repliesCount: 5,
     repliesData: [
@@ -274,21 +283,24 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         id: 1,
         authorName: "Ustadz Hasan",
         authorAvatar: null,
-        content: "Idzhar dibaca jelas tanpa dengung, sedangkan ikhfa dibaca samar dengan dengung. Idzhar terjadi jika nun mati bertemu huruf halqi (ء ه ع ح غ خ).",
+        content:
+          "Idzhar dibaca jelas tanpa dengung, sedangkan ikhfa dibaca samar dengan dengung. Idzhar terjadi jika nun mati bertemu huruf halqi (ء ه ع ح غ خ).",
         createdAt: "2026-01-06 11:00",
       },
       {
         id: 2,
         authorName: "Fatimah",
         authorAvatar: null,
-        content: "Terima kasih Ustadz, sekarang saya jadi lebih paham perbedaannya!",
+        content:
+          "Terima kasih Ustadz, sekarang saya jadi lebih paham perbedaannya!",
         createdAt: "2026-01-06 11:15",
       },
       {
         id: 3,
         authorName: "Muhammad",
         authorAvatar: null,
-        content: "Untuk ikhfa, cirinya ada dengung sekitar 2 harakat ya Ustadz?",
+        content:
+          "Untuk ikhfa, cirinya ada dengung sekitar 2 harakat ya Ustadz?",
         createdAt: "2026-01-06 11:30",
       },
     ],
@@ -301,7 +313,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
     id: 2,
     authorName: "Fatimah",
     authorAvatar: null,
-    content: "Apa hikmah dari puasa Ramadhan yang bisa kita ambil? Simak video penjelasan dari Ustadz berikut ini.",
+    content:
+      "Apa hikmah dari puasa Ramadhan yang bisa kita ambil? Simak video penjelasan dari Ustadz berikut ini.",
     createdAt: "2026-01-05 14:15",
     repliesCount: 8,
     repliesData: [
@@ -309,14 +322,16 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         id: 1,
         authorName: "Aisyah",
         authorAvatar: null,
-        content: "Puasa mengajarkan kita kesabaran dan empati terhadap orang yang kurang mampu.",
+        content:
+          "Puasa mengajarkan kita kesabaran dan empati terhadap orang yang kurang mampu.",
         createdAt: "2026-01-05 14:30",
       },
       {
         id: 2,
         authorName: "Umar",
         authorAvatar: null,
-        content: "Setuju! Puasa juga melatih pengendalian diri kita dalam berbagai hal.",
+        content:
+          "Setuju! Puasa juga melatih pengendalian diri kita dalam berbagai hal.",
         createdAt: "2026-01-05 14:45",
       },
       {
@@ -330,7 +345,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         id: 4,
         authorName: "Bu Siti",
         authorAvatar: null,
-        content: "Bagus sekali diskusinya. Puasa juga mengajarkan kita untuk bersyukur atas nikmat Allah.",
+        content:
+          "Bagus sekali diskusinya. Puasa juga mengajarkan kita untuk bersyukur atas nikmat Allah.",
         createdAt: "2026-01-05 15:20",
       },
     ],
@@ -340,7 +356,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
     id: 3,
     authorName: "Muhammad",
     authorAvatar: null,
-    content: "Mohon dijelaskan tentang tata cara sholat jenazah. Apakah ada yang punya catatan atau referensi?",
+    content:
+      "Mohon dijelaskan tentang tata cara sholat jenazah. Apakah ada yang punya catatan atau referensi?",
     createdAt: "2026-01-04 09:00",
     repliesCount: 3,
     repliesData: [
@@ -348,14 +365,16 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         id: 1,
         authorName: "Ustadz Hasan",
         authorAvatar: null,
-        content: "Sholat jenazah dilakukan dengan 4 takbir. Takbir 1: Al-Fatihah, Takbir 2: Sholawat, Takbir 3: Doa untuk jenazah, Takbir 4: Doa penutup lalu salam.",
+        content:
+          "Sholat jenazah dilakukan dengan 4 takbir. Takbir 1: Al-Fatihah, Takbir 2: Sholawat, Takbir 3: Doa untuk jenazah, Takbir 4: Doa penutup lalu salam.",
         createdAt: "2026-01-04 09:30",
       },
       {
         id: 2,
         authorName: "Aisyah",
         authorAvatar: null,
-        content: "Saya punya catatan dari pelajaran kemarin, bisa saya foto dan kirim di sini.",
+        content:
+          "Saya punya catatan dari pelajaran kemarin, bisa saya foto dan kirim di sini.",
         createdAt: "2026-01-04 10:00",
       },
     ],
@@ -364,7 +383,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
     id: 4,
     authorName: "Aisyah",
     authorAvatar: null,
-    content: "Dokumentasi kegiatan belajar tajwid hari ini! Alhamdulillah berjalan lancar. Ada video penjelasan dari guru dan foto-foto saat praktik.",
+    content:
+      "Dokumentasi kegiatan belajar tajwid hari ini! Alhamdulillah berjalan lancar. Ada video penjelasan dari guru dan foto-foto saat praktik.",
     createdAt: "2026-01-03 15:45",
     repliesCount: 12,
     repliesData: [
@@ -386,14 +406,16 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         id: 3,
         authorName: "Ustadz Hasan",
         authorAvatar: null,
-        content: "Alhamdulillah kegiatan hari ini berjalan lancar. Minggu depan kita lanjutkan ke materi mad.",
+        content:
+          "Alhamdulillah kegiatan hari ini berjalan lancar. Minggu depan kita lanjutkan ke materi mad.",
         createdAt: "2026-01-03 16:30",
       },
       {
         id: 4,
         authorName: "Muhammad",
         authorAvatar: null,
-        content: "Siap Ustadz! Semoga semakin lancar membaca Al-Quran kita semua.",
+        content:
+          "Siap Ustadz! Semoga semakin lancar membaca Al-Quran kita semua.",
         createdAt: "2026-01-03 16:45",
       },
     ],
@@ -408,7 +430,8 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
     id: 5,
     authorName: "Umar",
     authorAvatar: null,
-    content: "Berikut foto materi tentang Rukun Iman yang saya ringkas. Semoga bermanfaat untuk teman-teman.",
+    content:
+      "Berikut foto materi tentang Rukun Iman yang saya ringkas. Semoga bermanfaat untuk teman-teman.",
     createdAt: "2026-01-02 08:20",
     repliesCount: 7,
     repliesData: [
@@ -434,9 +457,7 @@ export const MOCK_DISCUSSIONS: Discussion[] = [
         createdAt: "2026-01-02 09:15",
       },
     ],
-    images: [
-      "https://placehold.co/400x300/e8eaf6/3f51b5?text=Rukun+Iman",
-    ],
+    images: ["https://placehold.co/400x300/e8eaf6/3f51b5?text=Rukun+Iman"],
   },
 ];
 
@@ -460,7 +481,8 @@ export const MOCK_FORUM_POSTS: ForumPost[] = [
     authorName: "Ustadz Hasan",
     authorRole: "Guru PAI",
     authorAvatar: null,
-    content: "Assalamualaikum, mari kita bahas tentang persiapan menghadapi ujian semester. Berikut video panduan belajar yang bisa membantu teman-teman. Semangat belajar!",
+    content:
+      "Assalamualaikum, mari kita bahas tentang persiapan menghadapi ujian semester. Berikut video panduan belajar yang bisa membantu teman-teman. Semangat belajar!",
     createdAt: "2026-01-06 08:00",
     likes: 24,
     comments: 12,
@@ -471,7 +493,8 @@ export const MOCK_FORUM_POSTS: ForumPost[] = [
     authorName: "Siti Aisyah",
     authorRole: "Siswa Kelas 9A",
     authorAvatar: null,
-    content: "Terima kasih atas materi tajwid yang sangat bermanfaat. Berikut catatan yang saya buat untuk review. Alhamdulillah sekarang sudah lebih paham.",
+    content:
+      "Terima kasih atas materi tajwid yang sangat bermanfaat. Berikut catatan yang saya buat untuk review. Alhamdulillah sekarang sudah lebih paham.",
     createdAt: "2026-01-05 16:30",
     likes: 15,
     comments: 5,
@@ -485,20 +508,20 @@ export const MOCK_FORUM_POSTS: ForumPost[] = [
     authorName: "Ahmad Fauzan",
     authorRole: "Siswa Kelas 8B",
     authorAvatar: null,
-    content: "Ada yang bisa bantu jelaskan tentang wudhu? Saya masih bingung urutannya. Ini foto dari buku yang saya punya.",
+    content:
+      "Ada yang bisa bantu jelaskan tentang wudhu? Saya masih bingung urutannya. Ini foto dari buku yang saya punya.",
     createdAt: "2026-01-05 11:20",
     likes: 8,
     comments: 18,
-    images: [
-      "https://placehold.co/400x300/e1f5fe/0288d1?text=Tata+Cara+Wudhu",
-    ],
+    images: ["https://placehold.co/400x300/e1f5fe/0288d1?text=Tata+Cara+Wudhu"],
   },
   {
     id: 4,
     authorName: "Bu Fatimah",
     authorRole: "Guru PAI",
     authorAvatar: null,
-    content: "Dokumentasi kegiatan lomba adzan antar kelas kemarin. Alhamdulillah semua peserta tampil dengan baik!",
+    content:
+      "Dokumentasi kegiatan lomba adzan antar kelas kemarin. Alhamdulillah semua peserta tampil dengan baik!",
     createdAt: "2026-01-04 14:00",
     likes: 45,
     comments: 23,
@@ -569,7 +592,7 @@ export interface StudentInClass {
 }
 
 // Status kehadiran
-export type AttendanceStatus = "hadir" | "tidak_hadir" | "izin" | "sakit";
+export type AttendanceStatus = "hadir" | "alpa" | "izin" | "sakit";
 
 // Interface record presensi
 export interface AttendanceRecord {
@@ -606,7 +629,7 @@ export const MOCK_ATTENDANCE_RECORDS: AttendanceRecord[] = [
   // Kelas 1 - 2026-01-06
   { classId: 1, studentId: 101, date: "2026-01-06", status: "hadir" },
   { classId: 1, studentId: 102, date: "2026-01-06", status: "hadir" },
-  { classId: 1, studentId: 103, date: "2026-01-06", status: "tidak_hadir" },
+  { classId: 1, studentId: 103, date: "2026-01-06", status: "alpa" },
   { classId: 1, studentId: 104, date: "2026-01-06", status: "hadir" },
   { classId: 1, studentId: 105, date: "2026-01-06", status: "izin" },
   { classId: 1, studentId: 106, date: "2026-01-06", status: "hadir" },
@@ -618,7 +641,7 @@ export const MOCK_ATTENDANCE_RECORDS: AttendanceRecord[] = [
   { classId: 1, studentId: 103, date: "2026-01-07", status: "hadir" },
   { classId: 1, studentId: 104, date: "2026-01-07", status: "hadir" },
   { classId: 1, studentId: 105, date: "2026-01-07", status: "hadir" },
-  { classId: 1, studentId: 106, date: "2026-01-07", status: "tidak_hadir" },
+  { classId: 1, studentId: 106, date: "2026-01-07", status: "alpa" },
   { classId: 1, studentId: 107, date: "2026-01-07", status: "hadir" },
   { classId: 1, studentId: 108, date: "2026-01-07", status: "hadir" },
   // Kelas 1 - 2026-01-08
@@ -634,7 +657,7 @@ export const MOCK_ATTENDANCE_RECORDS: AttendanceRecord[] = [
   { classId: 2, studentId: 201, date: "2026-01-06", status: "hadir" },
   { classId: 2, studentId: 202, date: "2026-01-06", status: "hadir" },
   { classId: 2, studentId: 203, date: "2026-01-06", status: "hadir" },
-  { classId: 2, studentId: 204, date: "2026-01-06", status: "tidak_hadir" },
+  { classId: 2, studentId: 204, date: "2026-01-06", status: "alpa" },
   { classId: 2, studentId: 205, date: "2026-01-06", status: "hadir" },
   { classId: 2, studentId: 206, date: "2026-01-06", status: "hadir" },
   // Kelas 2 - 2026-01-07
@@ -652,37 +675,46 @@ export const getStudentsInClass = (classId: number): StudentInClass[] => {
 };
 
 // Helper: Get attendance records for a class on a specific date
-export const getAttendanceByClassAndDate = (classId: number, date: string): AttendanceRecord[] => {
+export const getAttendanceByClassAndDate = (
+  classId: number,
+  date: string
+): AttendanceRecord[] => {
   return MOCK_ATTENDANCE_RECORDS.filter(
     (record) => record.classId === classId && record.date === date
   );
 };
 
 // Helper: Get all attendance records for a specific student in a class
-export const getStudentAttendance = (classId: number, studentId: number): AttendanceRecord[] => {
+export const getStudentAttendance = (
+  classId: number,
+  studentId: number
+): AttendanceRecord[] => {
   return MOCK_ATTENDANCE_RECORDS.filter(
     (record) => record.classId === classId && record.studentId === studentId
   );
 };
 
 // Helper: Calculate attendance statistics for a student in a class
-export const getStudentAttendanceStats = (classId: number, studentId: number) => {
+export const getStudentAttendanceStats = (
+  classId: number,
+  studentId: number
+) => {
   const records = getStudentAttendance(classId, studentId);
   const total = records.length;
   const hadir = records.filter((r) => r.status === "hadir").length;
-  const tidakHadir = records.filter((r) => r.status === "tidak_hadir").length;
+  const tidakHadir = records.filter((r) => r.status === "alpa").length;
   const izin = records.filter((r) => r.status === "izin").length;
   const sakit = records.filter((r) => r.status === "sakit").length;
   const percentage = total > 0 ? Math.round((hadir / total) * 100) : 0;
-  
+
   return { total, hadir, tidakHadir, izin, sakit, percentage };
 };
 
 // Helper: Get unique dates with attendance for a class
 export const getAttendanceDates = (classId: number): string[] => {
-  const dates = MOCK_ATTENDANCE_RECORDS
-    .filter((record) => record.classId === classId)
-    .map((record) => record.date);
+  const dates = MOCK_ATTENDANCE_RECORDS.filter(
+    (record) => record.classId === classId
+  ).map((record) => record.date);
   return [...new Set(dates)].sort().reverse();
 };
 
@@ -729,7 +761,10 @@ export const MOCK_STUDENT_REGISTERED_TO_CLASS = false;
 // ================================================
 // REGISTERED STUDENTS (siswa yang sudah daftar, belum masuk kelas)
 // ================================================
-
+export type StudentProfile = {
+  nisn: string;
+  school_place: string;
+};
 export interface RegisteredStudent {
   id: number;
   name: string;
@@ -737,34 +772,94 @@ export interface RegisteredStudent {
   nisn: string;
   school: string;
   registeredAt: string;
+  profile: StudentProfile | null;
 }
 
-// Siswa yang sudah mendaftar tapi belum didaftarkan ke kelas oleh guru
-export const MOCK_REGISTERED_STUDENTS: RegisteredStudent[] = [
-  { id: 101, name: "Ahmad Fauzi", email: "ahmad.fauzi@siswa.id", nisn: "0012345678", school: "SMKN 1 Semarang", registeredAt: "2024-01-05" },
-  { id: 102, name: "Siti Aminah", email: "siti.aminah@siswa.id", nisn: "0012345679", school: "SMKN 1 Semarang", registeredAt: "2024-01-06" },
-  { id: 103, name: "Budi Santoso", email: "budi.santoso@siswa.id", nisn: "0012345680", school: "SMKN 1 Semarang", registeredAt: "2024-01-07" },
-  { id: 104, name: "Dewi Lestari", email: "dewi.lestari@siswa.id", nisn: "0012345681", school: "SMKN 1 Semarang", registeredAt: "2024-01-08" },
-  { id: 105, name: "Rizky Pratama", email: "rizky.pratama@siswa.id", nisn: "0012345682", school: "SMKN 1 Semarang", registeredAt: "2024-01-09" },
-  { id: 106, name: "Nur Hidayah", email: "nur.hidayah@siswa.id", nisn: "0012345683", school: "SMKN 1 Semarang", registeredAt: "2024-01-10" },
-  { id: 107, name: "Eko Prasetyo", email: "eko.prasetyo@siswa.id", nisn: "0012345684", school: "SMAN 1 Semarang", registeredAt: "2024-01-11" },
-  { id: 108, name: "Fitri Handayani", email: "fitri.handayani@siswa.id", nisn: "0012345685", school: "SMAN 1 Semarang", registeredAt: "2024-01-12" },
-];
+// // Siswa yang sudah mendaftar tapi belum didaftarkan ke kelas oleh guru
+// export const MOCK_REGISTERED_STUDENTS: RegisteredStudent[] = [
+//   {
+//     id: 101,
+//     name: "Ahmad Fauzi",
+//     email: "ahmad.fauzi@siswa.id",
+//     nisn: "0012345678",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-05",
+//   },
+//   {
+//     id: 102,
+//     name: "Siti Aminah",
+//     email: "siti.aminah@siswa.id",
+//     nisn: "0012345679",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-06",
+//   },
+//   {
+//     id: 103,
+//     name: "Budi Santoso",
+//     email: "budi.santoso@siswa.id",
+//     nisn: "0012345680",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-07",
+//   },
+//   {
+//     id: 104,
+//     name: "Dewi Lestari",
+//     email: "dewi.lestari@siswa.id",
+//     nisn: "0012345681",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-08",
+//   },
+//   {
+//     id: 105,
+//     name: "Rizky Pratama",
+//     email: "rizky.pratama@siswa.id",
+//     nisn: "0012345682",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-09",
+//   },
+//   {
+//     id: 106,
+//     name: "Nur Hidayah",
+//     email: "nur.hidayah@siswa.id",
+//     nisn: "0012345683",
+//     school: "SMKN 1 Semarang",
+//     registeredAt: "2024-01-10",
+//   },
+//   {
+//     id: 107,
+//     name: "Eko Prasetyo",
+//     email: "eko.prasetyo@siswa.id",
+//     nisn: "0012345684",
+//     school: "SMAN 1 Semarang",
+//     registeredAt: "2024-01-11",
+//   },
+//   {
+//     id: 108,
+//     name: "Fitri Handayani",
+//     email: "fitri.handayani@siswa.id",
+//     nisn: "0012345685",
+//     school: "SMAN 1 Semarang",
+//     registeredAt: "2024-01-12",
+//   },
+// ];
 
 // Search registered students by name or NISN (filtered by school)
-export const searchRegisteredStudents = (query: string, school: string, excludeIds: number[] = []): RegisteredStudent[] => {
-  if (!query || query.length < 2) return [];
-  const lowerQuery = query.toLowerCase();
-  return MOCK_REGISTERED_STUDENTS.filter(
-    (student) =>
-      !excludeIds.includes(student.id) &&
-      student.school === school && // Filter by school
-      (student.name.toLowerCase().includes(lowerQuery) ||
-       student.nisn.includes(query) ||
-       student.email.toLowerCase().includes(lowerQuery))
-  ).slice(0, 5);
-};
+// export const searchRegisteredStudents = (
+//   query: string,
+//   school: string,
+//   excludeIds: number[] = []
+// ): RegisteredStudent[] => {
+//   if (!query || query.length < 2) return [];
+//   const lowerQuery = query.toLowerCase();
+//   return MOCK_REGISTERED_STUDENTS.filter(
+//     (student) =>
+//       !excludeIds.includes(student.id) &&
+//       student.school === school && // Filter by school
+//       (student.name.toLowerCase().includes(lowerQuery) ||
+//         student.nisn.includes(query) ||
+//         student.email.toLowerCase().includes(lowerQuery))
+//   ).slice(0, 5);
+// };
 
 // Keep old MOCK_CLASS_INFO for backward compatibility
 export const MOCK_CLASS_INFO = MOCK_CLASSES[0];
-

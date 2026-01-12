@@ -149,12 +149,9 @@ export default function StudentHomePage() {
             </button>
             <div className="rounded-full border-2 border-white flex-shrink-0">
               <img
-                src={
-                  (auth?.avatar && getImage(auth.avatar)) ||
-                  "https://avatar.iran.liara.run/public"
-                }
+                src={getImage(auth?.avatar)}
                 className="object-cover rounded-full size-10"
-                alt=""
+                alt="Avatar"
               />
             </div>
           </div>
