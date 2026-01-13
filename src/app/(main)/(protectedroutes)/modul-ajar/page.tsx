@@ -60,7 +60,7 @@ const ModulAjarPage: React.FC = () => {
 
   // Reposted modules from localStorage
   const [repostedModules, setRepostedModules] = useState<any[]>([]);
-  
+
   // Edit reposted module state
   const [showEditRepostModal, setShowEditRepostModal] = useState(false);
   const [editingRepostModule, setEditingRepostModule] = useState<any>(null);
@@ -73,8 +73,8 @@ const ModulAjarPage: React.FC = () => {
     assessments: [] as any[],
   });
 
-  const observerRef = useRef<HTMLDivElement | null>(null);
-
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const LIMIT = 5;
   // Load reposted modules from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -140,75 +140,64 @@ const ModulAjarPage: React.FC = () => {
     }
     setSelectedFase("");
   }, [selectedJenjang, allFaseOptions]);
+  const loadingRef = useRef(false);
 
   // Fungsi fetch data
-  const fetchCards = async (currentPage: number, append: boolean = false) => {
+  const fetchCards = async (
+    pageOrUpdater: number | ((prev: number) => number),
+    append = false
+  ) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+
     try {
       setIsLoading(true);
 
-      let endpoint = "";
+      const currentPage =
+        typeof pageOrUpdater === "function" ? page : pageOrUpdater;
 
-      if (activeTab === "all") {
-        endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn?page=${currentPage}&limit=10`;
-      } else {
-        if (!user?.id) {
-          setIsLoading(false);
-          setHasMore(false);
-          return;
-        }
-        endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn/user/${user.id}`;
+      let endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn?page=${currentPage}&limit=${LIMIT}`;
+
+      if (activeTab === "mine" && user?.id) {
+        endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn/user/${user.id}?page=${currentPage}&limit=${LIMIT}`;
       }
 
       if (searchQuery) {
-        endpoint += `${
-          endpoint.includes("?") ? "&" : "?"
-        }search=${encodeURIComponent(searchQuery)}`;
+        endpoint += `&search=${encodeURIComponent(searchQuery)}`;
       }
 
-      const response = await axios.get(endpoint);
+      const res = await axios.get(endpoint);
+      const data = res.data.data || [];
+      const meta = res.data.meta;
 
-      if (response.data.data && response.data.data.length > 0) {
-        const mappedData: CardData[] = response.data.data.map(
-          (module: any) => ({
-            id: module.id.toString(),
-            user_id: module.user_id,
-            type: "Materi ajar & RPP",
-            topic: module.judul,
-            jenjangId: module.jenjang?.id_jenjang || module.jenjang_id,
-            faseId: module.fase?.id_fase || module.fase_id,
-            grade: {
-              id: module.fase?.id_fase || 0,
-              description:
-                module.fase?.deskripsi || module.fase?.nama_fase || "Kelas",
-            },
-            fase: {
-              id: module.fase?.id_fase || 0,
-              nama_fase: module.fase?.nama_fase || "",
-              deskripsi: module.fase?.deskripsi || "",
-            },
-            image: module.thumbnail,
-            created_at: module.created_at || new Date().toISOString(),
-            downloads: module.downloads_count || 0,
-            likes_count: module.likes_count || 0,
-          })
-        );
-
-        const newCards = append ? [...cards, ...mappedData] : mappedData;
-
-        const uniqueCards = Array.from(
-          new Map(newCards.map((item) => [item.id, item])).values()
-        );
-
-        setCards(uniqueCards);
-        setPage(currentPage + 1);
-      } else {
+      if (data.length === 0) {
         setHasMore(false);
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching cards:", error);
-      setHasMore(false);
+
+      const mappedData = data.map((module: any) => ({
+        id: module.id.toString(),
+        user_id: module.user_id,
+        topic: module.judul,
+        image: module.thumbnail,
+        created_at: module.created_at,
+        downloads: module.downloads_count || 0,
+        likes_count: module.likes_count || 0,
+        jenjangId: module.jenjang?.id_jenjang || module.jenjang_id,
+        faseId: module.fase?.id_fase || module.fase_id,
+        fase: {
+          id: module.fase?.id_fase || 0,
+          nama_fase: module.fase?.nama_fase || "",
+          deskripsi: module.fase?.deskripsi || "",
+        },
+      }));
+
+      setCards((prev) => [...prev, ...mappedData]);
+      setPage((prev) => prev + 1);
+      setHasMore(meta?.has_more ?? false);
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
   };
 
@@ -223,21 +212,24 @@ const ModulAjarPage: React.FC = () => {
 
   // Infinite scroll observer
   useEffect(() => {
-    if (!observerRef.current || !hasMore || isLoading) return;
+    if (!sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchCards(page, true);
+        const entry = entries[0];
+        if (entry.isIntersecting && hasMore && !loadingRef.current) {
+          fetchCards((prevPage) => prevPage, true);
         }
       },
-      { threshold: 0.1 }
+      {
+        rootMargin: "200px", // PENTING
+      }
     );
 
-    observer.observe(observerRef.current);
+    observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [page, hasMore, isLoading]);
+  }, [hasMore]);
 
   // Filter + Sorting lokal
   useEffect(() => {
@@ -429,26 +421,39 @@ const ModulAjarPage: React.FC = () => {
 
       {/* Card List */}
       <div className="px-4 pb-6">
-        {activeTab === "mine" && !isLoading && cards.length === 0 && repostedModules.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">
-              Anda belum memiliki modul ajar.
-            </p>
-            <button
-              className="px-6 py-2 bg-[#006557] text-white rounded-lg font-medium"
-              onClick={() => router.push("/perangkat-ajar/tambah")}
-            >
-              Buat Modul Ajar
-            </button>
-          </div>
-        )}
+        {activeTab === "mine" &&
+          !isLoading &&
+          cards.length === 0 &&
+          repostedModules.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">
+                Anda belum memiliki modul ajar.
+              </p>
+              <button
+                className="px-6 py-2 bg-[#006557] text-white rounded-lg font-medium"
+                onClick={() => router.push("/perangkat-ajar/tambah")}
+              >
+                Buat Modul Ajar
+              </button>
+            </div>
+          )}
 
         {/* Reposted Modules Section - only in Modul Saya tab */}
         {activeTab === "mine" && repostedModules.length > 0 && (
           <div className="mb-6">
             <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <svg
+                className="w-5 h-5 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
               Modul Repost ({repostedModules.length})
             </h3>
@@ -462,11 +467,18 @@ const ModulAjarPage: React.FC = () => {
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
                       <img
-                        src={item.thumbnail ? (item.thumbnail.startsWith("http") ? item.thumbnail : `http://file.agpaiidigital.org/${item.thumbnail}`) : "/img/thumbnailmodul.png"}
+                        src={
+                          item.thumbnail
+                            ? item.thumbnail.startsWith("http")
+                              ? item.thumbnail
+                              : `http://file.agpaiidigital.org/${item.thumbnail}`
+                            : "/img/thumbnailmodul.png"
+                        }
                         alt={item.judul}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/img/thumbnailmodul.png";
+                          (e.target as HTMLImageElement).src =
+                            "/img/thumbnailmodul.png";
                         }}
                       />
                     </div>
@@ -474,18 +486,32 @@ const ModulAjarPage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-medium rounded-full">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
                         </svg>
                         Repost
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-800 line-clamp-2">{item.judul}</h3>
+                    <h3 className="font-bold text-gray-800 line-clamp-2">
+                      {item.judul}
+                    </h3>
                     <p className="text-xs text-purple-600 mt-1">
                       Direpost dari {item.repostedFrom}
                     </p>
                     {item.repostedFromSchool && (
-                      <p className="text-xs text-gray-400">{item.repostedFromSchool}</p>
+                      <p className="text-xs text-gray-400">
+                        {item.repostedFromSchool}
+                      </p>
                     )}
                   </div>
                   {/* Edit & Delete buttons for reposted module */}
@@ -507,25 +533,56 @@ const ModulAjarPage: React.FC = () => {
                       className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition"
                       title="Edit Modul"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm("Hapus modul repost ini dari koleksi Anda?")) {
-                          const saved = JSON.parse(localStorage.getItem("repostedModules") || "[]");
-                          const updated = saved.filter((m: any) => m.id !== item.id);
-                          localStorage.setItem("repostedModules", JSON.stringify(updated));
-                          setRepostedModules(updated.filter((m: any) => m.user_id === user?.id));
+                        if (
+                          confirm("Hapus modul repost ini dari koleksi Anda?")
+                        ) {
+                          const saved = JSON.parse(
+                            localStorage.getItem("repostedModules") || "[]"
+                          );
+                          const updated = saved.filter(
+                            (m: any) => m.id !== item.id
+                          );
+                          localStorage.setItem(
+                            "repostedModules",
+                            JSON.stringify(updated)
+                          );
+                          setRepostedModules(
+                            updated.filter((m: any) => m.user_id === user?.id)
+                          );
                         }
                       }}
                       className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
                       title="Hapus Modul"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -682,9 +739,8 @@ const ModulAjarPage: React.FC = () => {
           )}
         </div>
 
-        {hasMore && !isLoading && filteredCards.length > 0 && (
-          <div ref={observerRef} className="h-10" />
-        )}
+        {/* SENTINEL FOR INFINITE SCROLL */}
+        {hasMore && <div ref={sentinelRef} className="h-20 w-full" />}
 
         {isLoading && filteredCards.length > 0 && (
           <div className="text-center py-4">
@@ -696,103 +752,200 @@ const ModulAjarPage: React.FC = () => {
       {/* Edit Reposted Module Modal */}
       {showEditRepostModal && editingRepostModule && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setShowEditRepostModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setShowEditRepostModal(false)}
+          />
           <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden my-4">
             {/* Header - Fixed at top */}
             <div className="bg-gradient-to-r from-[#006557] to-[#00806B] px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <svg
+                      className="w-4.5 h-4.5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white leading-tight">Edit Modul</h3>
+                    <h3 className="text-base font-bold text-white leading-tight">
+                      Edit Modul
+                    </h3>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <svg className="w-3 h-3 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <svg
+                        className="w-3 h-3 text-white/70"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
                       </svg>
-                      <span className="text-[11px] text-white/70">Direpost dari {editingRepostModule.repostedFrom}</span>
+                      <span className="text-[11px] text-white/70">
+                        Direpost dari {editingRepostModule.repostedFrom}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setShowEditRepostModal(false)} 
+                <button
+                  onClick={() => setShowEditRepostModal(false)}
                   className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition"
                 >
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
             </div>
-            
+
             {/* Content - Scrollable */}
             <div className="flex-1 p-4 overflow-y-auto">
               <div className="space-y-4">
                 {/* Judul */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    <svg
+                      className="w-4 h-4 text-[#006557]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                      />
                     </svg>
                     Judul Modul <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={editRepostData.judul}
-                    onChange={(e) => setEditRepostData({ ...editRepostData, judul: e.target.value })}
+                    onChange={(e) =>
+                      setEditRepostData({
+                        ...editRepostData,
+                        judul: e.target.value,
+                      })
+                    }
                     placeholder="Masukkan judul modul..."
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006557]/30 focus:border-[#006557] focus:bg-white transition"
                   />
                 </div>
-                
+
                 {/* Deskripsi */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                    <svg
+                      className="w-4 h-4 text-[#006557]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h7"
+                      />
                     </svg>
                     Deskripsi Singkat
                   </label>
                   <textarea
                     value={editRepostData.deskripsi_singkat}
-                    onChange={(e) => setEditRepostData({ ...editRepostData, deskripsi_singkat: e.target.value })}
+                    onChange={(e) =>
+                      setEditRepostData({
+                        ...editRepostData,
+                        deskripsi_singkat: e.target.value,
+                      })
+                    }
                     placeholder="Jelaskan secara singkat tentang modul ini..."
                     rows={2}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006557]/30 focus:border-[#006557] focus:bg-white transition resize-none"
                   />
                 </div>
-                
+
                 {/* Tentang Modul */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg
+                      className="w-4 h-4 text-[#006557]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
                     </svg>
                     Tentang Modul
                   </label>
                   <textarea
                     value={editRepostData.tentang_modul}
-                    onChange={(e) => setEditRepostData({ ...editRepostData, tentang_modul: e.target.value })}
+                    onChange={(e) =>
+                      setEditRepostData({
+                        ...editRepostData,
+                        tentang_modul: e.target.value,
+                      })
+                    }
                     placeholder="Deskripsikan isi dan cakupan modul ini..."
                     rows={3}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006557]/30 focus:border-[#006557] focus:bg-white transition resize-none"
                   />
                 </div>
-                
+
                 {/* Tujuan Pembelajaran */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    <svg
+                      className="w-4 h-4 text-[#006557]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
                     </svg>
                     Tujuan Pembelajaran
                   </label>
                   <textarea
                     value={editRepostData.tujuan_pembelajaran}
-                    onChange={(e) => setEditRepostData({ ...editRepostData, tujuan_pembelajaran: e.target.value })}
+                    onChange={(e) =>
+                      setEditRepostData({
+                        ...editRepostData,
+                        tujuan_pembelajaran: e.target.value,
+                      })
+                    }
                     placeholder="Apa yang akan dipelajari siswa dari modul ini..."
                     rows={3}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006557]/30 focus:border-[#006557] focus:bg-white transition resize-none"
@@ -802,8 +955,18 @@ const ModulAjarPage: React.FC = () => {
                 {/* Divider */}
                 <div className="border-t border-gray-200 pt-4 mt-2">
                   <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-[#006557]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <svg
+                      className="w-4 h-4 text-[#006557]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
                     </svg>
                     Dokumen Modul
                   </h4>
@@ -812,60 +975,112 @@ const ModulAjarPage: React.FC = () => {
                 {/* Materi Section */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <svg
+                      className="w-4 h-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
                     </svg>
                     Materi ({editRepostData.materi?.length || 0})
                   </label>
                   {editRepostData.materi && editRepostData.materi.length > 0 ? (
                     <div className="space-y-2">
                       {editRepostData.materi.map((item: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-xl"
+                        >
                           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                             {item.youtube_url ? (
-                              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                              <svg
+                                className="w-4 h-4 text-red-500"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
                                 <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
                               </svg>
                             ) : (
-                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                              <svg
+                                className="w-4 h-4 text-blue-600"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             )}
                           </div>
                           <input
                             type="text"
-                            value={item.name || item.judul || `Materi ${index + 1}`}
+                            value={
+                              item.name || item.judul || `Materi ${index + 1}`
+                            }
                             onChange={(e) => {
                               const updated = [...editRepostData.materi];
-                              updated[index] = { ...updated[index], name: e.target.value, judul: e.target.value };
-                              setEditRepostData({ ...editRepostData, materi: updated });
+                              updated[index] = {
+                                ...updated[index],
+                                name: e.target.value,
+                                judul: e.target.value,
+                              };
+                              setEditRepostData({
+                                ...editRepostData,
+                                materi: updated,
+                              });
                             }}
                             className="flex-1 px-3 py-1.5 bg-white border border-blue-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
                           />
                           <button
                             onClick={() => {
-                              const updated = editRepostData.materi.filter((_: any, i: number) => i !== index);
-                              setEditRepostData({ ...editRepostData, materi: updated });
+                              const updated = editRepostData.materi.filter(
+                                (_: any, i: number) => i !== index
+                              );
+                              setEditRepostData({
+                                ...editRepostData,
+                                materi: updated,
+                              });
                             }}
                             className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                           </button>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 italic py-2">Tidak ada materi</p>
+                    <p className="text-sm text-gray-400 italic py-2">
+                      Tidak ada materi
+                    </p>
                   )}
                   {/* Add Materi Button */}
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={() => {
-                        const fileInput = document.createElement('input');
-                        fileInput.type = 'file';
-                        fileInput.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
+                        const fileInput = document.createElement("input");
+                        fileInput.type = "file";
+                        fileInput.accept =
+                          ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx";
                         fileInput.onchange = (e: any) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -875,12 +1090,14 @@ const ModulAjarPage: React.FC = () => {
                               name: file.name,
                               judul: file.name,
                               file_path: URL.createObjectURL(file),
-                              file_type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+                              file_type:
+                                file.name.split(".").pop()?.toUpperCase() ||
+                                "FILE",
                               localFile: file, // Store file reference for potential upload
                             };
-                            setEditRepostData({ 
-                              ...editRepostData, 
-                              materi: [...editRepostData.materi, newMateri] 
+                            setEditRepostData({
+                              ...editRepostData,
+                              materi: [...editRepostData.materi, newMateri],
                             });
                           }
                         };
@@ -888,24 +1105,37 @@ const ModulAjarPage: React.FC = () => {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-50 border border-dashed border-blue-300 rounded-xl text-blue-600 text-sm font-medium hover:bg-blue-100 transition"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                        />
                       </svg>
                       Upload File
                     </button>
                     <button
                       onClick={() => {
                         const url = prompt("Masukkan link YouTube:");
-                        if (url && url.includes("youtube") || url?.includes("youtu.be")) {
+                        if (
+                          (url && url.includes("youtube")) ||
+                          url?.includes("youtu.be")
+                        ) {
                           const newMateri = {
                             id: Date.now(),
                             name: "Video YouTube",
                             judul: "Video YouTube",
                             youtube_url: url,
                           };
-                          setEditRepostData({ 
-                            ...editRepostData, 
-                            materi: [...editRepostData.materi, newMateri] 
+                          setEditRepostData({
+                            ...editRepostData,
+                            materi: [...editRepostData.materi, newMateri],
                           });
                         } else if (url) {
                           alert("Harap masukkan link YouTube yang valid");
@@ -913,7 +1143,11 @@ const ModulAjarPage: React.FC = () => {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 border border-dashed border-red-300 rounded-xl text-red-600 text-sm font-medium hover:bg-red-100 transition"
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
                       </svg>
                       Link YouTube
@@ -924,60 +1158,118 @@ const ModulAjarPage: React.FC = () => {
                 {/* Asesmen Section */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
-                    <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    <svg
+                      className="w-4 h-4 text-amber-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                      />
                     </svg>
                     Asesmen ({editRepostData.assessments?.length || 0})
                   </label>
-                  {editRepostData.assessments && editRepostData.assessments.length > 0 ? (
+                  {editRepostData.assessments &&
+                  editRepostData.assessments.length > 0 ? (
                     <div className="space-y-2">
-                      {editRepostData.assessments.map((item: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                          <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            {item.youtube_url ? (
-                              <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </div>
-                          <input
-                            type="text"
-                            value={item.name || item.judul || `Asesmen ${index + 1}`}
-                            onChange={(e) => {
-                              const updated = [...editRepostData.assessments];
-                              updated[index] = { ...updated[index], name: e.target.value, judul: e.target.value };
-                              setEditRepostData({ ...editRepostData, assessments: updated });
-                            }}
-                            className="flex-1 px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                          />
-                          <button
-                            onClick={() => {
-                              const updated = editRepostData.assessments.filter((_: any, i: number) => i !== index);
-                              setEditRepostData({ ...editRepostData, assessments: updated });
-                            }}
-                            className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition"
+                      {editRepostData.assessments.map(
+                        (item: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
+                            <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              {item.youtube_url ? (
+                                <svg
+                                  className="w-4 h-4 text-red-500"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="w-4 h-4 text-amber-600"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <input
+                              type="text"
+                              value={
+                                item.name ||
+                                item.judul ||
+                                `Asesmen ${index + 1}`
+                              }
+                              onChange={(e) => {
+                                const updated = [...editRepostData.assessments];
+                                updated[index] = {
+                                  ...updated[index],
+                                  name: e.target.value,
+                                  judul: e.target.value,
+                                };
+                                setEditRepostData({
+                                  ...editRepostData,
+                                  assessments: updated,
+                                });
+                              }}
+                              className="flex-1 px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                            />
+                            <button
+                              onClick={() => {
+                                const updated =
+                                  editRepostData.assessments.filter(
+                                    (_: any, i: number) => i !== index
+                                  );
+                                setEditRepostData({
+                                  ...editRepostData,
+                                  assessments: updated,
+                                });
+                              }}
+                              className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )
+                      )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 italic py-2">Tidak ada asesmen</p>
+                    <p className="text-sm text-gray-400 italic py-2">
+                      Tidak ada asesmen
+                    </p>
                   )}
                   {/* Add Asesmen Button */}
                   <div className="mt-3 flex gap-2">
                     <button
                       onClick={() => {
-                        const fileInput = document.createElement('input');
-                        fileInput.type = 'file';
-                        fileInput.accept = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx';
+                        const fileInput = document.createElement("input");
+                        fileInput.type = "file";
+                        fileInput.accept =
+                          ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx";
                         fileInput.onchange = (e: any) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -986,12 +1278,17 @@ const ModulAjarPage: React.FC = () => {
                               name: file.name,
                               judul: file.name,
                               file_path: URL.createObjectURL(file),
-                              file_type: file.name.split('.').pop()?.toUpperCase() || 'FILE',
+                              file_type:
+                                file.name.split(".").pop()?.toUpperCase() ||
+                                "FILE",
                               localFile: file,
                             };
-                            setEditRepostData({ 
-                              ...editRepostData, 
-                              assessments: [...editRepostData.assessments, newAsesmen] 
+                            setEditRepostData({
+                              ...editRepostData,
+                              assessments: [
+                                ...editRepostData.assessments,
+                                newAsesmen,
+                              ],
                             });
                           }
                         };
@@ -999,24 +1296,40 @@ const ModulAjarPage: React.FC = () => {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-50 border border-dashed border-amber-300 rounded-xl text-amber-600 text-sm font-medium hover:bg-amber-100 transition"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                        />
                       </svg>
                       Upload File
                     </button>
                     <button
                       onClick={() => {
                         const url = prompt("Masukkan link YouTube:");
-                        if (url && url.includes("youtube") || url?.includes("youtu.be")) {
+                        if (
+                          (url && url.includes("youtube")) ||
+                          url?.includes("youtu.be")
+                        ) {
                           const newAsesmen = {
                             id: Date.now(),
                             name: "Video YouTube",
                             judul: "Video YouTube",
                             youtube_url: url,
                           };
-                          setEditRepostData({ 
-                            ...editRepostData, 
-                            assessments: [...editRepostData.assessments, newAsesmen] 
+                          setEditRepostData({
+                            ...editRepostData,
+                            assessments: [
+                              ...editRepostData.assessments,
+                              newAsesmen,
+                            ],
                           });
                         } else if (url) {
                           alert("Harap masukkan link YouTube yang valid");
@@ -1024,7 +1337,11 @@ const ModulAjarPage: React.FC = () => {
                       }}
                       className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 border border-dashed border-red-300 rounded-xl text-red-600 text-sm font-medium hover:bg-red-100 transition"
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13v10l6-5-6-5z" />
                       </svg>
                       Link YouTube
@@ -1033,7 +1350,7 @@ const ModulAjarPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Footer */}
             <div className="flex-shrink-0 bg-gray-50 border-t border-gray-100 px-5 py-4">
               <div className="flex gap-3">
@@ -1046,24 +1363,41 @@ const ModulAjarPage: React.FC = () => {
                 <button
                   onClick={() => {
                     if (!editRepostData.judul.trim()) return;
-                    
-                    const saved = JSON.parse(localStorage.getItem("repostedModules") || "[]");
-                    const updated = saved.map((m: any) => 
-                      m.id === editingRepostModule.id 
+
+                    const saved = JSON.parse(
+                      localStorage.getItem("repostedModules") || "[]"
+                    );
+                    const updated = saved.map((m: any) =>
+                      m.id === editingRepostModule.id
                         ? { ...m, ...editRepostData }
                         : m
                     );
-                    localStorage.setItem("repostedModules", JSON.stringify(updated));
-                    
-                    setRepostedModules(updated.filter((m: any) => m.user_id === user?.id));
+                    localStorage.setItem(
+                      "repostedModules",
+                      JSON.stringify(updated)
+                    );
+
+                    setRepostedModules(
+                      updated.filter((m: any) => m.user_id === user?.id)
+                    );
                     setShowEditRepostModal(false);
                     setEditingRepostModule(null);
                   }}
                   disabled={!editRepostData.judul.trim()}
                   className="flex-1 py-3 px-4 bg-[#006557] text-white font-semibold rounded-xl hover:bg-[#005547] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   Simpan Perubahan
                 </button>

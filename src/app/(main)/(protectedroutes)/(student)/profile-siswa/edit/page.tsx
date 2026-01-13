@@ -35,7 +35,8 @@ export default function EditStudentProfilePage() {
     if (auth) {
       setName(auth.name || "");
       setEmail(auth.email || "");
-      setPhone(auth.phone || auth.no_hp || "");
+
+      setPhone(auth.profile?.contact || "");
       setNisn(auth.nisn || auth.profile?.nisn || "");
       setSchoolPlace(auth.school_place || auth.profile?.school_place || "");
 
@@ -79,7 +80,7 @@ export default function EditStudentProfilePage() {
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("email", email.trim());
-      formData.append("no_hp", phone.trim());
+      formData.append("contact", phone.trim());
 
       if (nisn.trim()) {
         formData.append("nisn", nisn.trim());
