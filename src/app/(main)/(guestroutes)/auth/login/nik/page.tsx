@@ -9,6 +9,7 @@ import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { getErrorMessage } from "@/utils/error-handler";
 import { useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 
 interface LoginFormData {
   nik: string;
@@ -128,7 +129,7 @@ export default function LoginNikPage() {
         </div>
 
         {/* Bottom Buttons */}
-        <div className="mt-auto pb-8 space-y-4">
+        <div className="mt-40 pb-8 space-y-4">
 
           {/* OR Divider */}
           <div className="flex items-center gap-4">
@@ -138,10 +139,11 @@ export default function LoginNikPage() {
           </div>
 
           <Link
-            href="/auth/register"
-            className="block w-full py-4 bg-[#01925B] text-white font-medium rounded-full text-center hover:bg-[#1a1a1a] transition"
+            href="https://api.whatsapp.com/send/?phone=628567854448&text=Assalamualaikum%20Admin%20AGPAII%2C%20saya%20ingin%20bertanya%20%3A&type=phone_number&app_absent=0"
+            className="flex items-center justify-center gap-2 w-full py-4 bg-[#01925B] text-white font-medium rounded-full text-center hover:bg-[#1a1a1a] transition"
           >
-            Daftar Akun
+            <FaWhatsapp className="w-5 h-5" />
+            Hubungi Kami
           </Link>
         </div>
       </form>

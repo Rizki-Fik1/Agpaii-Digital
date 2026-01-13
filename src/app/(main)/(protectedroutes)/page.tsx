@@ -94,9 +94,9 @@ export default function Home() {
       icon: "/svg/ikon alquran.svg",
     },
     {
-      label: "Artikel",
-      link: "/article",
-      icon: "/svg/ikon koran.svg",
+      label: "Ramadhan",
+      link: "/ramadhan",
+      icon: "/svg/ikon ramadhan.svg",
     },
     {
       label: "Informasi Anggota",

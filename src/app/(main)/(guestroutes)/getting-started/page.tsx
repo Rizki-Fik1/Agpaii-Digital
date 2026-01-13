@@ -24,11 +24,11 @@ export default function GettingStarted() {
           alt="Masjid" 
           className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
         />
-        <p className="text-white text-center text-base sm:text-lg font-bold mt-1">
+        <p className="text-white text-center text-base md:text-xl font-bold mt-1">
           Assalamualaikum,
         </p>
-        <p className="text-white text-center text-sm sm:text-base">
-          Selamat datang di <span className="font-semibold">AGPAII</span> 🌙
+        <p className="text-white text-center text-md sm:text-base">
+          Selamat datang di <span className="font-semibold">AGPAII Digital</span> 🌙
         </p>
       </motion.div>
 
@@ -63,14 +63,11 @@ export default function GettingStarted() {
 
       {/* Main Content */}
       <motion.div 
-        className="flex flex-col items-center justify-center px-3 sm:px-6 pb-6 pt-0 sm:pt-0 flex-1 -mt-4"
+        className="flex flex-col items-center justify-center px-3 sm:px-6 pb-6 pt-0 sm:pt-0 flex-1 -mt-20"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
       >
-        <p className="text-white text-center text-xs sm:text-sm mb-2 sm:mb-4 px-2 max-w-md">
-          Buat akun Anda untuk menyimpan pengajaran
-        </p>
 
         {/* Buttons */}
         <div className="w-full max-w-sm space-y-2 sm:space-y-3">
@@ -84,7 +81,7 @@ export default function GettingStarted() {
               className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#00DB81] text-white text-xs sm:text-sm font-medium hover:bg-[#00c573] transition shadow-lg"
             >
               <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>Lanjut dengan Email</span>
+              <span className="text-md">Login dengan email</span>
             </Link>
           </motion.div>
 
@@ -98,7 +95,7 @@ export default function GettingStarted() {
               className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#FDFDFD] text-black text-xs sm:text-sm font-medium hover:bg-gray-100 transition shadow-lg"
             >
               <IdentificationIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>Lanjut dengan NIK</span>
+              <span>Login dengan NIK</span>
             </Link>
           </motion.div>
 
