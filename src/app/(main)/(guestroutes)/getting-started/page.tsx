@@ -32,11 +32,11 @@ export default function GettingStarted() {
         </p>
       </motion.div>
 
-      {/* Image Tasbih */}
-      <div className="flex justify-end items-center py-0 pr-0 flex-shrink-0">
+      {/* Image Background */}
+      <div className="flex justify-center items-center py-0 flex-shrink-0">
         <motion.div 
-          className="w-[180px] sm:w-[160px] md:w-[200px]"
-          initial={{ x: 100, y: 100, opacity: 0 }}
+          className="w-[350px] sm:w-[390px] md:w-[420px]"
+          initial={{ x: 0, y: 100, opacity: 0 }}
           animate={{ 
             x: 0, 
             y: [0, -12, 0],
@@ -54,8 +54,8 @@ export default function GettingStarted() {
           }}
         >
           <img 
-            src="/img/ilustrasi_tasbih2.png" 
-            alt="Tasbih" 
+            src="/img/bg.png" 
+            alt="Background" 
             className="w-full h-auto object-contain"
           />
         </motion.div>
@@ -63,7 +63,7 @@ export default function GettingStarted() {
 
       {/* Main Content */}
       <motion.div 
-        className="flex flex-col items-center justify-center px-3 sm:px-6 pb-6 pt-0 sm:pt-0 flex-1 -mt-20"
+        className="flex flex-col items-center justify-center px-3 sm:px-6 pb-6 pt-0 sm:pt-0 flex-1 -mt-14"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}

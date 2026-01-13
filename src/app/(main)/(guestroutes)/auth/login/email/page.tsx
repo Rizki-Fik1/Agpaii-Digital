@@ -97,12 +97,17 @@ export default function LoginEmailPage() {
 
           {/* Forgot Password */}
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">Lupa kata sandi?</span>
             <Link
               href="/auth/password-reset"
               className="text-[#00AF70] font-medium"
             >
-              Atur ulang
+              Lupa Password
+            </Link>
+            <Link
+              href="/auth/search-email"
+              className="text-[#00AF70] font-medium"
+            >
+              Lupa Email
             </Link>
           </div>
 
