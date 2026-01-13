@@ -17,16 +17,15 @@ export default function OthersMenuPage() {
 
 	const menuCategories = [
 		{
-			title: "Mengaji",
-			icon: "/svg/material-symbols_window.svg",
+			title: "Acara dan Organisasi",
+			icon: "/svg/ion_bag.svg",
 			items: [
-				{ label: "Doa", icon: "/svg/ikon doa.svg", link: "/doa" },
-				{ label: "Al-Quran", icon: "/svg/ikon alquran.svg", link: "/murrotal/surat" },
-				{ label: "Tasbih Digital", icon: "/svg/tasbih.svg", link: "/tasbih" },
-				{ label: "Arah Kiblat", icon: "/svg/ikon kabah.svg", link: "/arah-kiblat" },
-				{ label: "Waktu Shalat", icon: "/svg/ikon solat.svg", link: "/waktu-sholat" },
-				{ label: "Ramadhan", icon: "/svg/ikon ramadhan.svg", link: "/ramadhan" },
-				{ label: "Wakaf", icon: "/svg/ikon wakaf.svg", link: "https://apps.satuwakaf.id/campaign/ce7fcf60-7b55-4ee7-9531-9f0d599c7e60?share=1&title=dana-abadi-pendidikan-agama-islam-di-sekolah-berbasis-wakaf", external: true },
+				{ label: "Acara", icon: "/svg/ikon event.svg", link: "/event" },
+				{ label: "Struktur Organisasi", icon: "/svg/ikon-struktur.svg", link: "/struktur" },
+				{ label: "Informasi Anggota", icon: "/svg/ikon-anggota.svg", link: "/member" },
+				{ label: "KTA Digital", icon: "/svg/ikon-kta.svg", link: "/kta" },
+				{ label: "Live dan Video", icon: "/svg/ikon-live.svg", link: "/live" },
+				{ label: "Sosial Media", icon: "/svg/ikon-sosmed.svg", link: "/social-media" },
 			],
 		},
 		{
@@ -39,7 +38,20 @@ export default function OthersMenuPage() {
 				{ label: "Perangkat Ajar", icon: "/svg/ikon perangkat.svg", link: "/perangkat-ajar" },
 				{ label: "RPP Digital", icon: "/svg/ikon-rpp.svg", link: "/rpp" },
 				{ label: "Tryout", icon: "/svg/ikon try out.svg", link: "https://cbt.agpaiidigital.org" },
-				{label: "Modul Ajar",icon: "/svg/modul_digital.svg",link: "/modul-ajar"},
+				{label: "Modul Digital",icon: "/svg/modul_digital.svg",link: "/modul-ajar"},
+			],
+		},
+		{
+			title: "Keagamaan",
+			icon: "/svg/material-symbols_window.svg",
+			items: [
+				{ label: "Doa", icon: "/svg/ikon doa.svg", link: "/doa" },
+				{ label: "Al-Quran", icon: "/svg/ikon alquran.svg", link: "/murrotal/surat" },
+				{ label: "Tasbih Digital", icon: "/svg/tasbih.svg", link: "/tasbih" },
+				{ label: "Arah Kiblat", icon: "/svg/ikon kabah.svg", link: "/arah-kiblat" },
+				{ label: "Waktu Shalat", icon: "/svg/ikon solat.svg", link: "/waktu-sholat" },
+				{ label: "Ramadhan", icon: "/svg/ikon ramadhan.svg", link: "/ramadhan" },
+				{ label: "Wakaf", icon: "/svg/ikon wakaf.svg", link: "https://apps.satuwakaf.id/campaign/ce7fcf60-7b55-4ee7-9531-9f0d599c7e60?share=1&title=dana-abadi-pendidikan-agama-islam-di-sekolah-berbasis-wakaf", external: true },
 			],
 		},
 		{
@@ -49,18 +61,6 @@ export default function OthersMenuPage() {
 				{ label: "Marketplace", icon: "/svg/ikon-marketplace.svg", link: "/marketplace" },
 				{ label: "PPOB", icon: "/svg/ikon-ppob.svg", link: "/ecommerce" },
 				{ label: "Mitra", icon: "/svg/ikon-mitra.svg", link: "/mitra" },
-			],
-		},
-		{
-			title: "Acara dan Organisasi",
-			icon: "/svg/ion_bag.svg",
-			items: [
-				{ label: "Acara", icon: "/svg/ikon event.svg", link: "/event" },
-				{ label: "Struktur Organisasi", icon: "/svg/ikon-struktur.svg", link: "/struktur" },
-				{ label: "Informasi Anggota", icon: "/svg/ikon-anggota.svg", link: "/member" },
-				{ label: "KTA Digital", icon: "/svg/ikon-kta.svg", link: "/kta" },
-				{ label: "Live dan Video", icon: "/svg/ikon-live.svg", link: "/live" },
-				{ label: "Sosial Media", icon: "/svg/ikon-sosmed.svg", link: "/social-media" },
 			],
 		},
 	];

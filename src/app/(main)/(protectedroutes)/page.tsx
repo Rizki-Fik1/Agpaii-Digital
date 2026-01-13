@@ -99,9 +99,9 @@ export default function Home() {
       icon: "/svg/ikon ramadhan.svg",
     },
     {
-      label: "Informasi Anggota",
-      link: "/member",
-      icon: "/svg/ikon-anggota.svg",
+      label: "Modul Digital",
+      link: "/modul-ajar",
+      icon: "/svg/modul_digital.svg",
     },
     {
       label: "Acara",
