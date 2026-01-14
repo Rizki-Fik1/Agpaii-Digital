@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ChevronLeftIcon,
   CalendarDaysIcon,
@@ -147,6 +148,15 @@ export default function KelasGuruDetailPage() {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
   );
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [exerciseToDelete, setExerciseToDelete] = useState<number | null>(null);
+  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [editExerciseData, setEditExerciseData] = useState({
+    title: "",
+    description: "",
+    deadline: "",
+  });
   const [newMaterial, setNewMaterial] = useState({
     title: "",
     description: "",
@@ -173,14 +183,6 @@ export default function KelasGuruDetailPage() {
     description: "",
     type: "pdf" as "pdf" | "video",
     duration: "",
-  });
-  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [editExerciseData, setEditExerciseData] = useState({
-    title: "",
-    description: "",
-    duration: 10,
-    deadline: "",
   });
 
   // Helper Functions
@@ -227,6 +229,17 @@ export default function KelasGuruDetailPage() {
       weekday: "long",
       day: "numeric",
       month: "long",
+      year: "numeric",
+    });
+  };
+
+  const formatDeadline = (dateStr: string) => {
+    if (!dateStr) return "-";
+    // Handle both date-only (YYYY-MM-DD) and datetime formats
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
       year: "numeric",
     });
   };
@@ -523,32 +536,7 @@ export default function KelasGuruDetailPage() {
     setEditingMaterial(null);
   };
 
-  const handleEditExercise = (exercise: Exercise) => {
-    setEditingExercise(exercise);
-    setEditExerciseData({
-      title: exercise.title,
-      description: exercise.description,
-      duration: exercise.duration,
-      deadline: exercise.deadline,
-    });
-    setShowEditExerciseModal(true);
-  };
 
-  const handleSaveEditExercise = () => {
-    if (
-      !editingExercise ||
-      !editExerciseData.title ||
-      !editExerciseData.description
-    )
-      return;
-    setExercises((prev) =>
-      prev.map((e) =>
-        e.id === editingExercise.id ? { ...e, ...editExerciseData } : e
-      )
-    );
-    setShowEditExerciseModal(false);
-    setEditingExercise(null);
-  };
 
   const handleStudentSearch = async (query: string) => {
     setStudentSearch(query);
@@ -753,35 +741,132 @@ export default function KelasGuruDetailPage() {
   };
 
   const handleDeleteExercise = async (exerciseId: number) => {
-    if (!confirm("Hapus latihan ini?")) return;
+    setExerciseToDelete(exerciseId);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteExercise = async () => {
+    if (!exerciseToDelete) return;
+    
     try {
       const token = localStorage.getItem("access_token");
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/exercises/${exerciseToDelete}`;
+      
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!res.ok) {
+        throw new Error("Gagal hapus latihan");
+      }
+      
+      // Update state lokal tanpa reload
+      setExercises((prev) => prev.filter((ex) => ex.id !== exerciseToDelete));
+      toast.success("Latihan berhasil dihapus");
+      setShowDeleteConfirmModal(false);
+      setExerciseToDelete(null);
+    } catch (e) {
+      console.error("Gagal hapus latihan", e);
+      toast.error("Gagal menghapus latihan");
+    }
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+    setEditingExercise(exercise);
+    setEditExerciseData({
+      title: exercise.title,
+      description: exercise.description || "",
+      deadline: exercise.deadline || "",
+    });
+    setShowEditExerciseModal(true);
+  };
+
+  const handleUpdateExercise = async () => {
+    if (!editingExercise) return;
+    
+    if (!editExerciseData.title.trim()) {
+      toast.error("Judul latihan tidak boleh kosong");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/${classId}/exercises/${editingExercise.id}`;
+      
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: editExerciseData.title,
+          description: editExerciseData.description,
+          deadline: editExerciseData.deadline,
+        }),
+      });
+      
+      if (!res.ok) {
+        throw new Error("Gagal update latihan");
+      }
+
+      const json = await res.json();
+      
+      // Update state lokal
+      setExercises((prev) =>
+        prev.map((ex) => (ex.id === editingExercise.id ? json.data : ex))
+      );
+      
+      toast.success("Latihan berhasil diperbarui");
+      setShowEditExerciseModal(false);
+      setEditingExercise(null);
+      setEditExerciseData({ title: "", description: "", deadline: "" });
+    } catch (e) {
+      console.error("Gagal update latihan", e);
+      toast.error("Gagal memperbarui latihan");
+    }
+  };
+
+  const handleOpenExerciseDetail = async (exercise: Exercise) => {
+    // Open modal first for better UX
+    setSelectedExercise({
+      ...exercise,
+      questions: [],
+    });
+    setSelectedQuestions([]);
+    setShowExerciseDetailModal(true);
+    
+    try {
+      // Try to fetch questions for this exercise from API
+      const token = localStorage.getItem("access_token");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/exercises/${exerciseId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercises/${exercise.id}/questions`,
         {
-          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      if (!res.ok) throw new Error("Gagal hapus latihan");
-      await fetchExercises();
+      
+      if (res.ok) {
+        const json = await res.json();
+        const questions = (json.data || []).map(normalizeQuestion);
+        
+        setSelectedExercise({
+          ...exercise,
+          questions: questions,
+        });
+        setSelectedQuestions(questions.map((q: any) => String(q.id)));
+      } else {
+        console.log("API returned error, using empty questions");
+      }
     } catch (e) {
-      console.error("Gagal hapus latihan", e);
-      alert("Gagal menghapus latihan");
+      console.error("Gagal fetch soal latihan", e);
+      // Modal already open with empty questions, no need to do anything
     }
-  };
-
-  const handleOpenExerciseDetail = (exercise: Exercise) => {
-    setSelectedExercise({
-      ...exercise,
-      questions: (exercise.questions || []).map(normalizeQuestion),
-    });
-    setSelectedQuestions(
-      exercise.questions?.map((q: any) => String(q.id)) || []
-    );
-    setShowExerciseDetailModal(true);
   };
 
   const handleToggleQuestion = (questionId: string) => {
@@ -792,9 +877,34 @@ export default function KelasGuruDetailPage() {
     }
   };
 
-  const handleRemoveQuestion = (questionId: string) => {
-    if (confirm("Yakin ingin menghapus soal ini dari latihan?")) {
+  const handleRemoveQuestion = async (questionId: string) => {
+    if (!selectedExercise) return;  
+    
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classedu-exercises/${selectedExercise.id}/questions/${questionId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (!res.ok) throw new Error("Gagal hapus soal");
+      
+      // Update local state
       setSelectedQuestions(selectedQuestions.filter((id) => id !== questionId));
+      setSelectedExercise({
+        ...selectedExercise,
+        questions: selectedExercise.questions?.filter((q) => String(q.id) !== questionId) || [],
+      });
+      
+      toast.success("Soal berhasil dihapus");
+    } catch (e) {
+      console.error("Gagal hapus soal", e);
+      toast.error("Gagal menghapus soal");
     }
   };
 
@@ -816,13 +926,15 @@ export default function KelasGuruDetailPage() {
         }
       );
       if (!res.ok) throw new Error("Gagal menyimpan soal latihan");
+      
+      toast.success("Soal berhasil disimpan");
       setShowExerciseDetailModal(false);
       setSelectedExercise(null);
       setSelectedQuestions([]);
       await fetchExercises();
     } catch (e) {
       console.error(e);
-      alert("Gagal menyimpan soal ke latihan");
+      toast.error("Gagal menyimpan soal ke latihan");
     }
   };
 
@@ -1384,7 +1496,7 @@ export default function KelasGuruDetailPage() {
                           <span>{exercise.duration} menit</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-1">
-                          Deadline: {exercise.deadline}
+                          Deadline: {formatDeadline(exercise.deadline)}
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
@@ -2167,10 +2279,10 @@ export default function KelasGuruDetailPage() {
                             {student.name}
                           </p>
                           <p className="text-xs text-slate-400">
-                            NISN: {student.nisn ?? "-"}
+                            NISN: {student.profile?.nisn ?? "-"}
                           </p>
                           <p className="text-xs text-slate-400">
-                            {student.school || "Sekolah tidak diketahui"}
+                            {student.profile?.school_place ?? "-"}
                           </p>
                         </div>
                       </div>
@@ -2329,112 +2441,7 @@ export default function KelasGuruDetailPage() {
           </div>
         </div>
       )}
-      {showEditExerciseModal && editingExercise && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowEditExerciseModal(false)}
-          />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-700">
-                Edit Latihan
-              </h3>
-              <button
-                onClick={() => setShowEditExerciseModal(false)}
-                className="p-1 hover:bg-slate-100 rounded-full"
-              >
-                <XMarkIcon className="size-6 text-slate-500" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Judul Latihan *
-                </label>
-                <input
-                  type="text"
-                  value={editExerciseData.title}
-                  onChange={(e) =>
-                    setEditExerciseData({
-                      ...editExerciseData,
-                      title: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Deskripsi *
-                </label>
-                <textarea
-                  value={editExerciseData.description}
-                  onChange={(e) =>
-                    setEditExerciseData({
-                      ...editExerciseData,
-                      description: e.target.value,
-                    })
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Durasi (menit)
-                  </label>
-                  <input
-                    type="number"
-                    value={editExerciseData.duration}
-                    onChange={(e) =>
-                      setEditExerciseData({
-                        ...editExerciseData,
-                        duration: parseInt(e.target.value) || 10,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Deadline
-                  </label>
-                  <input
-                    type="date"
-                    value={editExerciseData.deadline}
-                    onChange={(e) =>
-                      setEditExerciseData({
-                        ...editExerciseData,
-                        deadline: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setShowEditExerciseModal(false)}
-                  className="flex-1 py-3 border border-slate-300 text-slate-600 font-medium rounded-xl hover:bg-slate-50 transition"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSaveEditExercise}
-                  disabled={
-                    !editExerciseData.title || !editExerciseData.description
-                  }
-                  className="flex-1 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition disabled:opacity-50"
-                >
-                  Simpan
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
       {showRepostExerciseModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
@@ -2616,6 +2623,139 @@ export default function KelasGuruDetailPage() {
                 className="px-5 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition disabled:opacity-50"
               >
                 {posting ? "Mengirim..." : "Kirim"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50" 
+            onClick={() => {
+              setShowDeleteConfirmModal(false);
+              setExerciseToDelete(null);
+            }}
+          />
+          <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">
+              Hapus Latihan?
+            </h3>
+            <p className="text-sm text-slate-600 mb-6">
+              Latihan yang dihapus tidak dapat dikembalikan. Apakah Anda yakin ingin menghapus latihan ini?
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmModal(false);
+                  setExerciseToDelete(null);
+                }}
+                className="flex-1 py-2.5 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDeleteExercise}
+                className="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition"
+              >
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Exercise Modal */}
+      {showEditExerciseModal && editingExercise && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50" 
+            onClick={() => {
+              setShowEditExerciseModal(false);
+              setEditingExercise(null);
+            }}
+          />
+          <div className="relative w-full max-w-[440px] mx-4 bg-white rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4">
+              Edit Latihan
+            </h3>
+            
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Judul Latihan <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={editExerciseData.title}
+                  onChange={(e) =>
+                    setEditExerciseData((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
+                  placeholder="Contoh: Latihan Bab 1"
+                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 transition"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Deskripsi
+                </label>
+                <textarea
+                  value={editExerciseData.description}
+                  onChange={(e) =>
+                    setEditExerciseData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Deskripsi latihan (opsional)"
+                  rows={3}
+                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 transition resize-none"
+                />
+              </div>
+
+              {/* Deadline */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Deadline
+                </label>
+                <input
+                  type="date"
+                  value={editExerciseData.deadline}
+                  onChange={(e) =>
+                    setEditExerciseData((prev) => ({
+                      ...prev,
+                      deadline: e.target.value,
+                    }))
+                  }
+                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 transition"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditExerciseModal(false);
+                  setEditingExercise(null);
+                }}
+                className="flex-1 py-2.5 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleUpdateExercise}
+                className="flex-1 py-2.5 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition"
+              >
+                Simpan
               </button>
             </div>
           </div>

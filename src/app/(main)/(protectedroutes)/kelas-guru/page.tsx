@@ -135,7 +135,7 @@ export default function KelasGuruListPage() {
       {/* List */}
       <div className="p-4 space-y-4">
         {classes.map((kelas) => (
-          <Link key={kelas.id} href={`/kelas-guru/${kelas.id}`}>
+          <Link key={kelas.id} href={`/kelas-guru/${kelas.id}`} className="block mb-4">
             <div
               className={clsx(
                 "bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-5 shadow hover:shadow-lg transition"
@@ -154,7 +154,7 @@ export default function KelasGuruListPage() {
               <div className="flex items-center gap-4 mt-4 text-white/90 text-sm">
                 <div className="flex items-center gap-1">
                   <UserGroupIcon className="size-5" />
-                  {kelas.total_students} Siswa
+                  {kelas.students_count} Siswa
                 </div>
 
                 <ChevronRightIcon className="size-5 ml-auto" />

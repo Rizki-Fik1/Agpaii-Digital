@@ -107,6 +107,17 @@ export default function KelasDetailPage() {
     return null;
   };
 
+  const formatDeadline = (dateStr: string) => {
+    if (!dateStr) return "-";
+    // Handle both date-only (YYYY-MM-DD) and datetime formats
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const { auth } = useAuth();
   const params = useParams();
   const classId = Number(params.id);
@@ -867,7 +878,7 @@ export default function KelasDetailPage() {
                       <span>{exercise.duration} menit</span>
                     </div>
                     <p className="text-xs text-slate-400 mt-1">
-                      Deadline: {exercise.deadline}
+                      Deadline: {formatDeadline(exercise.deadline)}
                     </p>
                   </div>
                 </div>
