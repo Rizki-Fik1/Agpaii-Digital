@@ -1,7 +1,14 @@
 import { Post as PostType } from "@/types/post/post";
 import API from "@/utils/api/config";
-import { ChatBubbleOvalLeftIcon, HeartIcon, PencilIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolidIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import {
+  ChatBubbleOvalLeftIcon,
+  HeartIcon,
+  PencilIcon,
+} from "@heroicons/react/24/outline";
+import {
+  HeartIcon as HeartSolidIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import "moment/locale/id";
@@ -46,7 +53,13 @@ function extractFileName(path: string) {
   return path.split("/").pop() || path;
 }
 /* ---------------- MAIN COMPONENT ---------------- */
-export default function Post({ post, onImageClick }: { post: PostType; onImageClick?: () => void }) {
+export default function Post({
+  post,
+  onImageClick,
+}: {
+  post: PostType;
+  onImageClick?: () => void;
+}) {
   const queryClient = useQueryClient();
   const { auth: user } = useAuth();
   const [showImageModal, setShowImageModal] = useState(false);
@@ -56,42 +69,41 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
   const [deletePending, setDeletePending] = useState(false);
   const [likeConfirmed, setLikeConfirmed] = useState(false);
   const youtubeId = getYoutubeId(post.youtube_url || "");
-  
-  const handlelikeUnlikePost = async () => {
-    try {
-      const originalIsLiked = post.is_liked;
-      post.is_liked = !post.is_liked;
-      const res = await API[post.is_liked ? "post" : "delete"](
-        `post/${post.id}/like`,
-      );
-      if (res.status === 200) return res.data;
-      post.is_liked = originalIsLiked;
-    } catch {
-      post.is_liked = !post.is_liked;
-      throw new Error("API Error");
-    }
+  const [isLiked, setIsLiked] = useState(post.is_liked);
+  const [likesCount, setLikesCount] = useState(post.likes_count);
+
+  const handleLikeUnlikePost = async (liked: boolean) => {
+    return API[liked ? "post" : "delete"](`post/${post.id}/like`);
   };
-  
+
   const { mutate: likeUnlikePost } = useMutation({
-    mutationFn: handlelikeUnlikePost,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-      setLikeConfirmed(false);
-    },
-    onError: () => {
-      setLikeConfirmed(false);
+    mutationFn: handleLikeUnlikePost,
+    onError: (_, __, context: any) => {
+      // rollback kalau gagal
+      if (context?.prevLiked !== undefined) {
+        setIsLiked(context.prevLiked);
+        setLikesCount(context.prevCount);
+      }
     },
   });
 
   const handleLikeClick = () => {
-    if (!likeConfirmed) {
-      // Klik pertama: tampilkan notif dan set confirmed
-      toast.info("Silahkan tekan sekali lagi");
-      setLikeConfirmed(true);
-      return;
-    }
-    // Klik kedua: jalankan API
-    likeUnlikePost();
+    const prevLiked = isLiked;
+    const prevCount = likesCount;
+
+    const nextLiked = !isLiked;
+
+    // 🔥 UI LANGSUNG BERUBAH
+    setIsLiked(nextLiked);
+    setLikesCount((c) => (nextLiked ? c + 1 : c - 1));
+
+    // 🔄 Backend jalan di belakang
+    likeUnlikePost(nextLiked, {
+      context: {
+        prevLiked,
+        prevCount,
+      },
+    });
   };
 
   // Delete mutation
@@ -236,7 +248,9 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
       {/* ---------------- DOCUMENT PREVIEW ---------------- */}
       {post.document && (
         <div className="mx-4 mt-3">
-          <p className="text-sm font-medium text-slate-700 mb-2">📄 Dokumen Terlampir</p>
+          <p className="text-sm font-medium text-slate-700 mb-2">
+            📄 Dokumen Terlampir
+          </p>
           <a
             href={getImage(post.document)}
             target="_blank"
@@ -245,19 +259,41 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
           >
             <div className="flex items-center gap-3">
               <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition">
-                <svg className="size-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="size-8 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-slate-800 truncate group-hover:text-blue-700 transition">
                   {extractFileName(post.document)}
                 </p>
-                <p className="text-sm text-slate-500 mt-0.5">Klik untuk membuka dokumen</p>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Klik untuk membuka dokumen
+                </p>
               </div>
               <div className="text-blue-600 group-hover:translate-x-1 transition-transform">
-                <svg className="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <svg
+                  className="size-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
                 </svg>
               </div>
             </div>
@@ -271,7 +307,7 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
           <div className="flex gap-4 items-center *:cursor-pointer">
             <span onClick={handleLikeClick}>
               <div className="flex gap-1.5 items-center">
-                {post.is_liked ? (
+                {isLiked ? (
                   <HeartSolidIcon className="fill-red-700 size-7" />
                 ) : (
                   <HeartIcon className="text-slate-500 size-7" />
@@ -301,7 +337,8 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
           )}
         </div>
 
-        <span className="text-sm font-medium">{post.likes_count} Suka</span>
+        <span className="text-sm font-medium">{likesCount} Suka</span>
+
         {/* ---------------- BODY TEXT ---------------- */}
         <div className="inline items-center text-sm mt-2 text-slate-800">
           <span className="font-semibold pr-2">{post.author.name}</span>
@@ -352,7 +389,8 @@ export default function Post({ post, onImageClick }: { post: PostType; onImageCl
           <TrashIcon className="size-16 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Konfirmasi Hapus</h3>
           <p className="text-sm text-gray-600 mb-6">
-            Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak dapat dibatalkan.
+            Apakah Anda yakin ingin menghapus postingan ini? Tindakan ini tidak
+            dapat dibatalkan.
           </p>
           <div className="flex justify-center gap-3">
             <button
