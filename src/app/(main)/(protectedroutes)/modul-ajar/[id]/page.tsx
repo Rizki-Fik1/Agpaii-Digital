@@ -98,7 +98,7 @@ const DetailModulAjarPage: React.FC = () => {
 
       if (newModuleId) {
         setTimeout(() => {
-          router.push(`/modul-ajar/${newModuleId}`);
+          router.push(`/modul-ajar/edit/${newModuleId}`);
         }, 800);
       }
     } catch (error: any) {
@@ -608,7 +608,7 @@ const DetailModulAjarPage: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           <button
             onClick={handleLike}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -649,7 +649,7 @@ const DetailModulAjarPage: React.FC = () => {
             <span className="text-sm font-medium">Unduh Semua</span>
           </button>
 
-          <button
+          {/* <button
             onClick={handleShare}
             className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-700"
           >
@@ -667,7 +667,7 @@ const DetailModulAjarPage: React.FC = () => {
               />
             </svg>
             <span className="text-sm font-medium">Bagikan</span>
-          </button>
+          </button> */}
 
           {/* Repost Button - only show for modules not owned by current user */}
           {user?.id && materialData?.user_id !== user.id && (
