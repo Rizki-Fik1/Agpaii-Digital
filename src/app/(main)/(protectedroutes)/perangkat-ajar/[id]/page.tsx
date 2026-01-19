@@ -348,7 +348,17 @@ const DetailPerangkatAjarPage: React.FC = () => {
 
           <div className="space-y-4">
             {contents.map((content: any) => (
-              <div key={content.id} className="border rounded-lg overflow-hidden">
+              <div key={content.id} className="border rounded-lg overflow-hidden relative">
+                {/* Loading Overlay - covers entire card */}
+                {loadingPreviews[`content-${content.id}`] !== false && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-20">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-[#006557] border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-sm text-gray-600">Memuat konten...</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* File Info Header */}
                 <div
                   className="flex items-center bg-gray-100 p-4 cursor-pointer hover:bg-gray-200 transition"
@@ -400,14 +410,6 @@ const DetailPerangkatAjarPage: React.FC = () => {
                         className="relative w-full"
                         style={{ paddingBottom: "56.25%" }}
                       >
-                        {loadingPreviews[`youtube-${content.id}`] !== false && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded">
-                            <div className="flex flex-col items-center gap-3">
-                              <div className="w-12 h-12 border-4 border-[#006557] border-t-transparent rounded-full animate-spin"></div>
-                              <p className="text-sm text-gray-600">Memuat video...</p>
-                            </div>
-                          </div>
-                        )}
                         <iframe
                           src={getYoutubeEmbedUrl(content.url || content.value) || ""}
                           className="absolute top-0 left-0 w-full h-full rounded"
@@ -417,7 +419,7 @@ const DetailPerangkatAjarPage: React.FC = () => {
                           onLoad={() => {
                             setLoadingPreviews((prev) => ({
                               ...prev,
-                              [`youtube-${content.id}`]: false,
+                              [`content-${content.id}`]: false,
                             }));
                           }}
                         />
@@ -427,55 +429,35 @@ const DetailPerangkatAjarPage: React.FC = () => {
 
                 {isPdfFile(content.url || content.value) && (
                   <div className="bg-white p-4">
-                    <div className="relative">
-                      {loadingPreviews[`pdf-${content.id}`] !== false && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded z-10">
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="w-12 h-12 border-4 border-[#006557] border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-sm text-gray-600">Memuat PDF...</p>
-                          </div>
-                        </div>
-                      )}
-                      <iframe
-                        src={getFullUrl(content.url || content.value)}
-                        className="w-full h-[600px] border-0 rounded"
-                        title={content.name}
-                        onLoad={() => {
-                          setLoadingPreviews((prev) => ({
-                            ...prev,
-                            [`pdf-${content.id}`]: false,
-                          }));
-                        }}
-                      />
-                    </div>
+                    <iframe
+                      src={getFullUrl(content.url || content.value)}
+                      className="w-full h-[600px] border-0 rounded"
+                      title={content.name}
+                      onLoad={() => {
+                        setLoadingPreviews((prev) => ({
+                          ...prev,
+                          [`content-${content.id}`]: false,
+                        }));
+                      }}
+                    />
                   </div>
                 )}
 
                 {isOfficeFile(content.url || content.value) && (
                   <div className="bg-white p-4">
-                    <div className="relative">
-                      {loadingPreviews[`office-${content.id}`] !== false && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded z-10">
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="w-12 h-12 border-4 border-[#006557] border-t-transparent rounded-full animate-spin"></div>
-                            <p className="text-sm text-gray-600">Memuat dokumen...</p>
-                          </div>
-                        </div>
-                      )}
-                      <iframe
-                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(
-                          getFullUrl(content.url || content.value)
-                        )}&embedded=true`}
-                        className="w-full h-[600px] border-0 rounded"
-                        title={content.name}
-                        onLoad={() => {
-                          setLoadingPreviews((prev) => ({
-                            ...prev,
-                            [`office-${content.id}`]: false,
-                          }));
-                        }}
-                      />
-                    </div>
+                    <iframe
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                        getFullUrl(content.url || content.value)
+                      )}&embedded=true`}
+                      className="w-full h-[600px] border-0 rounded"
+                      title={content.name}
+                      onLoad={() => {
+                        setLoadingPreviews((prev) => ({
+                          ...prev,
+                          [`content-${content.id}`]: false,
+                        }));
+                      }}
+                    />
                   </div>
                 )}
               </div>
