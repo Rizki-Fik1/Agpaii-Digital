@@ -31,6 +31,11 @@ const DetailModulAjarPage: React.FC = () => {
     type: "success" | "error";
   } | null>(null);
 
+  // Repost modal states
+  const [showRepostModal, setShowRepostModal] = useState<boolean>(false);
+  const [repostTitle, setRepostTitle] = useState<string>("");
+  const [isReposting, setIsReposting] = useState<boolean>(false);
+
   useEffect(() => {
     const fetchMaterialData = async () => {
       if (!materialId) return;
@@ -75,18 +80,52 @@ const DetailModulAjarPage: React.FC = () => {
     fetchMaterialData();
   }, [materialId, API_URL, user?.id]);
 
-  const handleRepost = async () => {
+  // Open repost modal
+  const handleRepost = () => {
     if (!user?.id) {
       showToast("Silakan login terlebih dahulu", "error");
       return;
     }
+    // Set initial title empty - user must enter a new name
+    setRepostTitle("");
+    setShowRepostModal(true);
+  };
+
+  // Submit repost with new title
+  const submitRepost = async () => {
+    if (!user?.id) {
+      showToast("Silakan login terlebih dahulu", "error");
+      return;
+    }
+
+    const originalTitle = materialData?.judul || materialData?.topic || "";
+    
+    // Normalize both titles: remove all spaces and convert to lowercase
+    const normalizeTitle = (title: string) => 
+      title.replace(/\s+/g, "").toLowerCase();
+    
+    // Validate title is different from original (ignoring spaces and case)
+    if (normalizeTitle(repostTitle) === normalizeTitle(originalTitle)) {
+      showToast("Judul modul harus berbeda dari modul asli", "error");
+      return;
+    }
+
+    if (!repostTitle.trim()) {
+      showToast("Judul modul tidak boleh kosong", "error");
+      return;
+    }
+
+    setIsReposting(true);
 
     try {
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
         `${API_URL}/modules-learn/${materialId}/repost`,
-        { user_id: user.id },
+        { 
+          user_id: user.id,
+          judul: repostTitle.trim() 
+        },
         {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         }
@@ -94,6 +133,7 @@ const DetailModulAjarPage: React.FC = () => {
 
       const newModuleId = response.data?.data?.module_id;
 
+      setShowRepostModal(false);
       showToast("Modul berhasil direpost ke koleksi Anda", "success");
 
       if (newModuleId) {
@@ -106,6 +146,8 @@ const DetailModulAjarPage: React.FC = () => {
         error.response?.data?.message || "Gagal merepost modul",
         "error"
       );
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -742,10 +784,10 @@ const DetailModulAjarPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tentang Perangkat Ajar */}
+        {/* Tentang Modul Ajar */}
         <div className="mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-3">
-            Tentang Perangkat Ajar
+            Tentang Modul Ajar
           </h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             {materialData.tentang_modul ||
@@ -812,6 +854,27 @@ const DetailModulAjarPage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-gray-500">Diunduh</p>
+          </div>
+          <div className="flex-1 bg-gray-50 rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <svg
+                className="w-5 h-5 text-[#006557]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span className="text-2xl font-bold text-[#006557]">
+                {materialData.reposts_count || 0}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500">Direpost</p>
           </div>
         </div>
 
@@ -1091,6 +1154,93 @@ const DetailModulAjarPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Repost Modal */}
+      {showRepostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl animate-fade-in-up">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Repost Modul</h3>
+                <p className="text-sm text-gray-500">Ubah judul modul sebelum menyimpan</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Judul Modul Baru <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={repostTitle}
+                onChange={(e) => setRepostTitle(e.target.value)}
+                placeholder="Masukkan judul modul baru"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              />
+              <p className="text-xs text-gray-400 mt-2">
+                Judul harus berbeda dari modul asli: "{materialData?.judul || materialData?.topic}"
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRepostModal(false)}
+                disabled={isReposting}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={submitRepost}
+                disabled={isReposting || !repostTitle.trim()}
+                className="flex-1 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isReposting ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Simpan Repost
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

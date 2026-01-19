@@ -8,6 +8,7 @@ import Loader from "@/components/loader/loader";
 import {
   HandThumbUpIcon,
   ArrowDownTrayIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 interface ModuleItem {
@@ -16,6 +17,7 @@ interface ModuleItem {
   created_at: string;
   likes_count: number;
   downloads_count: number;
+  reposts_count: number;
   fase?: { nama_fase: string };
   jenjang?: { nama_jenjang: string };
 }
@@ -76,6 +78,10 @@ export default function UserModulesPage() {
               <div className="flex items-center gap-1">
                 <ArrowDownTrayIcon className="w-4 h-4" />
                 <span>{modul.downloads_count ?? 0}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <ArrowPathIcon className="w-4 h-4" />
+                <span>{modul.reposts_count ?? 0}</span>
               </div>
               <span className="ml-auto text-slate-400">
                 {new Date(modul.created_at).toLocaleDateString("id-ID")}

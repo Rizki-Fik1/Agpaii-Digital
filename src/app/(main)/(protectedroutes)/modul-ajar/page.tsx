@@ -32,6 +32,7 @@ interface CardData {
   // stats
   downloads?: number;
   likes_count?: number;
+  reposts_count?: number;
 
   // jenjang & fase
   jenjangId?: number;
@@ -79,7 +80,7 @@ const ModulAjarPage: React.FC = () => {
   const [selectedJenjang, setSelectedJenjang] = useState<string>("");
   const [selectedFase, setSelectedFase] = useState<string>("");
 
-  // Reposted modules from localStorage
+  // Reposted modules from API (filtered from cards)
   const [repostedModules, setRepostedModules] = useState<any[]>([]);
 
   // Edit reposted module state
@@ -96,19 +97,6 @@ const ModulAjarPage: React.FC = () => {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const LIMIT = 5;
-  // Load reposted modules from localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("repostedModules");
-      if (saved) {
-        const modules = JSON.parse(saved);
-        // Filter only current user's reposted modules
-        if (user?.id) {
-          setRepostedModules(modules.filter((m: any) => m.user_id === user.id));
-        }
-      }
-    }
-  }, [user?.id, activeTab]);
 
   // Fetch Jenjang & Fase
   useEffect(() => {
@@ -205,6 +193,7 @@ const ModulAjarPage: React.FC = () => {
 
         downloads: module.downloads_count ?? 0,
         likes_count: module.likes_count ?? 0,
+        reposts_count: module.reposts_count ?? 0,
 
         jenjangId: module.jenjang?.id_jenjang ?? module.jenjang_id,
         faseId: module.fase?.id_fase ?? module.fase_id,
@@ -276,9 +265,20 @@ const ModulAjarPage: React.FC = () => {
     return () => observer.disconnect();
   }, [hasMore]);
 
-  // Filter + Sorting lokal
+  // Filter + Sorting lokal + Separate repost modules
   useEffect(() => {
     let filtered = [...cards];
+
+    // Di tab "mine", pisahkan modul repost ke section terpisah
+    if (activeTab === "mine") {
+      const repostCards = filtered.filter((card) => card.is_repost === true);
+      const normalCards = filtered.filter((card) => card.is_repost !== true);
+      
+      setRepostedModules(repostCards);
+      filtered = normalCards;
+    } else {
+      setRepostedModules([]);
+    }
 
     if (selectedJenjang) {
       const jenjangId = parseInt(selectedJenjang);
@@ -297,7 +297,7 @@ const ModulAjarPage: React.FC = () => {
     }
 
     setFilteredCards(filtered);
-  }, [cards, selectedJenjang, selectedFase, sortBy]);
+  }, [cards, selectedJenjang, selectedFase, sortBy, activeTab]);
 
   const handleDelete = async (moduleId: string) => {
     const confirmed = window.confirm(
@@ -507,19 +507,13 @@ const ModulAjarPage: React.FC = () => {
                 <div
                   key={item.id}
                   className="relative flex gap-4 p-4 border-2 border-purple-200 rounded-2xl bg-purple-50/30 hover:shadow-lg transition-all duration-200 cursor-pointer group"
-                  onClick={() => router.push(`/modul-ajar/${item.originalId}`)}
+                  onClick={() => router.push(`/modul-ajar/${item.id}`)}
                 >
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
                       <img
-                        src={
-                          item.thumbnail
-                            ? item.thumbnail.startsWith("http")
-                              ? item.thumbnail
-                              : `http://file.agpaiidigital.org/${item.thumbnail}`
-                            : "/img/thumbnailmodul.png"
-                        }
-                        alt={item.judul}
+                        src={resolveThumbnail(item.image)}
+                        alt={item.topic}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
@@ -548,14 +542,16 @@ const ModulAjarPage: React.FC = () => {
                       </span>
                     </div>
                     <h3 className="font-bold text-gray-800 line-clamp-2">
-                      {item.judul}
+                      {item.topic}
                     </h3>
-                    <p className="text-xs text-purple-600 mt-1">
-                      Direpost dari {item.repostedFrom}
-                    </p>
-                    {item.repostedFromSchool && (
+                    {item.reposted_from && (
+                      <p className="text-xs text-purple-600 mt-1">
+                        Direpost dari {item.reposted_from.user_name || "Guru lain"}
+                      </p>
+                    )}
+                    {item.reposted_from?.school && (
                       <p className="text-xs text-gray-400">
-                        {item.repostedFromSchool}
+                        {item.reposted_from.school}
                       </p>
                     )}
                   </div>
@@ -564,16 +560,7 @@ const ModulAjarPage: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEditingRepostModule(item);
-                        setEditRepostData({
-                          judul: item.judul,
-                          deskripsi_singkat: item.deskripsi_singkat || "",
-                          tentang_modul: item.tentang_modul || "",
-                          tujuan_pembelajaran: item.tujuan_pembelajaran || "",
-                          materi: item.materi || [],
-                          assessments: item.assessments || [],
-                        });
-                        setShowEditRepostModal(true);
+                        router.push(`/modul-ajar/edit/${item.id}`);
                       }}
                       className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition"
                       title="Edit Modul"
@@ -595,23 +582,7 @@ const ModulAjarPage: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (
-                          confirm("Hapus modul repost ini dari koleksi Anda?")
-                        ) {
-                          const saved = JSON.parse(
-                            localStorage.getItem("repostedModules") || "[]"
-                          );
-                          const updated = saved.filter(
-                            (m: any) => m.id !== item.id
-                          );
-                          localStorage.setItem(
-                            "repostedModules",
-                            JSON.stringify(updated)
-                          );
-                          setRepostedModules(
-                            updated.filter((m: any) => m.user_id === user?.id)
-                          );
-                        }
+                        handleDelete(item.id);
                       }}
                       className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition"
                       title="Hapus Modul"
@@ -797,6 +768,22 @@ const ModulAjarPage: React.FC = () => {
                         />
                       </svg>
                       <span className="font-medium">{item.downloads || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      <span className="font-medium">{item.reposts_count || 0}</span>
                     </div>
                   </div>
                 </div>
