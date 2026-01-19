@@ -69,7 +69,7 @@ const ModulAjarPage: React.FC = () => {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"latest" | "likes" | "downloads">(
+  const [sortBy, setSortBy] = useState<"latest" | "likes" | "downloads" | "reposts">(
     "likes"
   );
 
@@ -294,6 +294,8 @@ const ModulAjarPage: React.FC = () => {
       filtered.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
     } else if (sortBy === "downloads") {
       filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+    } else if (sortBy === "reposts") {
+      filtered.sort((a, b) => (b.reposts_count || 0) - (a.reposts_count || 0));
     }
 
     setFilteredCards(filtered);
@@ -439,6 +441,7 @@ const ModulAjarPage: React.FC = () => {
           >
             <option value="likes">Paling Disukai</option>
             <option value="downloads">Paling Banyak Diunduh</option>
+            <option value="reposts">Paling Banyak Direpost</option>
             <option value="latest">Terbaru</option>
           </select>
 

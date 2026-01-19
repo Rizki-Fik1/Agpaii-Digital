@@ -759,6 +759,9 @@ const DetailModulAjarPage: React.FC = () => {
             <p className="text-sm text-gray-500">
               {materialData.user?.profile?.school_place || "-"}
             </p>
+            <p className="text-xs text-[#006557] mt-1">
+              {materialData.user?.modules_learn_count || 0} Modul Diposting
+            </p>
           </div>
         </div>
 

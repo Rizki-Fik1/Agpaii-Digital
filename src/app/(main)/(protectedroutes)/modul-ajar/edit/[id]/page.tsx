@@ -36,8 +36,9 @@ interface ModuleData {
   deskripsi_singkat: string;
   tentang_modul: string;
   tujuan_pembelajaran: string;
-  thumbnail?: string; // path dari server (misal: modules/thumbnails/nama-file.jpg)
+  thumbnail?: string;
   contents: ContentItem[];
+  is_repost?: boolean;
 }
 
 const EditPerangkatAjar: React.FC = () => {
@@ -114,6 +115,7 @@ const EditPerangkatAjar: React.FC = () => {
           tentang_modul: data.tentang_modul,
           tujuan_pembelajaran: data.tujuan_pembelajaran,
           thumbnail: data.thumbnail,
+          is_repost: data.is_repost || false,
           contents: [...data.materi, ...data.assessments].map((c: any) => ({
             id: c.id,
             content_type: c.content_type,
@@ -352,14 +354,27 @@ const EditPerangkatAjar: React.FC = () => {
       <TopBar withBackButton>Edit Perangkat Ajar</TopBar>
       <div className="space-y-4 max-w-4xl mx-auto">
         <div>
-          <label className="block mb-2 text-sm font-medium">Judul</label>
+          <label className="block mb-2 text-sm font-medium">
+            Judul
+            {moduleData.is_repost && (
+              <span className="ml-2 text-xs text-purple-600 font-normal">
+                (Tidak dapat diubah - Modul Repost)
+              </span>
+            )}
+          </label>
           <input
             type="text"
-            className="w-full p-3 border rounded-lg"
+            className={`w-full p-3 border rounded-lg ${
+              moduleData.is_repost 
+                ? "bg-gray-100 text-gray-600 cursor-not-allowed" 
+                : ""
+            }`}
             value={moduleData.judul}
             onChange={(e) =>
               setModuleData({ ...moduleData, judul: e.target.value })
             }
+            disabled={moduleData.is_repost}
+            readOnly={moduleData.is_repost}
           />
         </div>
 
