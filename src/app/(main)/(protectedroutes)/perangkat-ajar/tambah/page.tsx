@@ -6,149 +6,103 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useAuth } from "@/utils/context/auth_context";
 
-interface JenjangOption {
+interface GradeOption {
   id: number;
-  name: string;
   description: string;
-}
-
-interface FaseOption {
-  id: number;
-  name: string;
-  description: string;
-  id_jenjang?: number;
-  jenjang?: { id_jenjang: number };
 }
 
 interface ContentItem {
-  content_type: "materi" | "assessment" | string;
-  judul: string;
-  file_type: "youtube" | "pdf" | "doc" | "excel" | "ppt" | string;
+  type: "file" | "youtube";
+  name: string;
+  file?: File | null;
   youtube_url?: string;
-  file_path?: string;
-  file?: File | null; // actual file selected by user
+  previewUrl?: string;
 }
 
 interface FormData {
-  judul: string;
-  jenjang_id: string;
-  fase_id: string;
-  deskripsi_singkat: string;
-  tentang_modul: string;
-  tujuan_pembelajaran: string;
-  thumbnail?: File | null;
+  topic: string;
+  school: string;
+  subject: string;
+  type: string;
+  duration: string;
+  grade_id: string;
+  description: string;
+  image?: File | null;
   contents: ContentItem[];
 }
 
 const TambahPerangkatAjar: React.FC = () => {
   const router = useRouter();
   const { auth: user } = useAuth();
-  const [jenjangOptions, setJenjangOptions] = useState<JenjangOption[]>([]);
-  const [allFaseOptions, setAllFaseOptions] = useState<FaseOption[]>([]);
-  const [faseOptions, setFaseOptions] = useState<FaseOption[]>([]);
-  const [selectedJenjang, setSelectedJenjang] = useState<string>("");
+  const [gradeOptions, setGradeOptions] = useState<GradeOption[]>([]);
 
   const [formData, setFormData] = useState<FormData>({
-    judul: "",
-    jenjang_id: "",
-    fase_id: "",
-    deskripsi_singkat: "",
-    tentang_modul: "",
-    tujuan_pembelajaran: "",
-    thumbnail: null,
+    topic: "",
+    school: "",
+    subject: "",
+    type: "",
+    duration: "",
+    grade_id: "",
+    description: "",
+    image: null,
     contents: [],
   });
 
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const contentTypeOptions = ["materi", "assessment"];
-  const fileTypeOptions = ["youtube", "pdf", "doc", "excel", "ppt"];
+  const typeOptions = [
+    "Materi ajar & RPP",
+    "Bahan ajar",
+    "Buku",
+    "LKPD",
+  ];
 
   useEffect(() => {
-    fetchMasterData();
+    fetchGradeOptions();
   }, []);
 
-  const fetchMasterData = async () => {
+  const fetchGradeOptions = async () => {
     try {
-      const jenjangRes = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn/jenjang`
+      const response = await axios.get(
+        "https://2024.agpaiidigital.org/api/bahanajar/grades/list"
       );
-      setJenjangOptions(
-        jenjangRes.data.data.map((j: any) => ({
-          id: j.id_jenjang,
-          name: j.nama_jenjang || "",
-          description: j.nama_jenjang || "",
-        }))
-      );
-
-      const faseRes = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn/fase`
-      );
-      setAllFaseOptions(
-        faseRes.data.data.map((f: any) => ({
-          id: f.id_fase,
-          name: f.nama_fase || "",
-          description: f.deskripsi || "",
-          jenjang: f.jenjang || { id_jenjang: f.id_jenjang },
-          id_jenjang: f.id_jenjang,
-        }))
-      );
+      setGradeOptions(response.data || []);
     } catch (error) {
-      console.error("Error fetching master data:", error);
+      console.error("Error fetching grade options:", error);
     }
   };
 
-  // Update fase options when jenjang changes
-  useEffect(() => {
-    if (selectedJenjang) {
-      const jenjangId = parseInt(selectedJenjang);
-      setFaseOptions(
-        allFaseOptions.filter(
-          (f) =>
-            f.jenjang?.id_jenjang === jenjangId ||
-            (f as any).id_jenjang === jenjangId
-        )
-      );
-    } else {
-      setFaseOptions([]);
-    }
-    setFormData((prev) => ({ ...prev, fase_id: "" }));
-  }, [selectedJenjang, allFaseOptions]);
-
   useEffect(() => {
     return () => {
-      if (thumbnailPreview) {
-        URL.revokeObjectURL(thumbnailPreview);
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
       }
+      // Cleanup content preview URLs
+      formData.contents.forEach(content => {
+        if (content.previewUrl) {
+          URL.revokeObjectURL(content.previewUrl);
+        }
+      });
     };
-  }, [thumbnailPreview]);
+  }, [imagePreview, formData.contents]);
 
   const handleAddContent = () => {
     setFormData((prev) => ({
       ...prev,
-      contents: [
-        ...prev.contents,
-        {
-          content_type: "materi",
-          judul: "",
-          file_type: "pdf",
-          youtube_url: "",
-          file_path: "",
-          file: null,
-        },
-      ],
+      contents: [...prev.contents, { type: "file", name: "", file: null, youtube_url: "" }],
     }));
   };
 
-  const handleContentChange = (
-    index: number,
-    field: keyof ContentItem,
-    value: string
-  ) => {
+  const handleContentTypeChange = (index: number, type: "file" | "youtube") => {
     const newContents = [...formData.contents];
-    (newContents[index] as any)[field] = value;
+    newContents[index] = { type, name: newContents[index].name, file: null, youtube_url: "" };
+    setFormData({ ...formData, contents: newContents });
+  };
+
+  const handleContentNameChange = (index: number, name: string) => {
+    const newContents = [...formData.contents];
+    newContents[index].name = name;
     setFormData({ ...formData, contents: newContents });
   };
 
@@ -158,8 +112,88 @@ const TambahPerangkatAjar: React.FC = () => {
   ) => {
     const newContents = [...formData.contents];
     const file = e.target.files?.[0] ?? null;
-    (newContents[index] as any).file = file;
-    (newContents[index] as any).file_path = file ? file.name : "";
+    newContents[index].file = file;
+    
+    // Create preview URL for the file
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      newContents[index].previewUrl = previewUrl;
+    } else {
+      newContents[index].previewUrl = undefined;
+    }
+    
+    setFormData({ ...formData, contents: newContents });
+  };
+
+  const handleOpenPreview = (content: ContentItem) => {
+    if (content.type === "file" && content.file) {
+      // Buat blob URL baru untuk membuka file
+      const url = URL.createObjectURL(content.file);
+      
+      // Buka di tab baru tanpa download
+      window.open(url, '_blank');
+      
+      // Cleanup setelah beberapa saat
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } else if (content.type === "youtube" && content.youtube_url) {
+      window.open(content.youtube_url, "_blank");
+    }
+  };
+
+  const getFileIcon = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'pdf':
+        return '📄';
+      case 'doc':
+      case 'docx':
+        return '📝';
+      case 'xls':
+      case 'xlsx':
+        return '📊';
+      case 'ppt':
+      case 'pptx':
+        return '📽️';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return '🖼️';
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+        return '🎥';
+      default:
+        return '📎';
+    }
+  };
+
+  const isImageFile = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext || '');
+  };
+
+  const isPdfFile = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ext === 'pdf';
+  };
+
+  const isOfficeFile = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    return ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext || '');
+  };
+
+  const getYoutubeEmbedUrl = (url: string) => {
+    // Convert berbagai format YouTube URL ke embed URL
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+  };
+
+  const handleContentYoutubeChange = (index: number, url: string) => {
+    const newContents = [...formData.contents];
+    newContents[index].youtube_url = url;
     setFormData({ ...formData, contents: newContents });
   };
 
@@ -169,13 +203,13 @@ const TambahPerangkatAjar: React.FC = () => {
     setFormData({ ...formData, contents: newContents });
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
-    setFormData((prev) => ({ ...prev, thumbnail: file }));
+    setFormData((prev) => ({ ...prev, image: file }));
     if (file) {
-      setThumbnailPreview(URL.createObjectURL(file));
+      setImagePreview(URL.createObjectURL(file));
     } else {
-      setThumbnailPreview(null);
+      setImagePreview(null);
     }
   };
 
@@ -186,74 +220,86 @@ const TambahPerangkatAjar: React.FC = () => {
     }
 
     if (
-      !formData.judul ||
-      !formData.jenjang_id ||
-      !formData.fase_id ||
-      !formData.deskripsi_singkat ||
-      !formData.tentang_modul ||
-      !formData.tujuan_pembelajaran
+      !formData.topic ||
+      !formData.school ||
+      !formData.subject ||
+      !formData.type ||
+      !formData.duration ||
+      !formData.grade_id ||
+      !formData.description
     ) {
-      alert("Pastikan semua field wajib terisi!");
+      const missingFields = [];
+      if (!formData.topic) missingFields.push("Topik");
+      if (!formData.school) missingFields.push("Sekolah");
+      if (!formData.subject) missingFields.push("Mata Pelajaran");
+      if (!formData.type) missingFields.push("Tipe");
+      if (!formData.duration) missingFields.push("Durasi");
+      if (!formData.grade_id) missingFields.push("Kelas");
+      if (!formData.description) missingFields.push("Deskripsi");
+      
+      alert(`Pastikan semua field wajib terisi!\n\nField yang kosong: ${missingFields.join(", ")}`);
       return;
     }
 
     setLoading(true);
 
     try {
+      const token = localStorage.getItem("access_token");
+      
+      if (!token) {
+        alert("Sesi login habis. Silakan login ulang.");
+        return;
+      }
+      
       const data = new FormData();
-      data.append("judul", formData.judul);
-      data.append("fase_id", formData.fase_id);
-      data.append("jenjang_id", formData.jenjang_id);
-      data.append("deskripsi_singkat", formData.deskripsi_singkat);
-      data.append("tentang_modul", formData.tentang_modul);
-      data.append("tujuan_pembelajaran", formData.tujuan_pembelajaran);
+      data.append("topic", formData.topic);
+      data.append("school", formData.school);
+      data.append("subject", formData.subject);
+      data.append("type", formData.type);
+      data.append("duration", formData.duration);
+      data.append("grade_id", formData.grade_id);
+      data.append("description", formData.description);
       data.append("user_id", String(user.id));
 
-      if (formData.thumbnail) {
-        data.append("thumbnail", formData.thumbnail);
+      if (formData.image) {
+        data.append("image", formData.image);
       }
 
-      formData.contents.forEach((c, idx) => {
-        data.append(`contents[${idx}][content_type]`, c.content_type);
-        data.append(`contents[${idx}][judul]`, c.judul);
-        data.append(`contents[${idx}][file_type]`, c.file_type);
-
-        if (c.file_type === "youtube") {
-          data.append(`contents[${idx}][youtube_url]`, c.youtube_url || "");
-        } else {
-          // attach file if present
-          if ((c as any).file) {
-            data.append(`contents_files[${idx}]`, (c as any).file as File);
-            data.append(
-              `contents[${idx}][file_path]`,
-              (c as any).file?.name || ""
-            );
-          } else {
-            data.append(`contents[${idx}][file_path]`, c.file_path || "");
-          }
+      // Add content files with proper structure
+      formData.contents.forEach((content, idx) => {
+        if (content.type === "file" && content.file) {
+          data.append(`contents[${idx}][name]`, content.name || content.file.name);
+          data.append(`contents[${idx}][format_doc]`, "File");
+          data.append(`contents[${idx}][file]`, content.file);
+        } else if (content.type === "youtube" && content.youtube_url) {
+          data.append(`contents[${idx}][name]`, content.name || "Video YouTube");
+          data.append(`contents[${idx}][format_doc]`, "Youtube");
+          data.append(`contents[${idx}][url]`, content.youtube_url);
         }
       });
 
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn`,
+        "https://2024.agpaiidigital.org/api/bahanajar",
         data,
         {
           headers: {
             Accept: "application/json",
             "Content-Type": "multipart/form-data",
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
         }
       );
 
-      if (response.data.success) {
-        router.push("/modul-ajar");
+      if (response.data) {
+        alert("Perangkat ajar berhasil disimpan!");
+        router.push("/perangkat-ajar");
       } else {
         alert(response.data.message || "Gagal menyimpan data");
       }
     } catch (error: any) {
       console.error("Error submitting data:", error);
       alert(
-        error.response?.data?.errors || "Terjadi kesalahan saat menyimpan data."
+        error.response?.data?.message || "Terjadi kesalahan saat menyimpan data."
       );
     } finally {
       setLoading(false);
@@ -264,172 +310,322 @@ const TambahPerangkatAjar: React.FC = () => {
     <div className="pt-[5.21rem] p-6 bg-white min-h-screen">
       <TopBar withBackButton>Tambah Perangkat Ajar</TopBar>
       <div className="space-y-4">
+        {/* Topik */}
         <div>
-          <label className="block mb-2 text-sm font-medium">Judul</label>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Topik
+          </label>
           <input
             type="text"
-            className="w-full p-2 border rounded"
-            placeholder="Masukkan judul"
-            value={formData.judul}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557]"
+            placeholder="Masukkan topik"
+            value={formData.topic}
             onChange={(e) =>
-              setFormData({ ...formData, judul: e.target.value })
+              setFormData({ ...formData, topic: e.target.value })
             }
           />
         </div>
-        <div className="flex gap-2 min-w-0">
-          <select
-            className="flex-1 p-2 border rounded"
-            value={formData.jenjang_id}
-            onChange={(e) => {
-              setFormData({ ...formData, jenjang_id: e.target.value });
-              setSelectedJenjang(e.target.value);
-            }}
-          >
-            <option value="">Pilih Jenjang</option>
-            {jenjangOptions.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="flex-1 min-w-0 p-2 border rounded truncate"
-            value={formData.fase_id}
-            onChange={(e) =>
-              setFormData({ ...formData, fase_id: e.target.value })
-            }
-          >
-            <option value="">Pilih Fase</option>
-            {faseOptions.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name} ({f.description})
-              </option>
-            ))}
-          </select>
-        </div>
+
+        {/* Sekolah */}
         <div>
-          <label className="block mb-2 text-sm font-medium">
-            Deskripsi Singkat
-          </label>
-          <textarea
-            className="w-full p-2 border rounded"
-            placeholder="Masukkan deskripsi singkat"
-            value={formData.deskripsi_singkat}
-            onChange={(e) =>
-              setFormData({ ...formData, deskripsi_singkat: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Tentang Modul
-          </label>
-          <textarea
-            className="w-full p-2 border rounded"
-            placeholder="Jelaskan tentang modul"
-            value={formData.tentang_modul}
-            onChange={(e) =>
-              setFormData({ ...formData, tentang_modul: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Tujuan Pembelajaran
-          </label>
-          <textarea
-            className="w-full p-2 border rounded"
-            placeholder="Masukkan tujuan pembelajaran"
-            value={formData.tujuan_pembelajaran}
-            onChange={(e) =>
-              setFormData({ ...formData, tujuan_pembelajaran: e.target.value })
-            }
-          />
-        </div>
-        <div>
-          <label className="block mb-2 text-sm font-medium">
-            Thumbnail (ratio 1:2)
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Sekolah
           </label>
           <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            onChange={handleThumbnailChange}
+            type="text"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557]"
+            placeholder="Masukkan nama sekolah"
+            value={formData.school}
+            onChange={(e) =>
+              setFormData({ ...formData, school: e.target.value })
+            }
           />
-          {thumbnailPreview && (
-            <div className="mt-2 relative w-24 h-48 overflow-hidden rounded-lg">
+        </div>
+
+        {/* Mata Pelajaran */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Mata Pelajaran
+          </label>
+          <input
+            type="text"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557]"
+            placeholder="Masukkan mata pelajaran"
+            value={formData.subject}
+            onChange={(e) =>
+              setFormData({ ...formData, subject: e.target.value })
+            }
+          />
+        </div>
+
+        {/* Tipe */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Tipe
+          </label>
+          <select
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] bg-white"
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+          >
+            <option value="">Pilih Tipe</option>
+            {typeOptions.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Durasi */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Durasi
+          </label>
+          <input
+            type="text"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557]"
+            placeholder="Masukkan durasi"
+            value={formData.duration}
+            onChange={(e) =>
+              setFormData({ ...formData, duration: e.target.value })
+            }
+          />
+        </div>
+
+        {/* Kelas */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Kelas
+          </label>
+          <select
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] bg-white"
+            value={formData.grade_id}
+            onChange={(e) =>
+              setFormData({ ...formData, grade_id: e.target.value })
+            }
+          >
+            <option value="">Pilih Kelas</option>
+            {gradeOptions.map((grade) => (
+              <option key={grade.id} value={grade.id}>
+                {grade.description}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Deskripsi */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Deskripsi
+          </label>
+          <textarea
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] resize-none"
+            placeholder="Masukkan deskripsi"
+            rows={4}
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({ ...formData, description: e.target.value })
+            }
+          />
+        </div>
+
+        {/* Gambar */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Gambar
+          </label>
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+              Pilih File
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </label>
+            <span className="text-sm text-gray-500">
+              {formData.image ? formData.image.name : "Tidak ada file yang dipilih"}
+            </span>
+          </div>
+          {imagePreview && (
+            <div className="mt-3">
               <img
-                src={thumbnailPreview}
-                alt="Thumbnail Preview"
-                className="absolute inset-0 w-full h-full object-cover"
+                src={imagePreview}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border"
               />
             </div>
           )}
         </div>
+
+        {/* Konten */}
         <div>
-          <label className="block mb-2 text-sm font-medium">Konten</label>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Konten
+          </label>
           {formData.contents.map((content, index) => (
-            <div key={index} className="mb-4 p-4 border rounded space-y-2">
-              <select
-                className="w-full p-2 border rounded"
-                value={content.content_type}
-                onChange={(e) =>
-                  handleContentChange(index, "content_type", e.target.value)
-                }
-              >
-                <option value="materi">Materi</option>
-                <option value="assessment">Assessment</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Judul Konten"
-                className="w-full p-2 border rounded"
-                value={content.judul}
-                onChange={(e) =>
-                  handleContentChange(index, "judul", e.target.value)
-                }
-              />
-              <select
-                className="w-full p-2 border rounded"
-                value={content.file_type}
-                onChange={(e) =>
-                  handleContentChange(index, "file_type", e.target.value)
-                }
-              >
-                {fileTypeOptions.map((ft) => (
-                  <option key={ft} value={ft}>
-                    {ft}
-                  </option>
-                ))}
-              </select>
-              {content.file_type === "youtube" ? (
+            <div key={index} className="mb-3 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3">
+              {/* Dropdown Tipe Konten */}
+              <div>
+                <label className="block mb-1 text-xs font-medium text-gray-600">
+                  Tipe Konten
+                </label>
+                <select
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] bg-white text-sm"
+                  value={content.type}
+                  onChange={(e) =>
+                    handleContentTypeChange(index, e.target.value as "file" | "youtube")
+                  }
+                >
+                  <option value="file">File</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+              </div>
+
+              {/* Input Nama Konten */}
+              <div>
+                <label className="block mb-1 text-xs font-medium text-gray-600">
+                  Nama Konten
+                </label>
                 <input
                   type="text"
-                  placeholder="Youtube URL"
-                  className="w-full p-2 border rounded"
-                  value={content.youtube_url}
-                  onChange={(e) =>
-                    handleContentChange(index, "youtube_url", e.target.value)
-                  }
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] text-sm"
+                  placeholder={content.type === "file" ? "Contoh: Materi Word" : "Contoh: Video Pembahasan"}
+                  value={content.name}
+                  onChange={(e) => handleContentNameChange(index, e.target.value)}
                 />
+              </div>
+
+              {/* Input berdasarkan tipe */}
+              {content.type === "file" ? (
+                <div className="space-y-2">
+                  <label className="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm inline-block">
+                    Pilih File
+                    <input
+                      type="file"
+                      accept="*"
+                      className="hidden"
+                      onChange={(e) => handleContentFileChange(index, e)}
+                    />
+                  </label>
+                  <span className="text-sm text-gray-600 ml-3">
+                    {content.file ? content.file.name : "Tidak ada file"}
+                  </span>
+                  
+                  {/* Preview File */}
+                  {content.file && content.previewUrl && (
+                    <div className="mt-3 border-2 border-blue-200 rounded-lg bg-blue-50 overflow-hidden">
+                      {/* Info File */}
+                      <div 
+                        className="p-3 cursor-pointer hover:bg-blue-100 transition"
+                        onClick={() => handleOpenPreview(content)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 flex items-center justify-center bg-white rounded text-2xl flex-shrink-0">
+                            {getFileIcon(content.file.name)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800 truncate">{content.file.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {(content.file.size / 1024).toFixed(2)} KB
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Klik untuk buka di tab baru
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Preview Langsung */}
+                      {isImageFile(content.file.name) ? (
+                        <div className="p-3 bg-white">
+                          <img 
+                            src={content.previewUrl} 
+                            alt="Preview" 
+                            className="w-full max-h-64 object-contain rounded"
+                          />
+                        </div>
+                      ) : isPdfFile(content.file.name) ? (
+                        <div className="bg-white">
+                          <iframe
+                            src={content.previewUrl}
+                            className="w-full h-96 border-0"
+                            title="PDF Preview"
+                          />
+                        </div>
+                      ) : isOfficeFile(content.file.name) ? (
+                        <div className="p-3 bg-yellow-50 border-t border-yellow-200">
+                          <p className="text-xs text-yellow-800">
+                            ℹ️ Preview file Office hanya tersedia setelah file di-upload ke server
+                          </p>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div>
+                <div className="space-y-2">
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    URL YouTube
+                  </label>
                   <input
-                    type="file"
-                    accept="*"
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    onChange={(e) => handleContentFileChange(index, e)}
+                    type="url"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006557] text-sm"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={content.youtube_url || ""}
+                    onChange={(e) => handleContentYoutubeChange(index, e.target.value)}
                   />
-                  {content.file_path && (
-                    <p className="text-sm text-gray-500 mt-1">
-                      {content.file_path}
-                    </p>
+                  
+                  {/* Preview YouTube */}
+                  {content.youtube_url && (
+                    <div className="mt-3 border-2 border-red-200 rounded-lg bg-red-50 overflow-hidden">
+                      {/* Info YouTube */}
+                      <div 
+                        className="p-3 cursor-pointer hover:bg-red-100 transition"
+                        onClick={() => handleOpenPreview(content)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 flex items-center justify-center bg-white rounded text-2xl flex-shrink-0">
+                            🎥
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-800">Video YouTube</p>
+                            <p className="text-xs text-gray-500 mt-1 truncate">
+                              {content.youtube_url}
+                            </p>
+                            <p className="text-xs text-red-600 mt-1">
+                              Klik untuk buka di YouTube
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Embed YouTube */}
+                      {getYoutubeEmbedUrl(content.youtube_url) && (
+                        <div className="bg-white p-3">
+                          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                            <iframe
+                              src={getYoutubeEmbedUrl(content.youtube_url) || ''}
+                              className="absolute top-0 left-0 w-full h-full rounded"
+                              title="YouTube Preview"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
+
+              {/* Tombol Hapus */}
               <button
                 onClick={() => handleRemoveContent(index)}
-                className="px-4 py-2 bg-red-500 text-white rounded"
+                className="w-full px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
               >
                 Hapus
               </button>
@@ -437,16 +633,18 @@ const TambahPerangkatAjar: React.FC = () => {
           ))}
           <button
             onClick={handleAddContent}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
           >
             Tambah Konten
           </button>
         </div>
-        <div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full px-4 py-2 bg-green-500 text-white rounded mt-4"
+            className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Menyimpan..." : "Simpan"}
           </button>

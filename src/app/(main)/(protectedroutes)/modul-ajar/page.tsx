@@ -342,7 +342,7 @@ const ModulAjarPage: React.FC = () => {
 
   return (
     <div className="pt-[5.21rem] bg-white min-h-screen">
-      <TopBar withBackButton tambahButton="/perangkat-ajar/tambah">
+      <TopBar withBackButton tambahButton="/modul-ajar/tambah">
         Materi Ajar
       </TopBar>
 
@@ -479,7 +479,7 @@ const ModulAjarPage: React.FC = () => {
               </p>
               <button
                 className="px-6 py-2 bg-[#006557] text-white rounded-lg font-medium"
-                onClick={() => router.push("/perangkat-ajar/tambah")}
+                onClick={() => router.push("/modul-ajar/tambah")}
               >
                 Buat Modul Ajar
               </button>

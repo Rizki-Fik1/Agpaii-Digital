@@ -60,13 +60,20 @@ const PerangkatAjarPage: React.FC = () => {
 
 	const fetchCards = async (currentPage: number, append: boolean) => {
 		try {
+			const token = localStorage.getItem("access_token");
+			
 			const endpoint =
 				activeTab === "all"
-					? `${process.env.NEXT_PUBLIC_API_BASE_URL2}/api/bahanajar`
-					: `${process.env.NEXT_PUBLIC_API_BASE_URL2}/api/bahanajarsaya?user_id=${user.id}`;
+					? "https://2024.agpaiidigital.org/api/bahanajar"
+					: "https://2024.agpaiidigital.org/api/bahanajar/me/list";
+
+			const headers = activeTab === "mine" && token 
+				? { Authorization: `Bearer ${token}` }
+				: {};
 
 			const response = await axios.get(
 				`${endpoint}?limit=10&page=${currentPage}`,
+				{ headers }
 			);
 
 			if (response.data.data.length > 0) {
