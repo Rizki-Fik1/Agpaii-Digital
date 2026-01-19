@@ -238,9 +238,12 @@ const PerangkatAjarPage: React.FC = () => {
 							key={item.id}
 							className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg">
 							<img
-								src={`${process.env.NEXT_PUBLIC_MITRA_URL}/public/${item.image}`}
+								src={`https://2024.agpaiidigital.org/${item.image}`}
 								alt={item.topic}
 								className="w-full h-40 object-cover"
+								onError={(e) => {
+									(e.target as HTMLImageElement).src = "/img/placeholder.png";
+								}}
 							/>
 							<div className="p-4">
 								<span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
