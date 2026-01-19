@@ -582,8 +582,7 @@ const EditPerangkatAjar: React.FC = () => {
 									{content.file && content.previewUrl && (
 										<div className="mt-3 border-2 border-blue-200 rounded-lg bg-blue-50 overflow-hidden">
 											<div 
-												className="p-3 cursor-pointer hover:bg-blue-100 transition"
-												onClick={() => handleOpenPreview(content)}
+												className="p-3 bg-blue-100"
 											>
 												<div className="flex items-center gap-3">
 													<div className="w-12 h-12 flex items-center justify-center bg-white rounded text-2xl flex-shrink-0">
@@ -593,9 +592,6 @@ const EditPerangkatAjar: React.FC = () => {
 														<p className="text-sm font-medium text-gray-800 truncate">{content.file.name}</p>
 														<p className="text-xs text-gray-500 mt-1">
 															{(content.file.size / 1024).toFixed(2)} KB
-														</p>
-														<p className="text-xs text-blue-600 mt-1">
-															Klik untuk buka di tab baru
 														</p>
 													</div>
 												</div>
