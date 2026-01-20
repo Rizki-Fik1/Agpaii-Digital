@@ -39,6 +39,7 @@ interface ModuleData {
   thumbnail?: string;
   contents: ContentItem[];
   is_repost?: boolean;
+  original_judul?: string; // Judul modul asli (untuk validasi repost)
 }
 
 const EditPerangkatAjar: React.FC = () => {
@@ -116,6 +117,7 @@ const EditPerangkatAjar: React.FC = () => {
           tujuan_pembelajaran: data.tujuan_pembelajaran,
           thumbnail: data.thumbnail,
           is_repost: data.is_repost || false,
+          original_judul: data.repost?.judul || data.repost_source?.judul || null,
           contents: [...data.materi, ...data.assessments].map((c: any) => ({
             id: c.id,
             content_type: c.content_type,
@@ -266,6 +268,17 @@ const EditPerangkatAjar: React.FC = () => {
       return;
     }
 
+    // Validasi untuk modul repost: judul tidak boleh sama dengan original
+    if (moduleData.is_repost && moduleData.original_judul) {
+      const normalizeTitle = (title: string) => 
+        title.replace(/\s+/g, "").toLowerCase();
+      
+      if (normalizeTitle(moduleData.judul) === normalizeTitle(moduleData.original_judul)) {
+        alert("Judul modul tidak boleh sama dengan modul asli!");
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
@@ -358,24 +371,23 @@ const EditPerangkatAjar: React.FC = () => {
             Judul
             {moduleData.is_repost && (
               <span className="ml-2 text-xs text-purple-600 font-normal">
-                (Tidak dapat diubah - Modul Repost)
+                (Modul Repost)
               </span>
             )}
           </label>
           <input
             type="text"
-            className={`w-full p-3 border rounded-lg ${
-              moduleData.is_repost 
-                ? "bg-gray-100 text-gray-600 cursor-not-allowed" 
-                : ""
-            }`}
+            className="w-full p-3 border rounded-lg"
             value={moduleData.judul}
             onChange={(e) =>
               setModuleData({ ...moduleData, judul: e.target.value })
             }
-            disabled={moduleData.is_repost}
-            readOnly={moduleData.is_repost}
           />
+          {moduleData.is_repost && moduleData.original_judul && (
+            <p className="text-xs text-red-500 mt-2">
+              ⚠️ Judul tidak boleh sama dengan modul asli: "{moduleData.original_judul}"
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

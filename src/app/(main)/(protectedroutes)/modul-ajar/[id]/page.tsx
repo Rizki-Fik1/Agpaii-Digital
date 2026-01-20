@@ -533,13 +533,13 @@ const DetailModulAjarPage: React.FC = () => {
 
       {/* === TOMBOL EDIT & DELETE (HANYA UNTUK PEMILIK MODUL) === */}
       {user?.id && materialData?.user_id === user.id && (
-        <div className="px-4 mt-4 flex justify-end gap-3">
+        <div className="px-4 mt-4 flex flex-wrap justify-end gap-2 sm:gap-3">
           <button
             onClick={() => router.push(`/modul-ajar/edit/${materialId}`)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-amber-50 text-amber-700 rounded-xl font-medium hover:bg-amber-100 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-amber-50 text-amber-700 rounded-xl text-sm font-medium hover:bg-amber-100 transition-colors shadow-sm"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -551,15 +551,15 @@ const DetailModulAjarPage: React.FC = () => {
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
-            Edit Modul
+            <span className="hidden xs:inline">Edit</span> Modul
           </button>
 
           <button
             onClick={handleDelete}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-700 rounded-xl font-medium hover:bg-red-100 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-red-50 text-red-700 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors shadow-sm"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -571,7 +571,7 @@ const DetailModulAjarPage: React.FC = () => {
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               />
             </svg>
-            Hapus Modul
+            <span className="hidden xs:inline">Hapus</span> Modul
           </button>
         </div>
       )}
@@ -650,15 +650,15 @@ const DetailModulAjarPage: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
           <button
             onClick={handleLike}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors text-sm ${
               isLiked ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-700"
             }`}
           >
             <svg
-              className={`w-5 h-5 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 ${
                 isLiked ? "text-red-600" : "text-gray-600"
               }`}
               viewBox="0 0 20 20"
@@ -666,17 +666,17 @@ const DetailModulAjarPage: React.FC = () => {
             >
               <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 18.828l-6.828-6.828a4 4 0 010-5.656z" />
             </svg>
-            <span className="text-sm font-medium">
+            <span className="font-medium">
               {isLiked ? "Disukai" : "Sukai"}
             </span>
           </button>
 
           <button
             onClick={handleDownloadAll}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#006557] text-white"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[#006557] text-white text-sm"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -688,37 +688,17 @@ const DetailModulAjarPage: React.FC = () => {
                 d="M12 3v12m0 0l-4-4m4 4l4-4M21 21H3"
               />
             </svg>
-            <span className="text-sm font-medium">Unduh Semua</span>
+            <span className="font-medium">Unduh Semua</span>
           </button>
-
-          {/* <button
-            onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-700"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
-            </svg>
-            <span className="text-sm font-medium">Bagikan</span>
-          </button> */}
 
           {/* Repost Button - only show for modules not owned by current user */}
           {user?.id && materialData?.user_id !== user.id && (
             <button
               onClick={handleRepost}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors text-sm"
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 sm:w-5 sm:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -730,7 +710,7 @@ const DetailModulAjarPage: React.FC = () => {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              <span className="text-sm font-medium">Repost</span>
+              <span className="font-medium">Repost</span>
             </button>
           )}
         </div>
@@ -766,23 +746,21 @@ const DetailModulAjarPage: React.FC = () => {
         </div>
 
         {/* Pilihan Guru Badge */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-50 rounded-xl p-3 sm:p-4 mb-6 gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
               <img
                 src="/svg/ikon guru.svg"
                 alt="Pilihan Guru"
-                className="w-8 h-8"
+                className="w-6 h-6 sm:w-8 sm:h-8"
               />
             </div>
-            <p className="text-sm text-gray-700">
-              Salah satu perangkat ajar yang paling disukai
-              <br />
-              di AGPAII Digital, menurut pengajar.
+            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+              Salah satu perangkat ajar yang paling disukai di AGPAII Digital, menurut pengajar.
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-[#006557]">{likesCount}</p>
+          <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0 self-end sm:self-auto">
+            <p className="text-xl sm:text-2xl font-bold text-[#006557]">{likesCount}</p>
             <p className="text-xs text-gray-500">Menyukai</p>
           </div>
         </div>
@@ -815,11 +793,11 @@ const DetailModulAjarPage: React.FC = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1 bg-gray-50 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
+        <div className="flex gap-2 sm:gap-4 mb-6">
+          <div className="flex-1 bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
               <svg
-                className="w-5 h-5 text-[#006557]"
+                className="w-4 h-4 sm:w-5 sm:h-5 text-[#006557]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -831,16 +809,16 @@ const DetailModulAjarPage: React.FC = () => {
                   d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
                 />
               </svg>
-              <span className="text-2xl font-bold text-[#006557]">
+              <span className="text-lg sm:text-2xl font-bold text-[#006557]">
                 {likesCount}
               </span>
             </div>
-            <p className="text-xs text-gray-500">Menyukai</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Menyukai</p>
           </div>
-          <div className="flex-1 bg-gray-50 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="flex-1 bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
               <svg
-                className="w-5 h-5 text-[#006557]"
+                className="w-4 h-4 sm:w-5 sm:h-5 text-[#006557]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -852,16 +830,16 @@ const DetailModulAjarPage: React.FC = () => {
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 />
               </svg>
-              <span className="text-2xl font-bold text-[#006557]">
+              <span className="text-lg sm:text-2xl font-bold text-[#006557]">
                 {materialData.downloads_count || 0}
               </span>
             </div>
-            <p className="text-xs text-gray-500">Diunduh</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Diunduh</p>
           </div>
-          <div className="flex-1 bg-gray-50 rounded-xl p-4 text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="flex-1 bg-gray-50 rounded-xl p-2 sm:p-4 text-center">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
               <svg
-                className="w-5 h-5 text-[#006557]"
+                className="w-4 h-4 sm:w-5 sm:h-5 text-[#006557]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -873,11 +851,11 @@ const DetailModulAjarPage: React.FC = () => {
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-              <span className="text-2xl font-bold text-[#006557]">
+              <span className="text-lg sm:text-2xl font-bold text-[#006557]">
                 {materialData.reposts_count || 0}
               </span>
             </div>
-            <p className="text-xs text-gray-500">Direpost</p>
+            <p className="text-[10px] sm:text-xs text-gray-500">Direpost</p>
           </div>
         </div>
 
