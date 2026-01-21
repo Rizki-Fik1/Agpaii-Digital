@@ -421,16 +421,17 @@ const DetailModulAjarPage: React.FC = () => {
     try {
       const parsed = new URL(url);
       if (parsed.hostname === "youtu.be") {
-        return `https://www.youtube.com/embed${parsed.pathname}`;
+        const videoId = parsed.pathname.slice(1);
+        return `https://www.youtube-nocookie.com/embed/${videoId}`;
       }
       if (parsed.searchParams.get("v")) {
-        return `https://www.youtube.com/embed/${parsed.searchParams.get("v")}`;
+        return `https://www.youtube-nocookie.com/embed/${parsed.searchParams.get("v")}`;
       }
       if (parsed.pathname.startsWith("/shorts/")) {
-        return `https://www.youtube.com/embed/${parsed.pathname.split("/")[2]}`;
+        return `https://www.youtube-nocookie.com/embed/${parsed.pathname.split("/")[2]}`;
       }
       if (parsed.pathname.startsWith("/embed/")) {
-        return url;
+        return url.replace("youtube.com", "youtube-nocookie.com");
       }
       return null;
     } catch {
@@ -919,9 +920,12 @@ const DetailModulAjarPage: React.FC = () => {
                       <iframe
                         src={embedUrl}
                         className="w-full h-48"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        title={content.name || content.judul || "YouTube Video"}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                       ></iframe>
                     </div>
                   )}
@@ -1013,9 +1017,12 @@ const DetailModulAjarPage: React.FC = () => {
                       <iframe
                         src={embedUrl}
                         className="w-full h-48"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        title={content.name || content.judul || "YouTube Video"}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                       ></iframe>
                     </div>
                   )}

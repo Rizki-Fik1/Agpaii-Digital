@@ -75,7 +75,7 @@ const DetailPerangkatAjarPage: React.FC = () => {
     const match = url.match(regExp);
     const videoId = match && match[2].length === 11 ? match[2] : null;
 
-    return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}` : null;
+    return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : null;
   };
 
   const handleOpenURL = (url: string) => {
@@ -457,8 +457,11 @@ const DetailPerangkatAjarPage: React.FC = () => {
                             src={getYoutubeEmbedUrl(content.url || content.value) || ""}
                             className="absolute top-0 left-0 w-full h-full rounded"
                             title={content.name}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
                             onLoad={() => {
                               setLoadingPreviews((prev) => ({
                                 ...prev,
