@@ -11,6 +11,10 @@ const nextConfig = {
 					},
 					{ key: "Pragma", value: "no-cache" },
 					{ key: "Expires", value: "0" },
+					{
+						key: "Content-Security-Policy",
+						value: "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://docs.google.com https://drive.google.com https://*.google.com https://file.agpaiidigital.org https://cdn-agpaiidigital.online;",
+					},
 				],
 			},
 		];

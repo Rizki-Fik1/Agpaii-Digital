@@ -68,7 +68,8 @@ const ModulAjarPage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchInputValue, setSearchInputValue] = useState<string>(""); // What user types
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Debounced value sent to API
   const [sortBy, setSortBy] = useState<"latest" | "likes" | "downloads" | "reposts">(
     "likes"
   );
@@ -97,6 +98,15 @@ const ModulAjarPage: React.FC = () => {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const LIMIT = 5;
+
+  // Debounce search input - wait 500ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInputValue);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInputValue]);
 
   // Fetch Jenjang & Fase
   useEffect(() => {
@@ -175,6 +185,15 @@ const ModulAjarPage: React.FC = () => {
         endpoint += `&search=${encodeURIComponent(searchQuery)}`;
       }
 
+      // Add jenjang and fase filters to API call
+      if (selectedJenjang) {
+        endpoint += `&jenjang_id=${selectedJenjang}`;
+      }
+
+      if (selectedFase) {
+        endpoint += `&fase_id=${selectedFase}`;
+      }
+
       const res = await axios.get(endpoint);
       const data = res.data.data || [];
       const meta = res.data.meta;
@@ -235,14 +254,14 @@ const ModulAjarPage: React.FC = () => {
     }
   };
 
-  // Reset dan fetch saat tab/search berubah
+  // Reset dan fetch saat tab/search/filter berubah
   useEffect(() => {
     setCards([]);
     setFilteredCards([]);
     setPage(1);
     setHasMore(true);
     fetchCards(1, false);
-  }, [activeTab, user?.id, searchQuery]);
+  }, [activeTab, user?.id, searchQuery, selectedJenjang, selectedFase]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -445,25 +464,53 @@ const ModulAjarPage: React.FC = () => {
             <option value="latest">Terbaru</option>
           </select>
 
-          <button
-            onClick={() => setSearchQuery("")}
-            className="w-full sm:flex-1 py-3 px-4 bg-white border border-gray-300 rounded-full text-gray-600 font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-          >
-            <svg
-              className="w-5 h-5 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <span className="truncate">Cari materi ajar</span>
-          </button>
+          <div className="relative w-full sm:flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchInputValue}
+              onChange={(e) => setSearchInputValue(e.target.value)}
+              placeholder="Cari materi ajar..."
+              className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-full text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#006557] focus:border-transparent"
+            />
+            {searchInputValue && (
+              <button
+                onClick={() => {
+                  setSearchInputValue("");
+                  setSearchQuery("");
+                }}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg
+                  className="w-5 h-5 text-gray-400 hover:text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
