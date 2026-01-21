@@ -728,7 +728,7 @@ const DetailModulAjarPage: React.FC = () => {
             src={
               materialData.user?.avatar
                 ? `https://file.agpaiidigital.org/${materialData.user.avatar}`
-                : "https://avatar.iran.liara.run/public"
+                : "/img/profileplacholder.png"
             }
             alt={materialData.user?.name}
             className="w-10 h-10 rounded-full object-cover"

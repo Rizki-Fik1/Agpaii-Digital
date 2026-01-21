@@ -380,7 +380,7 @@ const StrukturPage: React.FC = () => {
 						{filteredStructures.map((str) => {
 							const avatarSrc =
 								(str.user?.avatar && getImage(str.user.avatar)) ||
-								"https://avatar.iran.liara.run/public";
+								"/img/profileplacholder.png";
 							return (
 								<div
 									key={str.id}

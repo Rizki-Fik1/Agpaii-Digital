@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <Link
         href={
           pathname === "/auth/password-reset"
-            ? "/getting-started"
+            ? "/auth/login/email"
             : "/auth/password-reset"
         }
         className="flex items-center gap-2 pt-4 justify-start w-full pb-6"

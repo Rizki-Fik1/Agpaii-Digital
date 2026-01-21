@@ -131,7 +131,7 @@ export default function Profile() {
               <img
                 src={
                   (profile?.avatar !== null && getImage(profile.avatar)) ||
-                  "https://avatar.iran.liara.run/public"
+                  "/img/profileplacholder.png"
                 }
                 alt="avatar"
                 className="w-32 h-32 object-cover"

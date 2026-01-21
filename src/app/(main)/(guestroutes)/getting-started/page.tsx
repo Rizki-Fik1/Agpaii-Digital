@@ -24,7 +24,7 @@ export default function GettingStarted() {
           alt="Masjid" 
           className="w-14 h-14 sm:w-20 sm:h-20 object-contain"
         />
-        <p className="text-white text-center text-base md:text-xl font-bold mt-1">
+        <p className="text-white text-center text-base md:text-xl font-bold mt-2 mb-1">
           Assalamualaikum,
         </p>
         <p className="text-white text-center text-md sm:text-base">
@@ -80,8 +80,8 @@ export default function GettingStarted() {
               href="/auth/login/email"
               className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#00DB81] text-white text-xs sm:text-sm font-medium hover:bg-[#00c573] transition shadow-lg"
             >
-              <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span className="text-md">Login dengan email</span>
+              <EnvelopeIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <span className="text-lg">Login dengan email</span>
             </Link>
           </motion.div>
 
@@ -94,8 +94,8 @@ export default function GettingStarted() {
               href="/auth/login/nik"
               className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#FDFDFD] text-black text-xs sm:text-sm font-medium hover:bg-gray-100 transition shadow-lg"
             >
-              <IdentificationIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span>Login dengan NIK</span>
+              <IdentificationIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <span className="text-lg">Login dengan NIK</span>
             </Link>
           </motion.div>
 
@@ -118,7 +118,7 @@ export default function GettingStarted() {
           >
             <Link
               href="/auth/register"
-              className="block w-full py-3 sm:py-3 bg-[#01925B] text-white rounded-full text-xs sm:text-sm font-medium rounded-f-full text-center hover:bg-[#1a1a1a] transition shadow-lg"
+              className="block w-full py-3 sm:py-3 bg-[#01925B] text-white rounded-full text-md sm:text-lg font-medium rounded-f-full text-center hover:bg-[#1a1a1a] transition shadow-lg"
             >
               Daftar Akun
             </Link>

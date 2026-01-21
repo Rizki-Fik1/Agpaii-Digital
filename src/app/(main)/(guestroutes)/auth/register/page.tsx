@@ -36,12 +36,12 @@ export default function Register() {
   const [nisn, setNisn] = useState("");
 
   const roleOptions = [
-    { name: "Siswa", value: STUDENT_ROLE_ID },
     { name: "Guru PAI", value: 2 },
-    { name: "Kepala Sekolah & Guru PAI", value: 11 },
+    { name: "Kepala Sekolah", value: 11 },
     { name: "Pengawas PAI", value: 7 },
     { name: "Anggota Luar Biasa", value: 9 },
     { name: "Anggota Kehormatan", value: 10 },
+    { name: "Siswa", value: STUDENT_ROLE_ID },
   ];
 
   const isSiswaSelected = selectedRole?.value === STUDENT_ROLE_ID;

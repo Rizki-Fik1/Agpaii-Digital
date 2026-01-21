@@ -99,7 +99,7 @@ export default function VerifyPage() {
       },
       onSuccess: async (data) => {
         toast.success(data.message);
-        router.push("/auth/login");
+        router.push("/auth/login/email");
       },
     });
 

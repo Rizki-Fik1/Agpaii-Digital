@@ -272,7 +272,7 @@ export default function ChatIndex() {
 										<img
 											src={
 												!u.avatar || u.avatar === "users/default.png"
-													? "https://avatar.iran.liara.run/public"
+													? "/img/profileplacholder.png"
 													: `${process.env.NEXT_PUBLIC_STORAGE_URL || ""}/${
 															u.avatar
 													  }`

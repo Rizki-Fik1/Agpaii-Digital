@@ -145,7 +145,7 @@ export default function EditStudentProfilePage() {
           <div className="relative inline-block">
             <div className="border-4 border-white rounded-full overflow-hidden bg-white">
               <img
-                src={avatarPreview || "https://avatar.iran.liara.run/public"}
+                src={avatarPreview || "/img/profileplacholder.png"}
                 alt="avatar"
                 className="size-28 object-cover"
               />

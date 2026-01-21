@@ -62,13 +62,24 @@ export default function Home() {
     fetch(
       `${process.env.NEXT_PUBLIC_MITRA_URL}/api/feature-status/ramadhan_feature`
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          // If API returns 404 or error, just disable the feature
+          setIsRamadhanFeatureEnabled(false);
+          setIsLoading(false);
+          return null;
+        }
+        return response.json();
+      })
       .then((data) => {
-        setIsRamadhanFeatureEnabled(data.is_enabled);
+        if (data) {
+          setIsRamadhanFeatureEnabled(data.is_enabled);
+        }
         setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching feature status:", error);
+        setIsRamadhanFeatureEnabled(false);
         setIsLoading(false);
       });
   }, []);
@@ -359,7 +370,7 @@ export default function Home() {
             <img
               src={
                 (auth?.avatar !== null && getImage(auth.avatar)) ||
-                "https://avatar.iran.liara.run/public"
+                "/img/profileplacholder.png"
               }
               className="object-cover rounded-full size-10"
               alt=""
@@ -529,7 +540,7 @@ export default function Home() {
                     <img
                       src={
                         (post.author?.avatar && getImage(post.author.avatar)) ||
-                        "https://avatar.iran.liara.run/public"
+                        "/img/profileplacholder.png"
                       }
                       alt={post.author?.name}
                       className="w-10 h-10 rounded-full object-cover flex-shrink-0"

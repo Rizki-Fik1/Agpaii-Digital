@@ -82,13 +82,24 @@ export default function Home() {
     fetch(
       `${process.env.NEXT_PUBLIC_MITRA_URL}/api/feature-status/ramadhan_feature`
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          // If API returns 404 or error, just disable the feature
+          setIsRamadhanFeatureEnabled(false);
+          setIsLoading(false);
+          return null;
+        }
+        return response.json();
+      })
       .then((data) => {
-        setIsRamadhanFeatureEnabled(data.is_enabled);
+        if (data) {
+          setIsRamadhanFeatureEnabled(data.is_enabled);
+        }
         setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching feature status:", error);
+        setIsRamadhanFeatureEnabled(false);
         setIsLoading(false);
       });
   }, []);

@@ -27,6 +27,8 @@ export default function EditPostPage() {
   const [youtubeMode, setYoutubeMode] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [existingDocument, setExistingDocument] = useState<string | null>(null);
+  const [deleteExistingImages, setDeleteExistingImages] = useState(false);
+  const [deleteExistingDocument, setDeleteExistingDocument] = useState(false);
   const [cropMode, setCropMode] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState("");
 
@@ -119,8 +121,26 @@ export default function EditPostPage() {
     if (documents.length > 0) {
       data.append("document", documents[0]); // Single file
     }
+    // Flag untuk menghapus gambar existing jika ada flag delete (baik dihapus manual atau direplace gambar baru)
+    if (deleteExistingImages) {
+      data.append("clear_images", "1");
+    }
+    // Flag untuk menghapus document existing jika ada flag delete
+    if (deleteExistingDocument) {
+      data.append("clear_document", "1");
+    }
     // form method spoofing for Laravel
     data.append("_method", "PUT");
+    
+    // Debug logging
+    console.log("Sending data to backend:");
+    console.log("- body:", text);
+    console.log("- youtube_url:", youtubeUrl);
+    console.log("- images count:", images.length);
+    console.log("- documents count:", documents.length);
+    console.log("- deleteExistingImages:", deleteExistingImages);
+    console.log("- deleteExistingDocument:", deleteExistingDocument);
+    
     const res = await API.post(`post/${id}`, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -130,8 +150,21 @@ export default function EditPostPage() {
   const { mutate, isPending } = useMutation({
     mutationFn: updatePost,
     onSuccess: async () => {
+      // Invalidate all posts queries to refresh the feed
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
+      // Invalidate specific post query
+      await queryClient.invalidateQueries({ queryKey: ["post", id] });
+      // Redirect to social media feed
       router.push("/social-media");
+    },
+    onError: (error: any) => {
+      console.error("Error updating post:", error);
+      console.error("Error response:", error.response?.data);
+      alert(
+        `Gagal menyimpan postingan: ${
+          error.response?.data?.message || error.message || "Unknown error"
+        }`
+      );
     },
   });
 
@@ -191,6 +224,7 @@ export default function EditPostPage() {
                 const file = e.target.files[0];
                 if (!validateFileSize(file)) return;
                 setExistingImageUrl(null);
+                setDeleteExistingImages(true); // Tandai gambar lama untuk dihapus (replace)
                 openCropper(file);
               }}
             />
@@ -206,6 +240,7 @@ export default function EditPostPage() {
                 const file = e.target.files[0];
                 if (!validateFileSize(file)) return;
                 setExistingDocument(null);
+                setDeleteExistingDocument(true); // Tandai dokumen lama untuk dihapus (replace)
                 setDocuments([file]);
               }}
             />
@@ -226,11 +261,21 @@ export default function EditPostPage() {
         <div className="bg-slate-200 p-4 rounded-lg mt-6 space-y-4">
           {/* Existing Image */}
           {existingImageUrl && (
-            <div className="relative">
+            <div className="relative inline-block">
               <img
                 src={existingImageUrl}
                 className="w-24 h-24 rounded-md object-cover"
               />
+              <button
+                type="button"
+                onClick={() => {
+                  setExistingImageUrl(null);
+                  setDeleteExistingImages(true);
+                }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white border rounded-full p-1 hover:bg-red-600"
+              >
+                <XMarkIcon className="size-4" />
+              </button>
             </div>
           )}
           {/* New image preview */}
@@ -251,7 +296,17 @@ export default function EditPostPage() {
           {/* Existing Document */}
           {existingDocument && (
             <div className="relative bg-white p-3 rounded-md border">
-              <p className="text-sm font-medium">📄 {existingDocument.split('/').pop()}</p>
+              <p className="text-sm font-medium pr-8">📄 {existingDocument.split('/').pop()}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setExistingDocument(null);
+                  setDeleteExistingDocument(true);
+                }}
+                className="absolute top-2 right-2 bg-red-500 text-white border rounded-full p-1 hover:bg-red-600"
+              >
+                <XMarkIcon className="size-4" />
+              </button>
             </div>
           )}
           {/* New doc */}

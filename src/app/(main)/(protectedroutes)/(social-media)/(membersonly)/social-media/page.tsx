@@ -98,7 +98,7 @@ export default function SocialMedia() {
         <img
           src={
             (user?.avatar !== null && getImage(user.avatar)) ||
-            "https://avatar.iran.liara.run/public"
+            "/img/profileplacholder.png"
           }
           alt="user-avatar"
           className="rounded-full size-11 min-w-11 min-h-11 object-cover border border-slate-200"

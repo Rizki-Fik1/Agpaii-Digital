@@ -94,7 +94,7 @@ export default function StudentProfilePage() {
             <img
               src={
                 (auth?.avatar && getImage(auth.avatar)) ||
-                "https://avatar.iran.liara.run/public"
+                "/img/profileplacholder.png"
               }
               alt="avatar"
               className="size-28 object-cover"
