@@ -35,6 +35,17 @@ const TambahPerangkatAjar: React.FC = () => {
   const router = useRouter();
   const { auth: user } = useAuth();
   const [gradeOptions, setGradeOptions] = useState<GradeOption[]>([]);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    type: 'info',
+    title: '',
+    message: '',
+  });
 
   const [formData, setFormData] = useState<FormData>({
     topic: "",
@@ -213,9 +224,19 @@ const TambahPerangkatAjar: React.FC = () => {
     }
   };
 
+  const showAlertModal = (
+    type: 'success' | 'error' | 'warning' | 'info',
+    title: string,
+    message: string,
+    onConfirm?: () => void
+  ) => {
+    setAlertConfig({ type, title, message, onConfirm });
+    setShowAlert(true);
+  };
+
   const handleSubmit = async () => {
     if (!user?.id) {
-      alert("User tidak ditemukan. Silakan login ulang.");
+      showAlertModal('error', 'Error', 'User tidak ditemukan. Silakan login ulang.');
       return;
     }
 
@@ -237,7 +258,11 @@ const TambahPerangkatAjar: React.FC = () => {
       if (!formData.grade_id) missingFields.push("Kelas");
       if (!formData.description) missingFields.push("Deskripsi");
       
-      alert(`Pastikan semua field wajib terisi!\n\nField yang kosong: ${missingFields.join(", ")}`);
+      showAlertModal(
+        'warning',
+        'Field Tidak Lengkap',
+        `Pastikan semua field wajib terisi!\n\nField yang kosong: ${missingFields.join(", ")}`
+      );
       return;
     }
 
@@ -247,7 +272,7 @@ const TambahPerangkatAjar: React.FC = () => {
       const token = localStorage.getItem("access_token");
       
       if (!token) {
-        alert("Sesi login habis. Silakan login ulang.");
+        showAlertModal('error', 'Sesi Habis', 'Sesi login habis. Silakan login ulang.');
         return;
       }
       
@@ -291,14 +316,20 @@ const TambahPerangkatAjar: React.FC = () => {
       );
 
       if (response.data) {
-        alert("Perangkat ajar berhasil disimpan!");
-        router.push("/perangkat-ajar");
+        showAlertModal(
+          'success',
+          'Berhasil!',
+          'Perangkat ajar berhasil disimpan!',
+          () => router.push("/perangkat-ajar")
+        );
       } else {
-        alert(response.data.message || "Gagal menyimpan data");
+        showAlertModal('error', 'Gagal', response.data.message || "Gagal menyimpan data");
       }
     } catch (error: any) {
       console.error("Error submitting data:", error);
-      alert(
+      showAlertModal(
+        'error',
+        'Error',
         error.response?.data?.message || "Terjadi kesalahan saat menyimpan data."
       );
     } finally {
@@ -306,9 +337,73 @@ const TambahPerangkatAjar: React.FC = () => {
     }
   };
 
+  const getAlertIcon = () => {
+    switch (alertConfig.type) {
+      case 'success':
+        return (
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+        );
+      case 'warning':
+        return (
+          <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="pt-[5.21rem] p-6 bg-white min-h-screen">
       <TopBar withBackButton>Tambah Perangkat Ajar</TopBar>
+
+      {/* Custom Alert Modal */}
+      {showAlert && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            {getAlertIcon()}
+            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+              {alertConfig.title}
+            </h3>
+            <p className="text-gray-600 text-center mb-6 whitespace-pre-line">
+              {alertConfig.message}
+            </p>
+            <button
+              onClick={() => {
+                setShowAlert(false);
+                if (alertConfig.onConfirm) {
+                  alertConfig.onConfirm();
+                }
+              }}
+              className="w-full px-4 py-3 bg-[#006557] hover:bg-[#005547] text-white rounded-xl font-medium transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
         {/* Topik */}
         <div>

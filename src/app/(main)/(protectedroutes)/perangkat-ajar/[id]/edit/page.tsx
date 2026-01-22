@@ -44,6 +44,17 @@ const EditPerangkatAjar: React.FC = () => {
 	const router = useRouter();
 	const { auth: user } = useAuth();
 	const [grades, setGrades] = useState<Grade[]>([]);
+	const [showAlert, setShowAlert] = useState(false);
+	const [alertConfig, setAlertConfig] = useState<{
+		type: 'success' | 'error' | 'warning' | 'info';
+		title: string;
+		message: string;
+		onConfirm?: () => void;
+	}>({
+		type: 'info',
+		title: '',
+		message: '',
+	});
 	const [formData, setFormData] = useState<FormData>({
 		id: null,
 		topic: "",
@@ -84,11 +95,14 @@ const EditPerangkatAjar: React.FC = () => {
 			if (!materialId) return;
 
 			try {
+				const token = localStorage.getItem("access_token");
+				
 				const response = await axios.get(
 					`https://2024.agpaiidigital.org/api/bahanajar/${materialId}`,
+					{
+						headers: token ? { Authorization: `Bearer ${token}` } : {},
+					}
 				);
-				console.log('Material Data:', response.data.data);
-				console.log('Contents:', response.data.data.contents);
 				const material = response.data.data;
 				setFormData({
 					id: material.id || null,
@@ -110,11 +124,10 @@ const EditPerangkatAjar: React.FC = () => {
 							value: c.value || "",
 							file: null,
 						};
-						console.log('Mapped content:', mappedContent);
 						return mappedContent;
 					}),
 					image: material.image
-						? `${process.env.NEXT_PUBLIC_MITRA_URL}/public/${material.image}`
+						? `https://2024.agpaiidigital.org/${material.image}`
 						: null,
 					bannerImageType: "",
 					bannerImageName: "",
@@ -235,12 +248,6 @@ const EditPerangkatAjar: React.FC = () => {
 		return ext === 'pdf';
 	};
 
-	const getFileExtension = (url: string) => {
-		if (!url) return '';
-		const parts = url.split('.');
-		return parts[parts.length - 1].toLowerCase();
-	};
-
 	const isOfficeFile = (fileName: string) => {
 		const ext = fileName.split('.').pop()?.toLowerCase();
 		return ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext || '');
@@ -292,6 +299,16 @@ const EditPerangkatAjar: React.FC = () => {
 		}
 	};
 
+	const showAlertModal = (
+		type: 'success' | 'error' | 'warning' | 'info',
+		title: string,
+		message: string,
+		onConfirm?: () => void
+	) => {
+		setAlertConfig({ type, title, message, onConfirm });
+		setShowAlert(true);
+	};
+
 	const handleSubmit = async () => {
 		if (
 			!formData.topic ||
@@ -299,7 +316,7 @@ const EditPerangkatAjar: React.FC = () => {
 			!formData.subject ||
 			!formData.grade_id
 		) {
-			alert("Pastikan semua field wajib terisi!");
+			showAlertModal('warning', 'Field Tidak Lengkap', 'Pastikan semua field wajib terisi!');
 			return;
 		}
 
@@ -318,36 +335,37 @@ const EditPerangkatAjar: React.FC = () => {
 		data.append("type", formData.type || "");
 		data.append("description", formData.description || "");
 
-		// contents - hanya kirim content yang ada perubahan atau baru
-		let contentIndex = 0;
-		formData.contents.forEach((content) => {
-			console.log(`Processing content:`, content);
-			
-			// Skip content yang tidak ada perubahan (ada ID, tidak ada file baru)
-			if (content.id && !content.file && content.type === "file") {
-				console.log(`Skipping unchanged file content with ID: ${content.id}`);
-				return; // Skip, tidak kirim ke backend
-			}
-			
-			if (content.id) {
-				data.append(`contents[${contentIndex}][id]`, String(content.id));
-			}
+		// contents - kirim semua content (yang lama dan yang baru)
+		formData.contents.forEach((content, idx) => {
+			console.log(`Processing content ${idx}:`, content);
 			
 			if (content.type === "file") {
-				data.append(`contents[${contentIndex}][name]`, content.name || "");
-				data.append(`contents[${contentIndex}][format_doc]`, "File");
+				// Gunakan nama file jika nama konten kosong
+				const contentName = content.name || (content.file ? content.file.name : "File");
+				data.append(`contents[${idx}][name]`, contentName);
+				data.append(`contents[${idx}][format_doc]`, "File");
 				
-				// Hanya kirim jika ada file baru
+				// Jika ada ID, kirim ID (content lama)
+				if (content.id) {
+					data.append(`contents[${idx}][id]`, String(content.id));
+				}
+				
+				// Jika ada file baru, kirim file
 				if (content.file) {
-					console.log(`Sending new file for content ${contentIndex}`);
-					data.append(`contents[${contentIndex}][file]`, content.file);
-					contentIndex++;
+					console.log(`Sending new file for content ${idx}`);
+					data.append(`contents[${idx}][file]`, content.file);
 				}
 			} else if (content.type === "youtube") {
-				data.append(`contents[${contentIndex}][name]`, content.name || "Video YouTube");
-				data.append(`contents[${contentIndex}][format_doc]`, "Youtube");
-				data.append(`contents[${contentIndex}][url]`, content.youtube_url || content.url || "");
-				contentIndex++;
+				// Gunakan default name jika kosong
+				const contentName = content.name || "Video YouTube";
+				data.append(`contents[${idx}][name]`, contentName);
+				data.append(`contents[${idx}][format_doc]`, "Youtube");
+				data.append(`contents[${idx}][url]`, content.youtube_url || content.url || "");
+				
+				// Jika ada ID, kirim ID (content lama)
+				if (content.id) {
+					data.append(`contents[${idx}][id]`, String(content.id));
+				}
 			}
 		});
 
@@ -361,7 +379,8 @@ const EditPerangkatAjar: React.FC = () => {
 			const token = localStorage.getItem("access_token");
 			
 			if (!token) {
-				alert("Sesi login habis. Silakan login ulang.");
+				showAlertModal('error', 'Sesi Habis', 'Sesi login habis. Silakan login ulang.');
+				setLoading(false);
 				return;
 			}
 
@@ -377,20 +396,63 @@ const EditPerangkatAjar: React.FC = () => {
 			);
 
 			if (response.data) {
-				alert("Perangkat ajar berhasil diupdate!");
-				router.push("/perangkat-ajar");
+				showAlertModal(
+					'success',
+					'Berhasil!',
+					'Perangkat ajar berhasil diupdate!',
+					() => router.push("/perangkat-ajar")
+				);
 			} else {
-				alert(response.data.message || "Gagal menyimpan data");
+				showAlertModal('error', 'Gagal', response.data.message || "Gagal menyimpan data");
 			}
 		} catch (error: any) {
 			console.error("Error submitting data:", error);
-			alert(
+			showAlertModal(
+				'error',
+				'Error',
 				error.response?.data?.message || 
 				error.response?.data?.error?.join(", ") ||
-					"Terjadi kesalahan saat menyimpan data.",
+				"Terjadi kesalahan saat menyimpan data."
 			);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const getAlertIcon = () => {
+		switch (alertConfig.type) {
+			case 'success':
+				return (
+					<div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+						<svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+						</svg>
+					</div>
+				);
+			case 'error':
+				return (
+					<div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+						<svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</div>
+				);
+			case 'warning':
+				return (
+					<div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+						<svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+						</svg>
+					</div>
+				);
+			default:
+				return (
+					<div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+						<svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+					</div>
+				);
 		}
 	};
 
@@ -404,7 +466,34 @@ const EditPerangkatAjar: React.FC = () => {
 
 	return (
 		<div className="pt-[5.21rem] p-6 bg-white min-h-screen">
-			<TopBar withBackButton>Tambah Perangkat Ajar</TopBar>
+			<TopBar withBackButton>Edit Perangkat Ajar</TopBar>
+
+			{/* Custom Alert Modal */}
+			{showAlert && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+					<div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+						{getAlertIcon()}
+						<h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+							{alertConfig.title}
+						</h3>
+						<p className="text-gray-600 text-center mb-6 whitespace-pre-line">
+							{alertConfig.message}
+						</p>
+						<button
+							onClick={() => {
+								setShowAlert(false);
+								if (alertConfig.onConfirm) {
+									alertConfig.onConfirm();
+								}
+							}}
+							className="w-full px-4 py-3 bg-[#006557] hover:bg-[#005547] text-white rounded-xl font-medium transition-colors"
+						>
+							OK
+						</button>
+					</div>
+				</div>
+			)}
+
 			<div className="space-y-4">
 				<div>
 					<label className="block mb-2 text-sm font-medium">Topik</label>
@@ -702,9 +791,8 @@ const EditPerangkatAjar: React.FC = () => {
 													<div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
 														<iframe
 															src={getYoutubeEmbedUrl(content.youtube_url || content.url || '') || ''}
-															className="absolute top-0 left-0 w-full h-full rounded"
+															className="absolute top-0 left-0 w-full h-full rounded border-0"
 															title="YouTube Preview"
-															frameBorder="0"
 															allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 															allowFullScreen
 														/>
