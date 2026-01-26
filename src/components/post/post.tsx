@@ -66,7 +66,6 @@ export default function Post({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   // Delete state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [deletePending, setDeletePending] = useState(false);
   const [likeConfirmed, setLikeConfirmed] = useState(false);
   const youtubeId = getYoutubeId(post.youtube_url || "");
   const [isLiked, setIsLiked] = useState(post.is_liked);
@@ -76,11 +75,15 @@ export default function Post({
     return API[liked ? "post" : "delete"](`post/${post.id}/like`);
   };
 
-  const { mutate: likeUnlikePost } = useMutation({
+  const { mutate: likeUnlikePost } = useMutation<any, Error, boolean, { prevLiked: boolean; prevCount: number }>({
     mutationFn: handleLikeUnlikePost,
-    onError: (_, __, context: any) => {
+    onMutate: async (nextLiked) => {
+      // Save previous state for rollback
+      return { prevLiked: isLiked, prevCount: likesCount };
+    },
+    onError: (_, __, context) => {
       // rollback kalau gagal
-      if (context?.prevLiked !== undefined) {
+      if (context) {
         setIsLiked(context.prevLiked);
         setLikesCount(context.prevCount);
       }
@@ -88,9 +91,6 @@ export default function Post({
   });
 
   const handleLikeClick = () => {
-    const prevLiked = isLiked;
-    const prevCount = likesCount;
-
     const nextLiked = !isLiked;
 
     // 🔥 UI LANGSUNG BERUBAH
@@ -98,31 +98,28 @@ export default function Post({
     setLikesCount((c) => (nextLiked ? c + 1 : c - 1));
 
     // 🔄 Backend jalan di belakang
-    likeUnlikePost(nextLiked, {
-      context: {
-        prevLiked,
-        prevCount,
-      },
-    });
+    likeUnlikePost(nextLiked);
   };
 
   // Delete mutation
   const handleDeletePost = async () => {
     if (!user || post.author_id !== user.id) return;
+    
+    // Optimistic update: langsung tutup modal dan hapus dari UI
+    setDeleteModalOpen(false);
+    toast.info("Menghapus postingan...");
+    
     try {
-      setDeletePending(true);
       const res = await API.delete(`/post/${post.id}`);
       if (res.status === 200) {
         toast.success("Postingan berhasil dihapus");
-        await queryClient.invalidateQueries({ queryKey: ["posts"] });
+        // Background sync
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
         return res.data.message;
       }
     } catch (error) {
       console.error("Error deleting post:", error);
       toast.error("Gagal menghapus postingan. Silakan coba lagi.");
-    } finally {
-      setDeletePending(false);
-      setDeleteModalOpen(false);
     }
   };
   const openImageModal = (imageSrc: string) => {
@@ -179,8 +176,7 @@ export default function Post({
             {/* DELETE BUTTON */}
             <button
               onClick={handleDeleteClick}
-              disabled={deletePending}
-              className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition disabled:opacity-50"
+              className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
               title="Hapus postingan"
             >
               <TrashIcon className="size-4" />
@@ -395,17 +391,14 @@ export default function Post({
           <div className="flex justify-center gap-3">
             <button
               onClick={cancelDelete}
-              disabled={deletePending}
-              className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               Batal
             </button>
             <button
               onClick={confirmDelete}
-              disabled={deletePending}
-              className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 flex items-center gap-2"
             >
-              {deletePending && <Loader className="size-4" />}
               Hapus
             </button>
           </div>

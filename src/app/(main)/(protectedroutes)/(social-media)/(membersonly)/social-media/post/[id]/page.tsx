@@ -72,16 +72,51 @@ export default function DetailPost() {
   });
 
   /* ---------------- DELETE POST ---------------- */
-  const { mutate: deletePost, isPending: deletePending } = useMutation({
+  const { mutate: deletePost, isPending: isDeleting } = useMutation({
     mutationFn: async () => {
       const res = await API.delete("/post/" + id);
       if (res.status === 200) return res.data.message;
     },
+    onMutate: async () => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["posts"] });
+      
+      // Snapshot previous value untuk rollback
+      const previousPosts = queryClient.getQueryData(["posts"]);
+      
+      // Optimistic update: hapus post dari cache SEMUA query keys
+      queryClient.setQueriesData({ queryKey: ["posts"] }, (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: page.data.filter((post: any) => post.id !== parseInt(id as string))
+          }))
+        };
+      });
+      
+      return { previousPosts };
+    },
     onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: ["posts", user.id] });
-      toast.info("Postingan berhasil dihapus");
+      // Tutup modal dan redirect SETELAH API berhasil
       setmodalOpen(false);
+      
+      // Toast dan redirect bersamaan
+      toast.success("Postingan berhasil dihapus");
       router.back();
+      
+      // Background sync
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: (err, variables, context: any) => {
+      // Rollback jika error
+      if (context?.previousPosts) {
+        queryClient.setQueryData(["posts"], context.previousPosts);
+      }
+      setmodalOpen(false);
+      toast.error("Gagal menghapus postingan");
     },
   });
 
@@ -132,24 +167,26 @@ export default function DetailPost() {
           Apakah anda yakin ingin menghapus <br /> postingan ini?
         </p>
         <div className="flex justify-center pt-8 gap-3">
-          {deletePending ? (
-            <Loader className="size-8" />
-          ) : (
-            <>
-              <span
-                onClick={deletePost as any}
-                className="px-4 py-2 rounded-md cursor-default bg-[#009788] text-white"
-              >
-                Hapus Postingan
-              </span>
-              <span
-                onClick={() => setmodalOpen(false)}
-                className="px-4 py-2 rounded-md border border-slate-300 cursor-default"
-              >
-                Batal
-              </span>
-            </>
-          )}
+          <button
+            onClick={() => deletePost()}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-md cursor-pointer bg-[#009788] text-white hover:bg-[#007d6f] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isDeleting && (
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+            )}
+            {isDeleting ? "Menghapus..." : "Hapus Postingan"}
+          </button>
+          <button
+            onClick={() => setmodalOpen(false)}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-md border border-slate-300 cursor-pointer hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Batal
+          </button>
         </div>
       </Modal>
 

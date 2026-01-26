@@ -1317,34 +1317,89 @@ export default function KelasDetailPage() {
               {/* Media Section */}
               <div className="bg-white border-b border-slate-200">
                 {selectedMaterial.type === "video" ? (
-                  <div className="relative w-full pt-[56.25%] bg-slate-900">
-                    <iframe
-                      src={selectedMaterial.fileUrl}
-                      className="absolute inset-0 w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <div className="p-6 text-center">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-2xl mb-3">
-                      <DocumentTextIcon className="size-10 text-red-500" />
+                  selectedMaterial.fileUrl || selectedMaterial.file_url ? (
+                    <div className="space-y-3">
+                      <div className="relative w-full pt-[56.25%] bg-slate-900">
+                        <iframe
+                          src={
+                            (() => {
+                              const url = selectedMaterial.fileUrl || selectedMaterial.file_url || "";
+                              if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                                // Extract video ID
+                                let videoId = '';
+                                if (url.includes('youtu.be/')) {
+                                  videoId = url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
+                                } else if (url.includes('watch?v=')) {
+                                  videoId = url.split('watch?v=')[1]?.split('&')[0];
+                                } else if (url.includes('embed/')) {
+                                  videoId = url.split('embed/')[1]?.split('?')[0];
+                                }
+                                return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+                              }
+                              return url;
+                            })()
+                          }
+                          className="absolute inset-0 w-full h-full"
+                          title="Video Preview"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          referrerPolicy="strict-origin-when-cross-origin"
+                        />
+                      </div>
+                      <a
+                        href={selectedMaterial.fileUrl || selectedMaterial.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 text-center"
+                      >
+                        Tonton di YouTube
+                      </a>
                     </div>
-                    <p className="text-sm font-medium text-slate-700">
-                      {selectedMaterial.title}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">Dokumen PDF</p>
-                    <button
-                      onClick={() => {
-                        if (selectedMaterial.fileUrl) {
-                          window.open(selectedMaterial.fileUrl, "_blank");
-                        }
-                      }}
-                      className="mt-4 px-6 py-2.5 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-600/20"
-                    >
-                      Buka Dokumen PDF
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-2xl mb-3">
+                        <PlayIcon className="size-10 text-blue-500" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-700">
+                        Video belum tersedia
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">Link video belum ditambahkan</p>
+                    </div>
+                  )
+                ) : (
+                  selectedMaterial.fileUrl || selectedMaterial.file_url ? (
+                    <div className="space-y-3 p-4">
+                      <div className="bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                        <iframe
+                          src={selectedMaterial.fileUrl || selectedMaterial.file_url}
+                          className="w-full h-[400px]"
+                          title="PDF Preview"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const url = selectedMaterial.fileUrl || selectedMaterial.file_url;
+                          if (url) {
+                            window.open(url, "_blank");
+                          }
+                        }}
+                        className="w-full px-6 py-3 bg-red-600 text-white text-sm font-medium rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                      >
+                        <DocumentTextIcon className="size-5" />
+                        Buka PDF di Tab Baru
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-2xl mb-3">
+                        <DocumentTextIcon className="size-10 text-red-500" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-700">
+                        PDF belum tersedia
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1">File PDF belum ditambahkan</p>
+                    </div>
+                  )
                 )}
               </div>
 
@@ -1424,7 +1479,15 @@ export default function KelasDetailPage() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-slate-500">Tanggal Dibuat</span>
                       <span className="text-slate-700 font-medium">
-                        {selectedMaterial.createdAt}
+                        {selectedMaterial.createdAt || selectedMaterial.created_at
+                          ? new Date(
+                              selectedMaterial.createdAt || selectedMaterial.created_at
+                            ).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : "-"}
                       </span>
                     </div>
                   </div>

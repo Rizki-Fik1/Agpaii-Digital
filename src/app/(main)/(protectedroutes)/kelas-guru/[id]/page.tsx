@@ -197,14 +197,42 @@ export default function KelasGuruDetailPage() {
   const [loadingBankQuestions, setLoadingBankQuestions] = useState(false);
   const [showEditMaterialModal, setShowEditMaterialModal] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [showMaterialDetailModal, setShowMaterialDetailModal] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+  const [loadingMaterialDetail, setLoadingMaterialDetail] = useState(false);
+  const [showDeleteMaterialModal, setShowDeleteMaterialModal] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<number | null>(null);
   const [editMaterialData, setEditMaterialData] = useState({
     title: "",
     description: "",
     type: "pdf" as "pdf" | "video",
     duration: "",
+    fileUrl: "",
   });
+  const [urlError, setUrlError] = useState("");
+  const [editUrlError, setEditUrlError] = useState("");
 
   // Helper Functions
+  const validateMaterialUrl = (url: string, type: "pdf" | "video"): string => {
+    if (!url.trim()) return "";
+    
+    if (type === "video") {
+      // Validasi YouTube URL
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/).+/;
+      if (!youtubeRegex.test(url)) {
+        return "URL harus berupa link YouTube yang valid";
+      }
+    } else if (type === "pdf") {
+      // Validasi PDF/PPT URL
+      const docRegex = /\.(pdf|ppt|pptx)(\?.*)?$/i;
+      if (!docRegex.test(url) && !url.includes('drive.google.com') && !url.includes('docs.google.com')) {
+        return "URL harus berupa link file PDF atau PowerPoint (.pdf, .ppt, .pptx)";
+      }
+    }
+    
+    return "";
+  };
+
   const normalizeQuestion = (q: any) => ({
     id: String(q.id),
     question: q.question,
@@ -391,6 +419,40 @@ export default function KelasGuruDetailPage() {
     } catch (e) {
       console.error("Fetch materi gagal", e);
       setMaterials([]);
+    }
+  };
+
+  const fetchMaterialDetail = async (materialId: number) => {
+    setLoadingMaterialDetail(true);
+    setShowMaterialDetailModal(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${materialId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("Gagal fetch detail materi");
+      const json = await res.json();
+      
+      // Normalize data - handle both snake_case and camelCase
+      const materialData = json.data;
+      const normalizedMaterial = {
+        ...materialData,
+        fileUrl: materialData.fileUrl || materialData.file_url || "",
+      };
+      
+      console.log("Material data received:", normalizedMaterial);
+      setSelectedMaterial(normalizedMaterial);
+    } catch (e) {
+      console.error("Fetch detail materi gagal", e);
+      toast.error("Gagal memuat detail materi");
+      setShowMaterialDetailModal(false);
+    } finally {
+      setLoadingMaterialDetail(false);
     }
   };
 
@@ -589,24 +651,66 @@ export default function KelasGuruDetailPage() {
       description: material.description,
       type: material.type,
       duration: material.duration,
+      fileUrl: material.fileUrl || material.file_url || "",
     });
     setShowEditMaterialModal(true);
   };
 
-  const handleSaveEditMaterial = () => {
+  const handleSaveEditMaterial = async () => {
     if (
       !editingMaterial ||
       !editMaterialData.title ||
       !editMaterialData.description
     )
       return;
-    setMaterials((prev) =>
-      prev.map((m) =>
-        m.id === editingMaterial.id ? { ...m, ...editMaterialData } : m
-      )
-    );
-    setShowEditMaterialModal(false);
-    setEditingMaterial(null);
+    
+    // Validate URL
+    const error = validateMaterialUrl(editMaterialData.fileUrl, editMaterialData.type);
+    if (error) {
+      setEditUrlError(error);
+      toast.error(error);
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${editingMaterial.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: editMaterialData.title,
+            description: editMaterialData.description,
+            type: editMaterialData.type,
+            duration: editMaterialData.duration,
+            file_url: editMaterialData.fileUrl,
+          }),
+        }
+      );
+      
+      if (!res.ok) throw new Error("Gagal update materi");
+      
+      const json = await res.json();
+      
+      // Update local state
+      setMaterials((prev) =>
+        prev.map((m) =>
+          m.id === editingMaterial.id ? json.data : m
+        )
+      );
+      
+      toast.success("Materi berhasil diperbarui");
+      setShowEditMaterialModal(false);
+      setEditingMaterial(null);
+      setEditUrlError("");
+    } catch (e) {
+      console.error("Gagal update materi", e);
+      toast.error("Gagal memperbarui materi");
+    }
   };
 
 
@@ -722,6 +826,15 @@ export default function KelasGuruDetailPage() {
 
   const handleAddMaterial = async () => {
     if (!newMaterial.title || !newMaterial.description) return;
+    
+    // Validate URL
+    const error = validateMaterialUrl(newMaterial.fileUrl, newMaterial.type);
+    if (error) {
+      setUrlError(error);
+      toast.error(error);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem("access_token");
       const res = await fetch(
@@ -743,6 +856,7 @@ export default function KelasGuruDetailPage() {
       );
       if (!res.ok) throw new Error("Gagal simpan materi");
       await fetchMaterials();
+      toast.success("Materi berhasil ditambahkan");
       setShowAddMaterialModal(false);
       setNewMaterial({
         title: "",
@@ -752,18 +866,25 @@ export default function KelasGuruDetailPage() {
         fileUrl: "",
         duration: "",
       });
+      setUrlError("");
     } catch (e) {
       console.error(e);
-      alert("Gagal menyimpan materi");
+      toast.error("Gagal menyimpan materi");
     }
   };
 
-  const handleDeleteMaterial = async (id: number) => {
-    if (!confirm("Hapus materi ini?")) return;
+  const handleDeleteMaterial = (id: number) => {
+    setMaterialToDelete(id);
+    setShowDeleteMaterialModal(true);
+  };
+
+  const confirmDeleteMaterial = async () => {
+    if (!materialToDelete) return;
+    
     try {
       const token = localStorage.getItem("access_token");
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${id}`,
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${materialToDelete}`,
         {
           method: "DELETE",
           headers: {
@@ -771,9 +892,24 @@ export default function KelasGuruDetailPage() {
           },
         }
       );
-      fetchMaterials();
+      
+      if (!res.ok) throw new Error("Gagal hapus materi");
+      
+      // Update local state
+      setMaterials((prev) => prev.filter((m) => m.id !== materialToDelete));
+      
+      toast.success("Materi berhasil dihapus");
+      setShowDeleteMaterialModal(false);
+      setMaterialToDelete(null);
+      
+      // Close detail modal if it's open
+      if (showMaterialDetailModal && selectedMaterial?.id === materialToDelete) {
+        setShowMaterialDetailModal(false);
+        setSelectedMaterial(null);
+      }
     } catch (e) {
       console.error("Gagal hapus materi", e);
+      toast.error("Gagal menghapus materi");
     }
   };
 
@@ -1417,7 +1553,8 @@ export default function KelasGuruDetailPage() {
                 {materials.map((material) => (
                   <div
                     key={material.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
+                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => fetchMaterialDetail(material.id)}
                   >
                     <div className="flex items-start gap-3">
                       <div
@@ -1456,7 +1593,7 @@ export default function KelasGuruDetailPage() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleEditMaterial(material)}
                           className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
@@ -2525,6 +2662,56 @@ export default function KelasGuruDetailPage() {
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  {editMaterialData.type === "pdf" ? "URL PDF/PowerPoint" : "URL Video YouTube"} *
+                </label>
+                <input
+                  type="url"
+                  value={editMaterialData.fileUrl}
+                  onChange={(e) => {
+                    setEditMaterialData({
+                      ...editMaterialData,
+                      fileUrl: e.target.value,
+                    });
+                    // Clear error when user types
+                    if (editUrlError) {
+                      const error = validateMaterialUrl(e.target.value, editMaterialData.type);
+                      setEditUrlError(error);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Validate on blur
+                    const error = validateMaterialUrl(e.target.value, editMaterialData.type);
+                    setEditUrlError(error);
+                  }}
+                  placeholder={
+                    editMaterialData.type === "pdf"
+                      ? "https://example.com/file.pdf"
+                      : "https://www.youtube.com/watch?v=..."
+                  }
+                  className={clsx(
+                    "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20",
+                    editUrlError
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-slate-300 focus:border-teal-500"
+                  )}
+                />
+                {editUrlError ? (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                    <svg className="size-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {editUrlError}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-500 mt-1">
+                    {editMaterialData.type === "pdf"
+                      ? "Masukkan link PDF, PowerPoint, atau Google Drive yang dapat diakses"
+                      : "Masukkan link video YouTube (youtube.com atau youtu.be)"}
+                  </p>
+                )}
+              </div>
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => setShowEditMaterialModal(false)}
@@ -2869,6 +3056,247 @@ export default function KelasGuruDetailPage() {
                 className="flex-1 py-2.5 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition"
               >
                 Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Material Detail Modal */}
+      {showMaterialDetailModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              setShowMaterialDetailModal(false);
+              setSelectedMaterial(null);
+            }}
+          />
+          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4">
+            {loadingMaterialDetail ? (
+              /* Loading State */
+              <div className="flex items-center justify-center p-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+                  <p className="text-sm text-slate-500">Memuat detail materi...</p>
+                </div>
+              </div>
+            ) : selectedMaterial ? (
+              <>
+                {/* Header */}
+                <div className={clsx(
+                  "p-6 text-white",
+                  selectedMaterial.type === "pdf" 
+                    ? "bg-gradient-to-r from-red-600 to-red-500" 
+                    : "bg-gradient-to-r from-blue-600 to-blue-500"
+                )}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <button
+                      onClick={() => {
+                        setShowMaterialDetailModal(false);
+                        setSelectedMaterial(null);
+                      }}
+                      className="p-1 hover:bg-white/10 rounded-lg transition"
+                    >
+                      <ChevronLeftIcon className="size-6" />
+                    </button>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold">{selectedMaterial.title}</h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="flex items-center gap-1 text-sm opacity-90">
+                          <ClockIcon className="size-4" />
+                          {selectedMaterial.duration}
+                        </span>
+                        <span className="text-sm opacity-75">•</span>
+                        <span className="text-sm opacity-90 uppercase font-medium">
+                          {selectedMaterial.type}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Description */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Deskripsi</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {selectedMaterial.description}
+                    </p>
+                  </div>
+
+                  {/* Duration */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">Durasi</h3>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <ClockIcon className="size-5 text-slate-500" />
+                        <p className="text-sm text-slate-700 font-medium">
+                          {selectedMaterial.duration || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* File/Video Preview */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">
+                      {selectedMaterial.type === "pdf" ? "Preview PDF" : "Video"}
+                    </h3>
+                    
+                    {selectedMaterial.type === "pdf" ? (
+                      /* PDF Preview */
+                      (selectedMaterial.fileUrl || selectedMaterial.file_url) ? (
+                        <div className="space-y-3">
+                          <div className="bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                            <iframe
+                              src={selectedMaterial.fileUrl || selectedMaterial.file_url}
+                              className="w-full h-[400px]"
+                              title="PDF Preview"
+                            />
+                          </div>
+                          <a
+                            href={selectedMaterial.fileUrl || selectedMaterial.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 hover:bg-red-100 transition-all text-red-700 font-medium text-sm"
+                          >
+                            <DocumentTextIcon className="size-5" />
+                            Buka PDF di Tab Baru
+                            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 rounded-xl p-8 border border-slate-200 text-center">
+                          <DocumentTextIcon className="size-12 text-slate-300 mx-auto mb-2" />
+                          <p className="text-sm text-slate-500">File PDF belum tersedia</p>
+                        </div>
+                      )
+                    ) : (
+                      /* YouTube Embed */
+                      (selectedMaterial.fileUrl || selectedMaterial.file_url) ? (
+                        <div className="space-y-3">
+                          <div className="bg-black rounded-xl overflow-hidden border-2 border-blue-200">
+                            <iframe
+                              src={
+                                (() => {
+                                  const url = selectedMaterial.fileUrl || selectedMaterial.file_url || "";
+                                  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                                    // Extract video ID properly
+                                    let videoId = '';
+                                    if (url.includes('youtu.be/')) {
+                                      videoId = url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
+                                    } else if (url.includes('watch?v=')) {
+                                      videoId = url.split('watch?v=')[1]?.split('&')[0];
+                                    } else if (url.includes('embed/')) {
+                                      videoId = url.split('embed/')[1]?.split('?')[0];
+                                    }
+                                    return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+                                  }
+                                  return url;
+                                })()
+                              }
+                              className="w-full aspect-video"
+                              title="Video Preview"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                              referrerPolicy="strict-origin-when-cross-origin"
+                            />
+                          </div>
+                          <a
+                            href={selectedMaterial.fileUrl || selectedMaterial.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-all text-blue-700 font-medium text-sm"
+                          >
+                            <PlayIcon className="size-5" />
+                            Tonton di YouTube
+                            <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 rounded-xl p-8 border border-slate-200 text-center">
+                          <PlayIcon className="size-12 text-slate-300 mx-auto mb-2" />
+                          <p className="text-sm text-slate-500">Link video belum tersedia</p>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="p-4 border-t border-slate-200 bg-white flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowMaterialDetailModal(false);
+                      handleEditMaterial(selectedMaterial);
+                    }}
+                    className="flex-1 px-4 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition flex items-center justify-center gap-2"
+                  >
+                    <PencilIcon className="size-4" />
+                    Edit Materi
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMaterialDetailModal(false);
+                      handleDeleteMaterial(selectedMaterial.id);
+                    }}
+                    className="px-4 py-2.5 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-2"
+                  >
+                    <TrashIcon className="size-4" />
+                    Hapus
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Material Confirmation Modal */}
+      {showDeleteMaterialModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50" 
+            onClick={() => {
+              setShowDeleteMaterialModal(false);
+              setMaterialToDelete(null);
+            }}
+          />
+          <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <TrashIcon className="size-6 text-red-600" />
+              </div>
+            </div>
+            
+            <h3 className="text-lg font-semibold text-slate-700 mb-2 text-center">
+              Hapus Materi?
+            </h3>
+            <p className="text-sm text-slate-600 mb-6 text-center">
+              Materi yang dihapus tidak dapat dikembalikan. Apakah Anda yakin ingin menghapus materi ini?
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteMaterialModal(false);
+                  setMaterialToDelete(null);
+                }}
+                className="flex-1 py-2.5 border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDeleteMaterial}
+                className="flex-1 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition"
+              >
+                Hapus
               </button>
             </div>
           </div>

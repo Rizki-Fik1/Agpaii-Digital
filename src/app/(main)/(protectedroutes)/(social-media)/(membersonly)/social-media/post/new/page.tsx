@@ -1,5 +1,4 @@
 "use client";
-import Loader from "@/components/loader/loader";
 import API from "@/utils/api/config";
 import {
   PhotoIcon,
@@ -10,12 +9,10 @@ import {
 } from "@heroicons/react/24/solid";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/utils/crop/createCroppedImage";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function NewPostPage() {
-  const queryClient = useQueryClient();
   const router = useRouter();
 
   function convertYouTubeToEmbed(url: string) {
@@ -92,35 +89,145 @@ export default function NewPostPage() {
   };
 
   /* ==============================
-      SUBMIT POST
+      SUBMIT POST - Tidak dipakai lagi, diganti dengan direct API call di handleSubmit
   ============================== */
-  const newPost = async () => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (text.length === 0) {
+      alert("Teks harus diisi sebelum posting!");
+      return;
+    }
+    
+    // Simpan data posting ke sessionStorage untuk preview
+    const postData = {
+      body: text,
+      youtubeUrl: youtubeUrl,
+      image: images.length > 0 ? URL.createObjectURL(images[0]) : null,
+      document: documents.length > 0 ? documents[0].name : null,
+      timestamp: new Date().toISOString(),
+    };
+    sessionStorage.setItem("pendingPost", JSON.stringify(postData));
+    sessionStorage.removeItem("postingComplete");
+    sessionStorage.removeItem("uploadError");
+    sessionStorage.setItem("uploadProgress", "0");
+    
+    // Redirect dulu
+    router.push("/social-media");
+    
+    // Mulai upload di background dengan optimasi
     const data = new FormData();
     data.append("body", text);
     if (youtubeUrl) data.append("youtube_url", youtubeUrl);
-    // Kirim full image ASLI
+    
+    // Append files dengan kompresi untuk gambar
     if (originalImage) {
-      data.append("full_image", originalImage);
+      // Kompresi gambar original jika lebih dari 1MB
+      if (originalImage.size > 1024 * 1024) {
+        try {
+          const compressed = await compressImage(originalImage);
+          data.append("full_image", compressed);
+        } catch (err) {
+          data.append("full_image", originalImage);
+        }
+      } else {
+        data.append("full_image", originalImage);
+      }
     }
-    // Kirim hasil crop
+    
     images.forEach((f) => data.append("files[]", f));
-    // Dokumen
     documents.forEach((f) => data.append("document", f));
-    // Video
     videos.forEach((f) => data.append("files[]", f));
-    const res = await API.post("post", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    if (res.status === 200) return true;
+    
+    // Abort controller untuk cancel upload jika diperlukan
+    const abortController = new AbortController();
+    
+    try {
+      const res = await API.post("post", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+        signal: abortController.signal,
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            sessionStorage.setItem("uploadProgress", percentCompleted.toString());
+            
+            // Dispatch event untuk update real-time
+            window.dispatchEvent(new CustomEvent("uploadProgress", { 
+              detail: { progress: percentCompleted } 
+            }));
+          }
+        },
+      });
+      
+      if (res.status === 200) {
+        // Simpan data post yang baru dibuat untuk optimistic update
+        sessionStorage.setItem("newPostData", JSON.stringify(res.data));
+        sessionStorage.setItem("postingComplete", "true");
+        window.dispatchEvent(new CustomEvent("postingComplete"));
+      }
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      
+      // Jangan set error jika upload di-cancel
+      if (error.name !== 'CanceledError') {
+        sessionStorage.setItem("uploadError", "true");
+        window.dispatchEvent(new CustomEvent("uploadError", {
+          detail: { message: error.message }
+        }));
+      }
+    }
   };
 
-  const { mutate: createPost, isPending } = useMutation({
-    mutationFn: newPost,
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: ["posts"] });
-      router.push("/social-media");
-    },
-  });
+  // Fungsi kompresi gambar
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Max width/height 1920px
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 1920;
+          
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Compression failed'));
+              }
+            },
+            'image/jpeg',
+            0.85 // Quality 85%
+          );
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  };
 
   const mediaUsed =
     images.length > 0 ||
@@ -131,14 +238,7 @@ export default function NewPostPage() {
   return (
     <div className="pb-20">
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (text.length === 0) {
-            alert("Teks harus diisi sebelum posting!");
-            return;
-          }
-          createPost();
-        }}
+        onSubmit={handleSubmit}
         className="flex flex-col"
       >
         {/* HEADER */}
@@ -151,11 +251,7 @@ export default function NewPostPage() {
             <ArrowLeftIcon className="size-6 text-white" />
           </button>
           <h1 className="font-semibold text-lg">Buat Postingan</h1>
-          <div className="w-6">
-            {isPending ? (
-              <Loader className="size-5" />
-            ) : null}
-          </div>
+          <div className="w-6"></div>
         </div>
 
         {/* MAIN CONTENT */}
@@ -251,7 +347,7 @@ export default function NewPostPage() {
                 type="submit"
                 className="disabled:bg-slate-300 bg-teal-600 hover:bg-teal-700 transition rounded-full text-white px-8 py-3 text-sm font-medium"
               >
-                {isPending ? "Loading..." : "Posting"}
+                Posting
               </button>
             </div>
           </div>

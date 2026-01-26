@@ -113,58 +113,139 @@ export default function EditPostPage() {
     const data = new FormData();
     data.append("body", text);
     if (youtubeUrl) data.append("youtube_url", youtubeUrl);
-    // Tambah new images
+    
+    // Kompresi dan tambah new images
     if (images.length > 0) {
-      images.forEach((f) => data.append("files[]", f));
+      const imageFile = images[0];
+      if (imageFile.size > 1024 * 1024) {
+        try {
+          const compressed = await compressImage(imageFile);
+          data.append("files[]", compressed);
+        } catch (err) {
+          data.append("files[]", imageFile);
+        }
+      } else {
+        data.append("files[]", imageFile);
+      }
     }
+    
     // Tambah new document (single)
     if (documents.length > 0) {
-      data.append("document", documents[0]); // Single file
+      data.append("document", documents[0]);
     }
-    // Flag untuk menghapus gambar existing jika ada flag delete (baik dihapus manual atau direplace gambar baru)
+    
+    // Flag untuk menghapus gambar/document existing
     if (deleteExistingImages) {
       data.append("clear_images", "1");
     }
-    // Flag untuk menghapus document existing jika ada flag delete
     if (deleteExistingDocument) {
       data.append("clear_document", "1");
     }
+    
     // form method spoofing for Laravel
     data.append("_method", "PUT");
     
-    // Debug logging
-    console.log("Sending data to backend:");
-    console.log("- body:", text);
-    console.log("- youtube_url:", youtubeUrl);
-    console.log("- images count:", images.length);
-    console.log("- documents count:", documents.length);
-    console.log("- deleteExistingImages:", deleteExistingImages);
-    console.log("- deleteExistingDocument:", deleteExistingDocument);
-    
     const res = await API.post(`post/${id}`, data, {
       headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          sessionStorage.setItem("editProgress", percentCompleted.toString());
+          window.dispatchEvent(new CustomEvent("editProgress", { 
+            detail: { progress: percentCompleted } 
+          }));
+        }
+      },
     });
-    if (res.status === 200) return true;
+    
+    if (res.status === 200) return res.data;
+  };
+
+  // Fungsi kompresi gambar (sama seperti di new post)
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          let width = img.width;
+          let height = img.height;
+          const maxSize = 1920;
+          
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Compression failed'));
+              }
+            },
+            'image/jpeg',
+            0.85
+          );
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
   };
 
   const { mutate, isPending } = useMutation({
     mutationFn: updatePost,
-    onSuccess: async () => {
-      // Invalidate all posts queries to refresh the feed
-      await queryClient.invalidateQueries({ queryKey: ["posts"] });
-      // Invalidate specific post query
-      await queryClient.invalidateQueries({ queryKey: ["post", id] });
-      // Redirect to social media feed
+    onMutate: () => {
+      // Simpan data untuk preview
+      const editData = {
+        postId: id,
+        body: text,
+        youtubeUrl: youtubeUrl,
+        image: images.length > 0 ? URL.createObjectURL(images[0]) : existingImageUrl,
+        document: documents.length > 0 ? documents[0].name : existingDocument?.split('/').pop(),
+        timestamp: new Date().toISOString(),
+      };
+      sessionStorage.setItem("editingPost", JSON.stringify(editData));
+      sessionStorage.removeItem("editComplete");
+      sessionStorage.setItem("editProgress", "0");
+      
+      // Redirect dulu
       router.push("/social-media");
+    },
+    onSuccess: async (data) => {
+      // Simpan data post yang sudah diedit untuk optimistic update
+      sessionStorage.setItem("updatedPostData", JSON.stringify(data));
+      sessionStorage.setItem("editComplete", "true");
+      window.dispatchEvent(new CustomEvent("editComplete"));
+      
+      // Background sync
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", id] });
     },
     onError: (error: any) => {
       console.error("Error updating post:", error);
-      console.error("Error response:", error.response?.data);
-      alert(
-        `Gagal menyimpan postingan: ${
-          error.response?.data?.message || error.message || "Unknown error"
-        }`
-      );
+      sessionStorage.setItem("editError", "true");
+      window.dispatchEvent(new CustomEvent("editError", {
+        detail: { message: error.message }
+      }));
     },
   });
 
@@ -186,20 +267,17 @@ export default function EditPostPage() {
       >
         {/* Header */}
         <div className="flex justify-between items-center">
-          <button onClick={() => router.back()} className="p-1 rounded-full bg-[#009788]">
+          <button type="button" onClick={() => router.back()} className="p-1 rounded-full bg-[#009788] hover:bg-[#007d6f] transition">
             <ArrowLeftIcon className="size-5 text-white" />
           </button>
           <h1 className="font-medium">Edit Postingan</h1>
-          {!isPending ? (
-            <button
-              type="submit"
-              className="bg-[#009788] text-white rounded-full px-5 py-1.5 text-sm"
-            >
-              Simpan
-            </button>
-          ) : (
-            <Loader className="size-6" />
-          )}
+          <button
+            type="submit"
+            disabled={isPending}
+            className="bg-[#009788] hover:bg-[#007d6f] text-white rounded-full px-5 py-1.5 text-sm transition disabled:opacity-50"
+          >
+            Simpan
+          </button>
         </div>
 
         {/* Textarea */}
