@@ -72,6 +72,11 @@ export default function SocialMediaNavbar() {
         <div className="flex items-stretch justify-around h-16">
           {navList.map((list, i) => {
             const isPostingButton = list.id === "posting";
+            const isChatConversation =
+              pathname.startsWith("/social-media/chat/") &&
+              pathname !== "/social-media/chat";
+
+            if (isPostingButton && isChatConversation) return null;
 
             if (isPostingButton) {
               return (
