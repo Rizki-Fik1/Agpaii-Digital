@@ -1374,6 +1374,9 @@ export default function KelasDetailPage() {
                           src={selectedMaterial.fileUrl || selectedMaterial.file_url}
                           className="w-full h-[400px]"
                           title="PDF Preview"
+                          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          loading="lazy"
                         />
                       </div>
                       <button

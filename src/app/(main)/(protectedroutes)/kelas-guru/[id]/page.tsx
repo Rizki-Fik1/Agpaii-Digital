@@ -427,16 +427,26 @@ export default function KelasGuruDetailPage() {
     setShowMaterialDetailModal(true);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${materialId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Gagal fetch detail materi");
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/classes/materials/${materialId}`;
+      
+      console.log("[MATERIAL DETAIL] Fetching from:", url);
+      
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      console.log("[MATERIAL DETAIL] Response status:", res.status);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("[MATERIAL DETAIL] Error response:", errorText);
+        throw new Error("Gagal fetch detail materi");
+      }
+      
       const json = await res.json();
+      console.log("[MATERIAL DETAIL] Response data:", json);
       
       // Normalize data - handle both snake_case and camelCase
       const materialData = json.data;
@@ -445,10 +455,10 @@ export default function KelasGuruDetailPage() {
         fileUrl: materialData.fileUrl || materialData.file_url || "",
       };
       
-      console.log("Material data received:", normalizedMaterial);
+      console.log("[MATERIAL DETAIL] Normalized material:", normalizedMaterial);
       setSelectedMaterial(normalizedMaterial);
     } catch (e) {
-      console.error("Fetch detail materi gagal", e);
+      console.error("[MATERIAL DETAIL] Fetch error:", e);
       toast.error("Gagal memuat detail materi");
       setShowMaterialDetailModal(false);
     } finally {
