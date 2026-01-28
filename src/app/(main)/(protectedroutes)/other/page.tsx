@@ -18,7 +18,7 @@ export default function OthersMenuPage() {
 	const menuCategories = [
 		{
 			title: "Acara dan Organisasi",
-			icon: "/svg/ion_bag.svg",
+			icon: "/svg/organisasi.svg",
 			items: [
 				{ label: "Acara", icon: "/svg/ikon event.svg", link: "/event" },
 				{ label: "Struktur Organisasi", icon: "/svg/ikon-struktur.svg", link: "/struktur" },
@@ -148,7 +148,7 @@ export default function OthersMenuPage() {
 							<div className="flex items-center gap-3 mb-5">
 								<div className="bg-teal-600 p-2 rounded-lg">
 									{category.icon.startsWith("/") ? (
-										<img src={category.icon} alt="" className="size-5" />
+										<img src={category.icon} alt="" className="size-5 brightness-0 invert" />
 									) : (
 										<span className="text-white text-lg">{category.icon}</span>
 									)}
