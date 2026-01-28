@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@firebase": [
+        "./firebase.ts"
       ]
     },
     "target": "ES2017"
