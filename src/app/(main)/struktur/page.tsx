@@ -335,7 +335,7 @@ const StrukturPage: React.FC = () => {
 							</div>
 							<h3 className="text-lg font-medium text-gray-900">Data Tidak Ditemukan</h3>
 							<p className="text-gray-500 mt-1">
-								Tidak ada data pengurus yang sesuai dengan pencarian Anda.
+								Tidakk ada data pengurus yang sesuai dengan pencarian Anda.
 							</p>
 						</div>
 					) : (
