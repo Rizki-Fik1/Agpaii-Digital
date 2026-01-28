@@ -49,6 +49,7 @@ export default function ZegoLiveViewer({
           container: containerRef.current,
           scenario: {
             mode: ZegoUIKitPrebuilt.LiveStreaming,
+            config: {
               role: ZegoUIKitPrebuilt.Audience,
             },
           },
