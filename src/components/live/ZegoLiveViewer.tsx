@@ -53,17 +53,7 @@ export default function ZegoLiveViewer({
               role: ZegoUIKitPrebuilt.Audience,
             },
           },
-          showPreJoinView: false,
-          showLeavingView: false,
-          turnOnCameraWhenJoining: false,
-          turnOnMicrophoneWhenJoining: false,
-          showMyCameraToggleButton: false,
-          showMyMicrophoneToggleButton: false,
-          showTextChat: true,
-          showUserList: true, // Enable viewer list (Instagram-like)
-          maxUsers: 1000,
-          layout: "Auto",
-          showLayoutButton: false,
+          showUserList: true, // Enable viewer list
         });
       } catch (error) {
         console.error("Error initializing Zego:", error);
