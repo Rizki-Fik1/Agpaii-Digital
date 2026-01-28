@@ -227,23 +227,105 @@ const StrukturPage: React.FC = () => {
 			} else if (jabatan.includes("LEMBAGA PENDIDIKAN DAN PENGEMBANGAN PRESTASI")) {
 				category = "LEMBAGA PENDIDIKAN DAN PENGEMBANGAN PRESTASI";
 			}
-			
-			if (!groups[category]) {
-				groups[category] = [];
-			}
-			groups[category].push(position);
-		});
-		
-		return groups;
-	};
+		} else {
+			const foundProvince = provinces.find(
+				(prov) => String(prov.id) === selectedProvince,
+			);
+			pengurusLabel = foundProvince
+				? `Pengurus ${foundProvince.name}`
+				: "Pengurus";
+		}
+	}
+	
+	const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
-	const toggleSection = (levelId: number, category: string) => {
-		const key = `${levelId}-${category}`;
-		setExpandedSections(prev => ({
+	const toggleCategory = (category: string) => {
+		setExpandedCategories(prev => ({
 			...prev,
-			[key]: !prev[key]
+			[category]: !prev[category]
 		}));
 	};
+
+	const getCategory = (position: string) => {
+		const lower = position.toLowerCase();
+		if (lower.includes("dewan")) return "Dewan";
+		if (lower.includes("ketua") || lower.includes("wakil ketua")) return "Pimpinan / Ketua";
+		if (lower.includes("sekretaris") || lower.includes("wakil sekretaris")) return "Sekretariat";
+		if (lower.includes("bendahara") || lower.includes("wakil bendahara")) return "Kebendaharaan";
+		if (lower.includes("departemen")) return "Departemen";
+		if (lower.includes("bidang") || lower.includes("seksi")) return "Bidang & Seksi";
+		if (lower.includes("koordinator")) return "Koordinator";
+		return "Pengurus Lainnya";
+	};
+
+	// --- Grouping Logic ---
+	const groupedStructures = React.useMemo(() => {
+		// Level 1: Group properties
+		interface PositionGroup {
+			positionName: string;
+			members: Structure[];
+			order: number;
+		}
+		
+		interface MainCategory {
+			categoryName: string;
+			subGroups: PositionGroup[];
+			minOrder: number;
+		}
+
+		const categoryMap: Record<string, Record<string, Structure[]>> = {};
+
+		// 1. Group by Main Category -> Position Name
+		filteredStructures.forEach((str) => {
+			const pos = str.position_name || "Lainnya";
+			const cat = getCategory(pos);
+
+			if (!categoryMap[cat]) categoryMap[cat] = {};
+			if (!categoryMap[cat][pos]) categoryMap[cat][pos] = [];
+			categoryMap[cat][pos].push(str);
+		});
+
+		// 2. Convert to Array and Sort
+		const result: MainCategory[] = Object.entries(categoryMap).map(([catName, subMap]) => {
+			const subGroups: PositionGroup[] = Object.entries(subMap).map(([posName, members]) => ({
+				positionName: posName,
+				members,
+				order: Math.min(...members.map(m => m.order_position || 9999))
+			})).sort((a, b) => a.order - b.order);
+
+			const minOrder = Math.min(...subGroups.map(sg => sg.order));
+
+			return {
+				categoryName: catName,
+				subGroups,
+				minOrder
+			};
+		});
+
+		// Custom sort order for categories
+		const categoryOrder = [
+			"Dewan", 
+			"Pimpinan / Ketua", 
+			"Sekretariat", 
+			"Kebendaharaan", 
+			"Departemen", 
+			"Bidang & Seksi", 
+			"Koordinator",
+			"Pengurus Lainnya"
+		];
+		
+		return result.sort((a, b) => {
+			const idxA = categoryOrder.indexOf(a.categoryName);
+			const idxB = categoryOrder.indexOf(b.categoryName);
+			// If both known, sort by index
+			if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+			// If one known, known comes first
+			if (idxA !== -1) return -1;
+			if (idxB !== -1) return 1;
+			// Fallback to minOrder
+			return a.minOrder - b.minOrder;
+		});
+	}, [filteredStructures]);
 
 	return (
 		<div className="bg-gray-50 min-h-screen pb-20">
@@ -339,109 +421,111 @@ const StrukturPage: React.FC = () => {
 							</p>
 						</div>
 					) : (
-						<AnimatePresence>
-							{filteredLevels.map((level) => (
-								<motion.div
-									key={level.id}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -20 }}
-									className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-								>
-									{/* Level Header */}
-									<div className="bg-gradient-to-r from-[#009788] to-[#00796b] px-6 py-4 flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-lg">
-												<span className="text-white font-bold text-lg">{level.level}</span>
-											</div>
-										</div>
-										<div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-lg">
-											<span className="text-white font-semibold text-sm">
-												{level.positions.length} Pengurus
-											</span>
-										</div>
-									</div>
-
-									{/* Members List - Grouped by Category */}
-									<div className="p-4 space-y-2">
-										{Object.entries(groupPositionsByCategory(level.positions)).map(([category, positions]) => {
-											const sectionKey = `${level.id}-${category}`;
-											const isExpanded = expandedSections[sectionKey];
-											
-											return (
-												<div key={category} className="border border-gray-200 rounded-xl overflow-hidden">
-													{/* Category Header */}
-													<button
-														onClick={() => toggleSection(level.id, category)}
-														className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition-colors"
-													>
-														<div className="flex items-center gap-3">
-															<div className="w-10 h-10 rounded-lg bg-[#009788]/10 flex items-center justify-center">
-																<span className="text-[#009788] font-bold text-sm">
-																	{positions.length}
-																</span>
-															</div>
-															<div className="text-left">
-																<h4 className="text-sm font-bold text-gray-900">
-																	{category}
-																</h4>
-																<p className="text-xs text-gray-500">
-																	{positions.length} Pengurus
-																</p>
-															</div>
-														</div>
-														<div className="text-gray-400">
-															{isExpanded ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
-														</div>
-													</button>
-
-													{/* Category Members */}
-													<AnimatePresence>
-														{isExpanded && (
-															<motion.div
-																initial={{ height: 0, opacity: 0 }}
-																animate={{ height: "auto", opacity: 1 }}
-																exit={{ height: 0, opacity: 0 }}
-																transition={{ duration: 0.2 }}
-																className="overflow-hidden"
-															>
-																<div className="p-3 space-y-2 bg-white">
-																	{positions.map((position, idx) => (
-																		<div
-																			key={idx}
-																			className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
-																		>
-																			{/* Avatar */}
-																			<div className="relative flex-shrink-0">
-																				<div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#009788] to-emerald-300 flex items-center justify-center">
-																					<span className="text-white font-bold text-sm">
-																						{getInitials(position.nama)}
-																					</span>
-																				</div>
-																			</div>
-
-																			{/* Info */}
-																			<div className="flex-1 min-w-0">
-																				<h3 className="text-gray-900 font-semibold text-sm mb-0.5">
-																					{position.nama}
-																				</h3>
-																				<p className="text-[#009788] text-xs font-medium">
-																					{position.jabatan}
-																				</p>
-																			</div>
-																		</div>
-																	))}
-																</div>
-															</motion.div>
-														)}
-													</AnimatePresence>
+						<div className="flex flex-col gap-6">
+							{groupedStructures.map((category) => {
+								const isExpanded = expandedCategories[category.categoryName];
+								
+								return (
+									<div key={category.categoryName} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+										{/* Category Header (Accordion Toggle) */}
+										<motion.button
+											onClick={() => toggleCategory(category.categoryName)}
+											className="w-full flex items-center justify-between p-5 bg-white text-left group"
+										>
+											<div className="flex items-center gap-4">
+												<div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isExpanded ? 'bg-[#009788]/10 text-[#009788]' : 'bg-gray-100 text-gray-500 group-hover:bg-[#009788]/5 group-hover:text-[#009788]'}`}>
+													{isExpanded ? <FiCheck size={20} /> : <FaUserTie size={18} />} 
 												</div>
-											);
-										})}
+												<div>
+													<h3 className="text-lg font-bold text-gray-800 group-hover:text-[#009788] transition-colors">
+														{category.categoryName}
+													</h3>
+													<p className="text-sm text-gray-500">
+														{category.subGroups.reduce((acc, sub) => acc + sub.members.length, 0)} Anggota
+													</p>
+												</div>
+											</div>
+											<motion.div
+												animate={{ rotate: isExpanded ? 180 : 0 }}
+												transition={{ duration: 0.2 }}
+											>
+												<FiChevronDown className="text-gray-400 group-hover:text-[#009788]" size={24} />
+											</motion.div>
+										</motion.button>
+
+										{/* Expandable Content */}
+										<AnimatePresence>
+											{isExpanded && (
+												<motion.div
+													initial={{ height: 0, opacity: 0 }}
+													animate={{ height: "auto", opacity: 1 }}
+													exit={{ height: 0, opacity: 0 }}
+													transition={{ duration: 0.3, ease: "easeInOut" }}
+												>
+													<div className="border-t border-gray-50 p-5 pt-2 flex flex-col gap-8 bg-gray-50/30">
+														{category.subGroups.map((subGroup) => (
+															<div key={subGroup.positionName} className="flex flex-col gap-3">
+																{/* Sub Header (Position Name) */}
+																<div className="flex items-center gap-3 pl-2 border-l-4 border-[#009788]/30">
+																	<h4 className="text-md font-bold text-gray-700">
+																		{subGroup.positionName}
+																	</h4>
+																</div>
+
+																{/* Members Grid */}
+																<div className="grid grid-cols-1 gap-4">
+																	{subGroup.members.map((str, index) => {
+																		const avatarSrc = (str.user?.avatar && getImage(str.user.avatar)) || "/img/profileplacholder.png";
+																		return (
+																			<motion.div
+																				layout
+																				initial={{ opacity: 0, scale: 0.95 }}
+																				animate={{ opacity: 1, scale: 1 }}
+																				transition={{ duration: 0.2, delay: index * 0.05 }}
+																				key={str.id}
+																				className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4 hover:border-[#009788]/30 hover:shadow-sm transition-all"
+																			>
+																				{/* Avatar */}
+																				<div className="relative flex-shrink-0">
+																					<div className="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-[#009788] to-emerald-300">
+																						<img
+																							src={avatarSrc}
+																							alt={str.user?.name || "User"}
+																							className="w-full h-full object-cover rounded-full border-2 border-white bg-white"
+																						/>
+																					</div>
+																					<div className="absolute -bottom-1 -right-1 bg-[#009788] text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+																						{str.order_position || "-"}
+																					</div>
+																				</div>
+																				
+																				{/* Info */}
+																				<div className="flex-1 min-w-0">
+																					<h5 className="text-gray-900 font-bold text-base truncate" title={str.user?.name}>
+																						{str.user ? str.user.name : "Belum diisi"}
+																					</h5>
+																					<div className="flex items-center gap-1.5 text-xs text-gray-500 mt-1">
+																						<FiMapPin size={10} className="shrink-0 text-gray-400" />
+																						<span className="truncate">
+																							{str.district?.name ? str.district.name + ", " : ""}
+																							{str.city?.name || str.province?.name || "Nasional"}
+																						</span>
+																					</div>
+																				</div>
+																			</motion.div>
+																		);
+																	})}
+																</div>
+															</div>
+														))}
+													</div>
+												</motion.div>
+											)}
+										</AnimatePresence>
 									</div>
-								</motion.div>
-							))}
-						</AnimatePresence>
+								);
+							})}
+						</div>
 					)}
 				</div>
 			</div>

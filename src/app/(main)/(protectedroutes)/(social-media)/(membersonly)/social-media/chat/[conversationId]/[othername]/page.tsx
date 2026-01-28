@@ -211,7 +211,7 @@ const ChatScreen: React.FC = () => {
 
 			<form
 				onSubmit={handleSubmit}
-				className="p-4 bg-white border-t mb-16">
+				className="fixed bottom-16 left-0 right-0 z-50 p-4 bg-white border-t max-w-[480px] mx-auto">
 				<div className="flex items-center space-x-2">
 					<input
 						type="text"
