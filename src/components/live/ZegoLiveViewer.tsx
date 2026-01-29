@@ -132,9 +132,11 @@ export default function ZegoLiveViewer({
   }, [roomId, liveId, userId, userName]);
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-screen max-w-[480px] mx-auto bg-black"
-    />
+    <div className="min-h-screen bg-black relative -ml-20">
+      <div
+        ref={containerRef}
+        className="w-full h-screen"
+      />
+    </div>
   );
 }

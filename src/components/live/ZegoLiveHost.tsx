@@ -155,7 +155,7 @@ export default function ZegoLiveHost({
   }, [roomId, userId, userName, endLive]);
 
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen bg-black relative -ml-20">
       {/* LIVE Badge & Viewer Count */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
         <div className="bg-red-600 px-2 py-1 rounded text-white text-xs font-bold flex items-center gap-1">
@@ -180,7 +180,7 @@ export default function ZegoLiveHost({
 
       <div
         ref={containerRef}
-        className="w-full h-screen max-w-[480px] mx-auto"
+        className="w-full h-screen"
       />
 
       {/* Viewers Modal */}
@@ -232,3 +232,4 @@ export default function ZegoLiveHost({
     </div>
   );
 }
+

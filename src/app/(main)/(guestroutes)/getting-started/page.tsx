@@ -78,10 +78,10 @@ export default function GettingStarted() {
           >
             <Link
               href="/auth/login/email"
-              className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#00DB81] text-white text-xs sm:text-sm font-medium hover:bg-[#00c573] transition shadow-lg"
+              className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-full bg-[#00DB81] text-white text-sm sm:text-base font-medium hover:bg-[#00c573] transition shadow-lg"
             >
-              <EnvelopeIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="text-lg">Login dengan email</span>
+              <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base">Login dengan email</span>
             </Link>
           </motion.div>
 
@@ -92,10 +92,10 @@ export default function GettingStarted() {
           >
             <Link
               href="/auth/login/nik"
-              className="flex items-center justify-center gap-2 w-full py-3 sm:py-3 px-4 sm:px-6 rounded-full bg-[#FDFDFD] text-black text-xs sm:text-sm font-medium hover:bg-gray-100 transition shadow-lg"
+              className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-full bg-[#FDFDFD] text-black text-sm sm:text-base font-medium hover:bg-gray-100 transition shadow-lg"
             >
-              <IdentificationIcon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-              <span className="text-lg">Login dengan NIK</span>
+              <IdentificationIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base">Login dengan NIK</span>
             </Link>
           </motion.div>
 
@@ -118,7 +118,7 @@ export default function GettingStarted() {
           >
             <Link
               href="/auth/register"
-              className="block w-full py-3 sm:py-3 bg-[#01925B] text-white rounded-full text-md sm:text-lg font-medium rounded-f-full text-center hover:bg-[#1a1a1a] transition shadow-lg"
+              className="block w-full py-2.5 sm:py-3 bg-[#01925B] text-white rounded-full text-sm sm:text-base font-medium text-center hover:bg-[#1a1a1a] transition shadow-lg"
             >
               Daftar Akun
             </Link>
