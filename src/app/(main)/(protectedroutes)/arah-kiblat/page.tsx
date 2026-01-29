@@ -38,19 +38,46 @@ const ArahKiblatPage: React.FC = () => {
     return (bearing + 360) % 360;
   };
 
-  // Mendapatkan lokasi user
+  // Fetch Qibla direction from Aladhan API
+  const fetchQiblaFromAPI = async (lat: number, lng: number): Promise<number | null> => {
+    try {
+      const response = await fetch(`https://api.aladhan.com/v1/qibla/${lat}/${lng}`);
+      if (!response.ok) throw new Error("API request failed");
+      const data = await response.json();
+      if (data.code === 200 && data.data?.direction) {
+        return data.data.direction;
+      }
+      return null;
+    } catch (error) {
+      console.error("Aladhan API error:", error);
+      return null;
+    }
+  };
+
+  // Mendapatkan lokasi user dan arah kiblat dari Aladhan API
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           setLocation({
             latitude,
             longitude,
             city: user?.profile?.city?.name || "Lokasi Anda",
           });
-          const qibla = calculateQiblaDirection(latitude, longitude);
-          setQiblaDirection(qibla);
+          
+          // Coba fetch dari Aladhan API terlebih dahulu
+          const apiQibla = await fetchQiblaFromAPI(latitude, longitude);
+          
+          if (apiQibla !== null) {
+            // Gunakan hasil dari API
+            setQiblaDirection(apiQibla);
+          } else {
+            // Fallback ke kalkulasi lokal jika API gagal
+            const localQibla = calculateQiblaDirection(latitude, longitude);
+            setQiblaDirection(localQibla);
+          }
+          
           setLoading(false);
         },
         (err) => {
@@ -68,6 +95,9 @@ const ArahKiblatPage: React.FC = () => {
 
   // Handle device orientation (kompas)
   useEffect(() => {
+    // Skip if not in browser environment
+    if (typeof window === 'undefined') return;
+
     const handleOrientation = (event: DeviceOrientationEvent) => {
       let heading = 0;
       // iOS - uses webkitCompassHeading
@@ -83,7 +113,8 @@ const ArahKiblatPage: React.FC = () => {
     };
 
     // request permission iOS
-    if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+    if (typeof DeviceOrientationEvent !== 'undefined' && 
+        typeof (DeviceOrientationEvent as any).requestPermission === "function") {
       (DeviceOrientationEvent as any)
         .requestPermission()
         .then((response: string) => {
@@ -110,6 +141,8 @@ const ArahKiblatPage: React.FC = () => {
 
   const requestPermission = async () => {
     if (
+      typeof window !== 'undefined' &&
+      typeof DeviceOrientationEvent !== 'undefined' &&
       typeof (DeviceOrientationEvent as any).requestPermission === "function"
     ) {
       try {
