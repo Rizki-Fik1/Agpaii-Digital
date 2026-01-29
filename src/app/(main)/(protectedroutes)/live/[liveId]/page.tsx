@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot, updateDoc, increment } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@firebase";
 import { useAuth } from "@/utils/context/auth_context";
 import { getImage } from "@/utils/function/function";
@@ -11,7 +11,6 @@ import {
 } from "@heroicons/react/24/outline";
 import dynamic from "next/dynamic";
 
-// Dynamically import Zego component (client-side only)
 const ZegoLiveViewer = dynamic(() => import("@/components/live/ZegoLiveViewer"), {
   ssr: false,
   loading: () => (
@@ -21,6 +20,13 @@ const ZegoLiveViewer = dynamic(() => import("@/components/live/ZegoLiveViewer"),
   ),
 });
 
+interface Viewer {
+  userId: string;
+  name: string;
+  avatar: string;
+  joinedAt: string;
+}
+
 interface LiveData {
   hostId: string;
   hostName: string;
@@ -28,7 +34,7 @@ interface LiveData {
   title: string;
   roomId: string;
   status: "live" | "ended";
-  viewerCount: number;
+  viewers?: Viewer[];
 }
 
 export default function WatchLivePage() {
@@ -38,12 +44,11 @@ export default function WatchLivePage() {
   const { auth: user } = useAuth();
   const [live, setLive] = useState<LiveData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasJoined, setHasJoined] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
 
   useEffect(() => {
     if (!liveId) return;
 
-    // Subscribe to live document
     const liveRef = doc(db, "lives", liveId);
     const unsubscribe = onSnapshot(
       liveRef,
@@ -52,7 +57,6 @@ export default function WatchLivePage() {
           const data = snapshot.data() as LiveData;
           setLive(data);
 
-          // If live has ended, show message and redirect
           if (data.status === "ended") {
             alert("Live telah berakhir");
             router.push("/live");
@@ -72,38 +76,11 @@ export default function WatchLivePage() {
     return () => unsubscribe();
   }, [liveId, router]);
 
-  // Increment viewer count when joining
-  useEffect(() => {
-    if (!liveId || hasJoined || !live) return;
-
-    const incrementViewers = async () => {
-      try {
-        const liveRef = doc(db, "lives", liveId);
-        await updateDoc(liveRef, {
-          viewerCount: increment(1),
-        });
-        setHasJoined(true);
-      } catch (error) {
-        console.error("Error incrementing viewers:", error);
-      }
-    };
-
-    incrementViewers();
-
-    // Decrement when leaving
-    return () => {
-      if (hasJoined) {
-        const liveRef = doc(db, "lives", liveId);
-        updateDoc(liveRef, {
-          viewerCount: increment(-1),
-        }).catch(console.error);
-      }
-    };
-  }, [liveId, hasJoined, live]);
-
   const handleLeave = () => {
     router.push("/live");
   };
+
+  const viewerCount = live?.viewers?.length || 0;
 
   if (loading) {
     return (
@@ -123,12 +100,12 @@ export default function WatchLivePage() {
 
   return (
     <div className="min-h-screen bg-black relative">
-      {/* Zego Viewer Component */}
       <ZegoLiveViewer
         roomId={live.roomId}
         liveId={liveId}
         userId={String(user?.id)}
         userName={user?.name || "Viewer"}
+        userAvatar={user?.avatar || ""}
       />
 
       {/* Overlay UI */}
@@ -151,11 +128,14 @@ export default function WatchLivePage() {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
-              {/* Viewer Count */}
-              <div className="bg-black/50 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
+              {/* Viewer Count - Clickable */}
+              <button
+                onClick={() => setShowViewers(true)}
+                className="bg-black/50 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/70 transition-colors"
+              >
                 <UserGroupIcon className="size-4" />
-                {live.viewerCount}
-              </div>
+                {viewerCount}
+              </button>
               {/* Close Button */}
               <button
                 onClick={handleLeave}
@@ -176,6 +156,55 @@ export default function WatchLivePage() {
           LIVE
         </div>
       </div>
+
+      {/* Viewers Modal */}
+      {showViewers && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowViewers(false)}
+          />
+          <div className="relative bg-slate-900 rounded-t-2xl w-full max-w-[480px] max-h-[60vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-700">
+              <h3 className="text-white font-semibold">
+                Penonton ({viewerCount})
+              </h3>
+              <button
+                onClick={() => setShowViewers(false)}
+                className="text-white/60 hover:text-white"
+              >
+                <XMarkIcon className="size-6" />
+              </button>
+            </div>
+            
+            {/* Viewers List */}
+            <div className="overflow-y-auto max-h-[50vh] p-4">
+              {viewerCount === 0 ? (
+                <p className="text-white/50 text-center py-8">
+                  Belum ada penonton
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {live.viewers?.map((viewer, index) => (
+                    <div key={`${viewer.userId}-${index}`} className="flex items-center gap-3">
+                      <img
+                        src={getImage(viewer.avatar) || "/img/profileplacholder.png"}
+                        alt={viewer.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-white text-sm font-medium">{viewer.name}</p>
+                        <p className="text-white/50 text-xs">Menonton</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -47,7 +47,7 @@ export default function StartLivePage() {
         title: title.trim(),
         roomId: newRoomId,
         status: "live",
-        viewerCount: 0,
+        viewers: [], // Array of viewer objects
         startedAt: serverTimestamp(),
       });
 
