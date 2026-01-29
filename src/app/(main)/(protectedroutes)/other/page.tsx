@@ -24,7 +24,7 @@ export default function OthersMenuPage() {
 				{ label: "Struktur Organisasi", icon: "/svg/ikon-struktur.svg", link: "/struktur" },
 				{ label: "Informasi Anggota", icon: "/svg/ikon-anggota.svg", link: "/member" },
 				{ label: "KTA Digital", icon: "/svg/ikon-kta.svg", link: "/kta" },
-				{ label: "Live dan Video", icon: "/svg/ikon-live.svg", link: "/live" },
+				{ label: "Live", icon: "/svg/ikon-live.svg", link: "/live" },
 				{ label: "Sosial Media", icon: "/svg/ikon-sosmed.svg", link: "/social-media" },
 			],
 		},
