@@ -33,7 +33,6 @@ import {
   Discussion,
   getAttendanceDates,
   getAttendanceByClassAndDate,
-  MOCK_STUDENTS_BY_CLASS,
   AttendanceStatus,
 } from "@/constants/student-data";
 import Link from "next/link";
@@ -286,11 +285,8 @@ export default function KelasDetailPage() {
     },
   ];
 
-  // Attendance data for student
+  // Attendance data for student (fetched from API)
   const attendanceDates = getAttendanceDates(classId);
-  const students = MOCK_STUDENTS_BY_CLASS[classId] || [];
-  // Use first student as demo (in real app, use auth.id)
-  const demoStudentId = students[0]?.id;
 
   const attendanceStats = {
     total: attendanceRecords.length,

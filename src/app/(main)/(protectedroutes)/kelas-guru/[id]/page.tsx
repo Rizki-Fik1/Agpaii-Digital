@@ -33,14 +33,9 @@ import {
   getAttendanceByClassAndDate,
   getAttendanceDates,
   AttendanceStatus,
-  MOCK_MATERIALS,
-  MOCK_EXERCISES,
-  PUBLIC_EXERCISES,
   Material,
   Exercise,
   Question,
-  searchRegisteredStudents,
-  RegisteredStudent,
   StudentInClass,
 } from "@/constants/student-data";
 
