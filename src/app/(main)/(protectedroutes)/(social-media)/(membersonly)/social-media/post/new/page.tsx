@@ -120,17 +120,12 @@ export default function NewPostPage() {
     data.append("body", text);
     if (youtubeUrl) data.append("youtube_url", youtubeUrl);
     
-    // Append files dengan kompresi untuk gambar
+    // Append files dengan kompresi untuk gambar (selalu kompres untuk ukuran optimal)
     if (originalImage) {
-      // Kompresi gambar original jika lebih dari 1MB
-      if (originalImage.size > 1024 * 1024) {
-        try {
-          const compressed = await compressImage(originalImage);
-          data.append("full_image", compressed);
-        } catch (err) {
-          data.append("full_image", originalImage);
-        }
-      } else {
+      try {
+        const compressed = await compressImage(originalImage);
+        data.append("full_image", compressed);
+      } catch (err) {
         data.append("full_image", originalImage);
       }
     }
@@ -190,10 +185,10 @@ export default function NewPostPage() {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
           
-          // Max width/height 1920px
+          // Max width/height 1280px untuk ukuran optimal ~200KB
           let width = img.width;
           let height = img.height;
-          const maxSize = 1920;
+          const maxSize = 1280;
           
           if (width > height && width > maxSize) {
             height = (height * maxSize) / width;
@@ -220,7 +215,7 @@ export default function NewPostPage() {
               }
             },
             'image/jpeg',
-            0.85 // Quality 85%
+            0.6 // Quality 60% untuk ukuran optimal ~200KB
           );
         };
         img.onerror = reject;

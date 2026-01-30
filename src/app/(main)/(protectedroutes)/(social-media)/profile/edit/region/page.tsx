@@ -113,7 +113,7 @@ export default function RegionEdit() {
 			if (res.status == 200) {
 				return {
 					nextPage:
-						res.data.next_page_url !== null
+						res.data.next_page_url
 							? parseInt(res.data.next_page_url.split("=").pop())
 							: undefined,
 					data: res.data.data,
@@ -133,13 +133,17 @@ export default function RegionEdit() {
 		queryKey: ["cities", region.province_id],
 		initialPageParam: 1,
 		queryFn: async ({ pageParam }) => {
+			// Guard: Don't make API call if province_id is empty
+			if (!region.province_id) {
+				return { nextPage: undefined, data: [] };
+			}
 			const res = await API.get(
-				`/province/${region.province_id}/city?page= + ${pageParam}`,
+				`/province/${region.province_id}/city?page=${pageParam}`,
 			);
 			if (res.status == 200) {
 				return {
 					nextPage:
-						res.data.next_page_url !== null
+						res.data.next_page_url
 							? parseInt(res.data.next_page_url.split("=").pop())
 							: undefined,
 					data: res.data.data,
@@ -159,13 +163,17 @@ export default function RegionEdit() {
 		queryKey: ["districts", region.city_id],
 		initialPageParam: 1, // Mulai dari halaman 1
 		queryFn: async ({ pageParam = 1 }) => {
+			// Guard: Don't make API call if city_id is empty
+			if (!region.city_id) {
+				return { nextPage: undefined, data: [] };
+			}
 			const res = await API.get(
 				`/city/${region.city_id}/district?page=${pageParam}`,
 			);
 			if (res.status === 200) {
 				return {
 					nextPage:
-						res.data.next_page_url !== null
+						res.data.next_page_url
 							? parseInt(res.data.next_page_url.split("=").pop())
 							: undefined,
 					data: res.data.data,
