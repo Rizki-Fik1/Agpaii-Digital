@@ -17,6 +17,7 @@ const ArahKiblatPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [permissionGranted, setPermissionGranted] = useState<boolean>(false);
+  const [compassReady, setCompassReady] = useState<boolean>(false);
 
   // Koordinat Ka'bah di Mekah
   const MECCA_LAT = 21.4224779;
@@ -98,18 +99,44 @@ const ArahKiblatPage: React.FC = () => {
     // Skip if not in browser environment
     if (typeof window === 'undefined') return;
 
+    let firstHeadingReceived = false;
+
     const handleOrientation = (event: DeviceOrientationEvent) => {
       let heading = 0;
       // iOS - uses webkitCompassHeading
       if ((event as any).webkitCompassHeading !== undefined) {
         heading = (event as any).webkitCompassHeading;
       }
-      // Android
+      // Android - check if absolute
       else if (event.alpha !== null) {
-        heading = 360 - event.alpha; // convert to compass direction
+        // For absolute orientation, alpha is degrees from north
+        if ((event as any).absolute === true || event.alpha !== null) {
+          heading = (360 - event.alpha) % 360;
+        }
       }
-      setDeviceHeading(heading);
+      
+      // Only update if we have a valid heading
+      if (heading !== 0 || firstHeadingReceived) {
+        setDeviceHeading(heading);
+        if (!firstHeadingReceived) {
+          firstHeadingReceived = true;
+          setCompassReady(true);
+        }
+      }
       setPermissionGranted(true);
+    };
+
+    // Try to use absolute orientation for better accuracy on Android
+    const handleAbsoluteOrientation = (event: DeviceOrientationEvent) => {
+      if (event.alpha !== null) {
+        const heading = (360 - event.alpha) % 360;
+        setDeviceHeading(heading);
+        if (!firstHeadingReceived) {
+          firstHeadingReceived = true;
+          setCompassReady(true);
+        }
+        setPermissionGranted(true);
+      }
     };
 
     // request permission iOS
@@ -124,10 +151,17 @@ const ArahKiblatPage: React.FC = () => {
         })
         .catch(console.error);
     } else {
-      window.addEventListener("deviceorientation", handleOrientation, true);
+      // Try deviceorientationabsolute first (better for Android)
+      const win = window as Window & { ondeviceorientationabsolute?: any };
+      if (win.ondeviceorientationabsolute !== undefined) {
+        window.addEventListener("deviceorientationabsolute" as any, handleAbsoluteOrientation as any, true);
+      } else {
+        window.addEventListener("deviceorientation", handleOrientation, true);
+      }
     }
 
     return () => {
+      window.removeEventListener("deviceorientationabsolute", handleAbsoluteOrientation as any, true);
       window.removeEventListener("deviceorientation", handleOrientation, true);
     };
   }, []);
@@ -135,6 +169,8 @@ const ArahKiblatPage: React.FC = () => {
   // Hitung arah relatif kiblat terhadap device
   const getRelativeQiblaDirection = (): number => {
     if (qiblaDirection === null) return 0;
+    // Jika kompas belum ready, tampilkan arah kiblat absolut (tidak relatif ke device)
+    if (!compassReady) return qiblaDirection;
     const diff = qiblaDirection - deviceHeading;
     return (diff + 360) % 360; // normalisasi 0–360
   };
