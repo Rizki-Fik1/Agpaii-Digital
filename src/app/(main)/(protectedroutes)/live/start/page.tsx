@@ -77,7 +77,7 @@ export default function StartLivePage() {
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 py-4 flex items-center z-50">
         <button
-          onClick={() => router.push("/live")}
+          onClick={() => router.replace("/live")}
           className="p-2 bg-white/10 rounded-full backdrop-blur-sm"
         >
           <ArrowLeftIcon className="size-6 text-white" />

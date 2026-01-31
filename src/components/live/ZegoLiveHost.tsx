@@ -53,7 +53,7 @@ export default function ZegoLiveHost({
     } catch (error) {
       console.error("Error ending live:", error);
     }
-    router.push("/live");
+    router.replace("/live");
   }, [liveId, router]);
 
   // Real-time viewers subscription
