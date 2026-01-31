@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@firebase";
@@ -45,6 +45,7 @@ export default function WatchLivePage() {
   const [live, setLive] = useState<LiveData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showViewers, setShowViewers] = useState(false);
+  const hasNavigatedRef = useRef(false);
 
   useEffect(() => {
     if (!liveId) return;
@@ -53,17 +54,23 @@ export default function WatchLivePage() {
     const unsubscribe = onSnapshot(
       liveRef,
       (snapshot) => {
+        if (hasNavigatedRef.current) return;
+        
         if (snapshot.exists()) {
           const data = snapshot.data() as LiveData;
           setLive(data);
 
           if (data.status === "ended") {
+            hasNavigatedRef.current = true;
+            unsubscribe();
             alert("Live telah berakhir");
-            router.push("/live");
+            router.replace("/live");
           }
         } else {
+          hasNavigatedRef.current = true;
+          unsubscribe();
           alert("Live tidak ditemukan");
-          router.push("/live");
+          router.replace("/live");
         }
         setLoading(false);
       },
@@ -77,7 +84,8 @@ export default function WatchLivePage() {
   }, [liveId, router]);
 
   const handleLeave = () => {
-    router.push("/live");
+    hasNavigatedRef.current = true;
+    router.replace("/live");
   };
 
   const viewerCount = live?.viewers?.length || 0;
