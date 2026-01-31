@@ -3,13 +3,14 @@
 import API from "@/utils/api/config";
 import { useAuth } from "@/utils/context/auth_context";
 import { getImage } from "@/utils/function/function";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import "moment/locale/id";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { EllipsisVerticalIcon, CheckIcon } from "@heroicons/react/24/solid";
+import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function trimText(text: string, length: number) {
   return text.length > length ? text.slice(0, length) + "..." : text;
@@ -20,6 +21,7 @@ export default function Notification() {
   const router = useRouter();
   const { ref, inView } = useInView();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const {
     data: notifications,
@@ -65,9 +67,48 @@ export default function Notification() {
     }
   });
 
-  const handleMarkAsRead = () => {
-    // Add mark as read functionality here
-    console.log("Mark as read clicked");
+  // Mutation untuk hapus notifikasi
+  const { mutate: deleteNotification } = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const res = await API.delete(`notification/${notificationId}`);
+      if (res.status === 200) return res.data;
+      throw new Error("Failed to delete notification");
+    },
+    onMutate: async (notificationId: string) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["notifications", auth.id] });
+      
+      // Snapshot previous value
+      const previousNotifications = queryClient.getQueryData(["notifications", auth.id]);
+      
+      // Optimistic update: hapus notifikasi dari cache
+      queryClient.setQueryData(["notifications", auth.id], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: page.data.filter((notif: any) => notif.id !== notificationId)
+          }))
+        };
+      });
+      
+      return { previousNotifications };
+    },
+    onSuccess: () => {
+      toast.success("Notifikasi berhasil dihapus");
+    },
+    onError: (err, variables, context: any) => {
+      // Rollback jika error
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["notifications", auth.id], context.previousNotifications);
+      }
+      toast.error("Gagal menghapus notifikasi");
+    },
+  });
+
+  const handleDeleteNotification = (notificationId: string) => {
+    deleteNotification(notificationId);
   };
 
   return (
@@ -90,16 +131,7 @@ export default function Notification() {
         {/* TODAY SECTION */}
         {todayNotifications.length > 0 && (
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-slate-800 text-lg">Notifikasi Hari Ini</h2>
-              <button
-                onClick={handleMarkAsRead}
-                className="text-teal-700 hover:text-teal-800 flex items-center gap-1 text-sm font-medium"
-              >
-                <CheckIcon className="size-4" />
-                <span>Tandai Dibaca</span>
-              </button>
-            </div>
+            <h2 className="font-semibold text-slate-800 text-lg mb-4">Notifikasi Hari Ini</h2>
             <div className="space-y-3">
               {todayNotifications.map((notification: any, index: number) => (
                 <NotificationItem
@@ -107,6 +139,7 @@ export default function Notification() {
                   notification={notification}
                   menuOpen={menuOpen}
                   setMenuOpen={setMenuOpen}
+                  onDelete={handleDeleteNotification}
                 />
               ))}
             </div>
@@ -124,6 +157,7 @@ export default function Notification() {
                   notification={notification}
                   menuOpen={menuOpen}
                   setMenuOpen={setMenuOpen}
+                  onDelete={handleDeleteNotification}
                 />
               ))}
             </div>
@@ -155,25 +189,55 @@ function NotificationItem({
   notification,
   menuOpen,
   setMenuOpen,
+  onDelete,
 }: {
   notification: any;
   menuOpen: string | null;
   setMenuOpen: (id: string | null) => void;
+  onDelete: (id: string) => void;
 }) {
+  const router = useRouter();
   const notificationId = notification?.id;
   const userName = notification?.data?.data?.user?.name || "Unknown";
   const userAvatar = notification?.data?.data?.user?.avatar;
+  const postId = notification?.data?.data?.post_id;
   const isLike = notification?.type.includes("Like");
-  const actionText = isLike
-    ? "Menyukai Postingan Anda"
-    : `Mengomentari Postingan Anda : ${trimText(
-        notification?.data?.data?.value || "",
-        30
-      )}`;
+  const isComment = notification?.type.includes("Comment");
+  
+  // Tentukan action text berdasarkan tipe notifikasi
+  let actionText = "";
+  if (isLike) {
+    actionText = "Menyukai Postingan Anda";
+  } else if (isComment) {
+    actionText = `Mengomentari Postingan Anda : ${trimText(
+      notification?.data?.data?.value || "",
+      30
+    )}`;
+  } else {
+    actionText = notification?.data?.message || "Notifikasi baru";
+  }
+  
   const timeAgo = moment(notification?.created_at).locale("id").fromNow();
 
+  // Handle click pada notifikasi untuk navigasi ke postingan
+  const handleNotificationClick = () => {
+    if (postId) {
+      router.push(`/social-media/post/${postId}`);
+    }
+  };
+
+  // Handle delete notifikasi
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(notificationId);
+    setMenuOpen(null);
+  };
+
   return (
-    <div className="relative bg-teal-50 rounded-lg p-4 border border-teal-100 flex items-start gap-3">
+    <div 
+      className={`relative bg-teal-50 rounded-lg p-4 border border-teal-100 flex items-start gap-3 ${postId ? 'cursor-pointer hover:bg-teal-100 transition-colors' : ''}`}
+      onClick={handleNotificationClick}
+    >
       <img
         src={getImage(userAvatar)}
         alt={userName}
@@ -188,23 +252,23 @@ function NotificationItem({
       {/* Menu Button */}
       <div className="relative flex-shrink-0">
         <button
-          onClick={() => setMenuOpen(menuOpen === notificationId ? null : notificationId)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen(menuOpen === notificationId ? null : notificationId);
+          }}
           className="p-1 rounded hover:bg-teal-100 transition"
         >
           <EllipsisVerticalIcon className="size-5 text-slate-600" />
         </button>
 
-        {/* Dropdown Menu */}
+        {/* Dropdown Menu - Hanya Hapus */}
         {menuOpen === notificationId && (
           <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-slate-200 z-50">
-            <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 first:rounded-t-lg">
-              Tandai Sebagai Dibaca
-            </button>
-            <button className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-              Lihat Postingan
-            </button>
-            <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-lg">
-              Hapus
+            <button 
+              onClick={handleDelete}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+            >
+              Hapus Notifikasi
             </button>
           </div>
         )}
