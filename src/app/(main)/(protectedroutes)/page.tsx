@@ -95,9 +95,9 @@ export default function Home() {
       icon: "/svg/ikon-kta.svg",
     },
     {
-      label: "Arah Kiblat",
-      link: "/arah-kiblat",
-      icon: "/svg/ikon kabah.svg",
+      label: "Live",
+      link: "/live",
+      icon: "/svg/ikon-live.svg",
     },
     {
       label: "Al-Qur'an",
