@@ -4,6 +4,7 @@ import { getImage } from "@/utils/function/function";
 import moment from "moment";
 import "moment/locale/id";
 import { useState } from "react";
+import Image from "next/image";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import API from "@/utils/api/config";
 import { toast } from "sonner";
@@ -53,10 +54,12 @@ export default function Comment({ comment, postId, isReply = false }: CommentPro
   return (
     <div className={`flex flex-col w-full ${!isReply ? "py-2 mb-2 pl-3 ml-2 border-l-2 border-slate-200 bg-slate-50 rounded-r-lg p-3" : "mt-2"}`}>
       <div className="flex gap-3 items-start">
-        <img
-          src={getImage(comment.author.avatar)}
+        <Image
+          src={comment.author.avatar ? getImage(comment.author.avatar) : "/img/profileplacholder.png"}
+          width={32}
+          height={32}
           className="size-8 rounded-full object-cover flex-shrink-0"
-          alt=""
+          alt={comment.author.name || "User"}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

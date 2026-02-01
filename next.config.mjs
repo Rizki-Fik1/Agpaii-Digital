@@ -43,6 +43,7 @@ const nextConfig = {
       { protocol: "https", hostname: "mitra.agpaiidigital.org" },
       { protocol: "https", hostname: "file.agpaiidigital.org" },
       { protocol: "https", hostname: "via.placeholder.com" },
+      { protocol: "https", hostname: "agpaii.or.id" },
     ],
   },
 

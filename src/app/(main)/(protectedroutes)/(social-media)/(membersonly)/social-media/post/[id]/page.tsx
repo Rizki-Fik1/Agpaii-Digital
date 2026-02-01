@@ -3,6 +3,7 @@ import Loader from "@/components/loader/loader";
 import Modal from "@/components/modal/modal";
 import TopBar from "@/components/nav/topbar";
 import Comment from "@/components/post/comment";
+import { CommentTree } from "@/components/post/CommentTree";
 import API from "@/utils/api/config";
 import { useAuth } from "@/utils/context/auth_context";
 import { getImage } from "@/utils/function/function";
@@ -12,10 +13,11 @@ import clsx from "clsx";
 import moment from "moment";
 import "moment/locale/id";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { Pagination } from "swiper/modules";
 import { SwiperSlide, Swiper } from "swiper/react";
+import Image from "next/image";
 
 /* ---------------- TEXT UTILS ---------------- */
 function trimText(text: string, length: number) {
@@ -200,12 +202,15 @@ export default function DetailPost() {
             >
               ×
             </button>
-            <img
-              src={selectedImage}
-              alt="Full Image"
-              className="max-w-full max-h-[90vh] object-contain"
-              onError={() => setShowImageModal(false)} // Close on error
-            />
+            <div className="relative w-[90vw] h-[90vh]">
+              <Image
+                src={selectedImage}
+                alt="Full Image"
+                fill
+                className="object-contain"
+                onError={() => setShowImageModal(false)} // Close on error
+              />
+            </div>
           </div>
         </div>
       )}
@@ -255,10 +260,12 @@ export default function DetailPost() {
           <div className="flex flex-col">
             {/* HEADER */}
             <div className="flex gap-4 px-4 py-5 items-center">
-              <img
-                src={getImage(post.author_id.avatar)}
-                className="size-10 rounded-full"
-                alt=""
+              <Image
+                src={post.author_id.avatar ? getImage(post.author_id.avatar) : "/img/profileplacholder.png"}
+                width={40}
+                height={40}
+                className="size-10 rounded-full object-cover"
+                alt={post.author_id.name}
               />
               <div>
                 <h1 className="text-sm font-medium">{post.author_id.name}</h1>
@@ -315,11 +322,15 @@ export default function DetailPost() {
                       key={i}
                       className="bg-black max-h-[16rem] overflow-hidden"
                     >
-                      <img
-                        src={getImage(image.src)}
-                        className="h-full object-cover mx-auto cursor-pointer"
-                        onClick={() => openImageModal(getImage(image.src))}
-                      />
+                      <div className="relative h-full w-full">
+                        <Image
+                          src={getImage(image.src)}
+                          alt="Post Image"
+                          fill
+                          className="object-cover mx-auto cursor-pointer"
+                          onClick={() => openImageModal(getImage(image.src))}
+                        />
+                      </div>
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -370,76 +381,7 @@ export default function DetailPost() {
             {/* ================= COMMENTS ================= */}
             {/* ================= COMMENTS ================= */}
             <div className="px-4 py-4 mt-4">
-              {(() => {
-                // Helper untuk build tree tapi FLATTEN replies (1 level nesting saja)
-                const buildCommentTree = (comments: any[]) => {
-                  const commentMap: { [key: string]: any } = {};
-                  const roots: any[] = [];
-
-                  // 1. Copy ke map
-                  comments.forEach((c) => {
-                    commentMap[c.id] = { ...c, replies: [] }; 
-                  });
-
-                  // 2. Helper cari Root ID
-                  const findRootId = (currId: string): string | null => {
-                    let curr = commentMap[currId];
-                    let safety = 0;
-                    while(curr && curr.parent_id && safety < 50) {
-                      if(commentMap[curr.parent_id]) {
-                        curr = commentMap[curr.parent_id];
-                      } else {
-                        return null; // Orphan
-                      }
-                      safety++;
-                    }
-                    return curr ? curr.id : null;
-                  };
-
-                  // 3. Distribusi comments
-                  comments.forEach((c) => {
-                    if (c.parent_id) {
-                      const rootId = findRootId(c.id);
-                      if (rootId && commentMap[rootId]) {
-                        // Masukkan semua descendants ke array replies milik ROOT
-                        commentMap[rootId].replies.push(commentMap[c.id]);
-                      } else {
-                        // Jika chain putus, anggap root
-                        roots.push(commentMap[c.id]);
-                      }
-                    } else {
-                      roots.push(commentMap[c.id]);
-                    }
-                  });
-
-                  // 4. Sort
-                  const sortComments = (a: any, b: any) => 
-                    new Date(a.created_at).valueOf() - new Date(b.created_at).valueOf();
-
-                  roots.sort(sortComments);
-                  
-                  // Sort replies di dalam root
-                  roots.forEach((root) => {
-                    if (root.replies.length > 0) {
-                      root.replies.sort(sortComments);
-                    }
-                  });
-
-                  return roots;
-                };
-
-                const commentTree = post.comments && post.comments.length > 0 
-                  ? buildCommentTree(post.comments) 
-                  : [];
-
-                return commentTree.length > 0 ? (
-                  commentTree.map((comment: any, i: number) => (
-                    <Comment comment={comment} postId={post.id} key={comment.id || i} />
-                  ))
-                ) : (
-                  <div className="text-sm text-slate-500">Tidak ada Komentar</div>
-                );
-              })()}
+              <CommentTree comments={post.comments} postId={post.id} />
             </div>
           </div>
         )}

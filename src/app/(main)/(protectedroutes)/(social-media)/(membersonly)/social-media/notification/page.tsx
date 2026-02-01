@@ -6,7 +6,8 @@ import { getImage } from "@/utils/function/function";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import "moment/locale/id";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { useInView } from "react-intersection-observer";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
@@ -51,21 +52,25 @@ export default function Notification() {
   }, [inView, isFetchingNextPage, fetchNextPage]);
 
   // Pisahkan notifikasi hari ini dan lainnya
-  const todayNotifications: any[] = [];
-  const olderNotifications: any[] = [];
+  const { todayNotifications, olderNotifications } = useMemo(() => {
+    const today: any[] = [];
+    const older: any[] = [];
 
-  notifications?.pages.forEach((page) => {
-    if (page?.data) {
-      page.data.forEach((notif: any) => {
-        const isToday = moment(notif.created_at).isSame(moment(), "day");
-        if (isToday) {
-          todayNotifications.push(notif);
-        } else {
-          olderNotifications.push(notif);
-        }
-      });
-    }
-  });
+    notifications?.pages.forEach((page) => {
+      if (page?.data) {
+        page.data.forEach((notif: any) => {
+          const isToday = moment(notif.created_at).isSame(moment(), "day");
+          if (isToday) {
+            today.push(notif);
+          } else {
+            older.push(notif);
+          }
+        });
+      }
+    });
+
+    return { todayNotifications: today, olderNotifications: older };
+  }, [notifications]);
 
   // Mutation untuk hapus notifikasi
   const { mutate: deleteNotification } = useMutation({
@@ -238,9 +243,11 @@ function NotificationItem({
       className={`relative bg-teal-50 rounded-lg p-4 border border-teal-100 flex items-start gap-3 ${postId ? 'cursor-pointer hover:bg-teal-100 transition-colors' : ''}`}
       onClick={handleNotificationClick}
     >
-      <img
-        src={getImage(userAvatar)}
+      <Image
+        src={userAvatar ? getImage(userAvatar) : "/img/profileplacholder.png"}
         alt={userName}
+        width={48}
+        height={48}
         className="rounded-full size-12 object-cover flex-shrink-0"
       />
       <div className="flex-1 min-w-0">
