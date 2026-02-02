@@ -129,13 +129,7 @@ const MyProductPage: NextPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div>Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="pt-[4.2rem]">

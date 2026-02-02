@@ -252,13 +252,7 @@ export default function EditEvent() {
     });
   };
 
-  if (loadingEvent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader className="size-10 text-[#009788]" />
-      </div>
-    );
-  }
+  if (loadingEvent) return null;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>

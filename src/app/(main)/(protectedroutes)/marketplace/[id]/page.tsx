@@ -120,13 +120,7 @@ const ProductDetailPage: NextPage = () => {
 		window.open(url, "_blank");
 	};
 
-	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-screen">
-				<div>Loading...</div>
-			</div>
-		);
-	}
+  if (loading) return null;
 
 	if (!product) {
 		return (
@@ -190,7 +184,7 @@ const ProductDetailPage: NextPage = () => {
 					</p>
 
 					{/* Shipping Location */}
-					<div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg mb-4 inline-flex">
+					<div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg mb-4">
 						<img 
 							src="/svg/delivery.svg" 
 							alt="Tasbih" 

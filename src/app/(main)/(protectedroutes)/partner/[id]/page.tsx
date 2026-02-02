@@ -167,12 +167,7 @@ export default function Partner() {
 		if (!!registeredUser) setSelected(registeredUser?.partner);
 	}, [registeredUser]);
 
-	if (isLoading || loading)
-		return (
-			<div className="flex h-screen justify-center items-center">
-				<Loader className="size-12" />
-			</div>
-		);
+	if (isLoading || loading) return null;
 	return (
 		<div className="py-[4.21rem]">
 			{/* Modal Confirm Data */}

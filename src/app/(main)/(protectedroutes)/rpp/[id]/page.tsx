@@ -32,11 +32,7 @@ export default function DetailRPPPage() {
   return (
     <div className="pb-20 pt-[4.21rem] px-[5%] sm:px-6">
       <TopBar withBackButton>Detail RPP</TopBar>
-      {isLoading ? (
-        <div className="flex justify-center mt-40">
-          <Loader className="size-10" />
-        </div>
-      ) : (
+      {isLoading ? null : (
         <>
           <div className="flex py-4 items-center">
             <h1 className="text-xl my-2 font-semibold text-slate-700">
