@@ -84,13 +84,7 @@ export default function OthersMenuPage() {
 		logout();
 	};
 
-	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center h-screen">
-				<Loader className="size-16" />
-			</div>
-		);
-	}
+
 
 	return (
 		<>

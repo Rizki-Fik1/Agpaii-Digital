@@ -473,13 +473,7 @@ const DetailModulAjarPage: React.FC = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-white">
-        <div className="text-xl text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   if (!materialData) {
     return (

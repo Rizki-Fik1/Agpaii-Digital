@@ -120,12 +120,7 @@ export default function Card() {
     return "";
   };
 
-  if (isLoading || templateLoading)
-    return (
-      <div className="flex justify-center h-screen items-center">
-        <Loader className="size-16" />
-      </div>
-    );
+  if (isLoading || templateLoading) return null;
 
   if (isError) return <div>{error?.message}</div>;
 

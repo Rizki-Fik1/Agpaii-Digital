@@ -8,12 +8,7 @@ import { ReactNode } from "react";
 export default function GuestRoute({ children }: { children: ReactNode }) {
   const { auth, authLoading } = useAuth();
 
-  if (authLoading)
-    return (
-      <div className="flex h-screen justify-center items-center">
-        <Loader className="size-10" />
-      </div>
-    );
+  if (authLoading) return null;
 
   return !auth ? children : <Navigate to={"/"} />;
 }

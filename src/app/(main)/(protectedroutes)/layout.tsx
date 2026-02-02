@@ -10,13 +10,7 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { auth, authLoading } = useAuth();
   const pathname = usePathname();
 
-  if (authLoading)
-    return (
-      <div className="flex justify-center h-screen items-center">
-        {" "}
-        <Loader className="size-12" />{" "}
-      </div>
-    );
+  if (authLoading) return null;
 
   // Redirect ke halaman login jika tidak ada auth
   if (!auth) {

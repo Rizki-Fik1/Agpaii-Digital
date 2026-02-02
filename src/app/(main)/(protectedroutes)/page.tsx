@@ -172,13 +172,7 @@ export default function Home() {
     if (!isPnsStatusCompleted(auth)) messages.push("Status PNS");
     setProfileMessage(Array.from(new Set(messages)));
   }, [auth]);
-  if (authLoading) {
-    return (
-      <div className="h-screen justify-center items-center flex">
-        <Loader className="size-16" />
-      </div>
-    );
-  }
+
   return (
     <>
       {/* Modal components */}

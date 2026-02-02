@@ -96,13 +96,7 @@ export default function TransactionDetail() {
   console.log("Transaction data:", transaction);
   console.log("=== TransactionDetail Debug End ===");
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader className="w-12 h-12 text-indigo-600" />
-      </div>
-    );
-  }
+  if (isLoading) return null;
 
   if (error) {
     console.log("Query error:", error);
