@@ -23,12 +23,12 @@ import { Status } from "@/constant/constant";
 import {
   getImage,
   getUserStatus,
-  isAllProfileCompleted,
   isInformationProfileCompleted,
   isLocationProfileCompleted,
   isPnsStatusCompleted,
 } from "@/utils/function/function";
 import HomeMessage from "@/components/message/home_message";
+import TopBar from "@/components/nav/topbar";
 
 // Define PostType interface
 interface PostType {
@@ -79,15 +79,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Non-blocking fetch for feature status
     fetch(
       `${process.env.NEXT_PUBLIC_MITRA_URL}/api/feature-status/ramadhan_feature`
     )
       .then((response) => {
         if (!response.ok) {
-          // If API returns 404 or error, just disable the feature
-          setIsRamadhanFeatureEnabled(false);
-          setIsLoading(false);
-          return null;
+           return null;
         }
         return response.json();
       })
@@ -99,8 +97,7 @@ export default function Home() {
       })
       .catch((error) => {
         console.error("Error fetching feature status:", error);
-        setIsRamadhanFeatureEnabled(false);
-        setIsLoading(false);
+         setIsLoading(false);
       });
   }, []);
 
@@ -237,9 +234,14 @@ export default function Home() {
       </Modal>
       <div
         style={{ backgroundImage: "url(/img/post.png)" }}
-        className="text-center max-w-[480px] z-[996] bg-cover bg-bottom mx-auto top-0 left-0 right-0 px-6 py-7 h-[11.5rem]"
+        className="text-center max-w-[480px] z-[996] bg-cover bg-bottom mx-auto top-0 left-0 right-0 px-6 py-7 h-[14.5rem]"
       >
-        <div className="items-center mt-6">
+        <div className="absolute top-0 left-0 right-0 z-[9999]">
+             <TopBar withBackButton>
+                <span className="text-white mr-6">Ecommerce</span>
+             </TopBar>
+        </div>
+        <div className="items-center mt-12 pt-8">
           <h2 className="text-xl font-semibold text-white">
             AGPAY
             <br />

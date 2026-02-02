@@ -99,9 +99,7 @@ export default function EditProfileSiswaPage() {
     }
   };
 
-  if (loading) {
-    return <div className="p-6 text-center">Memuat profil...</div>;
-  }
+
 
   return (
     <div className="min-h-screen bg-white">

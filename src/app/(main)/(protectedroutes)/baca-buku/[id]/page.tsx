@@ -228,8 +228,12 @@ const BookDetailPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 pt-[4.2rem]">
         <TopBar withBackButton>Detail Buku</TopBar>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6 px-4">
+             <div className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
+                <div className="h-64 bg-gray-200 rounded-xl mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+             </div>
         </div>
       </div>
     );

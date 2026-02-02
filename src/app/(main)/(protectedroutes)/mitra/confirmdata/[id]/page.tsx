@@ -123,13 +123,7 @@ const PartnerConfirmData: React.FC = () => {
 		setErrorMessage(null);
 	};
 
-	if (isLoading) {
-		return (
-			<div className="flex justify-center items-center h-screen">
-				Loading...
-			</div>
-		);
-	}
+
 
 	return (
 		<div className="p-6 bg-white min-h-screen">

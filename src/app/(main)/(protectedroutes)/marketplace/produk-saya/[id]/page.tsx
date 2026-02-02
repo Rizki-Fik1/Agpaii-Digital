@@ -188,13 +188,7 @@ export default function EditProductPage() {
 	};
 
 	// ====== 4) RENDER ======
-	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-screen">
-				<div>Loading product...</div>
-			</div>
-		);
-	}
+
 
 	return (
 		<div className="pt-[4.2rem]">

@@ -64,10 +64,17 @@ const ArticlePage = ({ id }: { id: string }) => {
 	// Now return based on states
 	if (isLoading) {
 		return (
-			<div className="pt-[4.2rem]">
+			<div className="pt-[4.2rem] pb-20">
 				<TopBar withBackButton>Detail Artikel</TopBar>
-				<div className="flex justify-center items-center h-[80vh]">
-					<p>Loading...</p>
+				<div className="px-4 sm:px-6 pt-8 animate-pulse">
+					<div className="aspect-video bg-gray-200 rounded-md mb-4"></div>
+					<div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+					<div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
+					<div className="space-y-3">
+						<div className="h-4 bg-gray-200 rounded w-full"></div>
+						<div className="h-4 bg-gray-200 rounded w-full"></div>
+						<div className="h-4 bg-gray-200 rounded w-5/6"></div>
+					</div>
 				</div>
 			</div>
 		);

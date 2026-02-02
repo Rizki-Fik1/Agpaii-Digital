@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import type { NextPage } from "next";
 import TopBar from "@/components/nav/topbar";
 import API from "@/utils/api/config";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import { getImage } from "@/utils/function/function";
 
 interface Product {
 	id: string | number;
@@ -23,56 +26,42 @@ interface Banner {
 }
 
 const MarketplacePage: NextPage = () => {
-	const [data, setData] = useState<Product[]>([]);
-	const [filteredData, setFilteredData] = useState<Product[]>([]);
-	const [searchText, setSearchText] = useState<string>("");
-	const [loading, setLoading] = useState<boolean>(true);
-	const [banners, setBanners] = useState<Banner[]>([]);
-	const [currentIndex, setCurrentIndex] = useState<number>(0);
+  /* ---------------- QUERY DATA ---------------- */
+  const { data: products = [] } = useQuery({
+    queryKey: ["marketplace-products"],
+    queryFn: async () => {
+      const res = await API.get<Product[]>("/product");
+      return res.status === 200 ? res.data : [];
+    },
+  });
 
-	const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+  const { data: banners = [] } = useQuery({
+    queryKey: ["marketplace-banners"],
+    queryFn: async () => {
+      const res = await API.get<Banner[]>("/get-marketplace-banners");
+      return res.status === 200 ? res.data : [];
+    },
+  });
 
-	// Fetch data produk dan banner dari API
-	const loadData = async () => {
-		try {
-			setLoading(true);
-			const productRes = await API.get<Product[]>("/product");
-			const bannerRes = await API.get<Banner[]>("/get-marketplace-banners");
-			setData(productRes.data);
-			setBanners(bannerRes.data);
-			adjustData(productRes.data);
-		} catch (error) {
-			console.error("Error:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
+  /* ---------------- SEARCH & FILTER ---------------- */
+  const filteredData = useMemo(() => {
+    let result = products;
+    if (searchText.trim() !== "") {
+      result = products.filter((item) =>
+        item.nama?.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+    // Adjust logic
+    if (result.length % 2 !== 0) {
+      return [...result, { id: "dummy" }];
+    }
+    return result;
+  }, [products, searchText]);
 
-	useEffect(() => {
-		loadData();
-	}, []);
-
-	// Menyesuaikan data agar jumlah item produk selalu genap
-	const adjustData = (products: Product[]) => {
-		const adjustedData = [...products];
-		if (adjustedData.length % 2 !== 0) {
-			adjustedData.push({ id: "dummy" });
-		}
-		setFilteredData(adjustedData);
-	};
-
-	// Fungsi pencarian produk berdasarkan nama
-	const handleSearch = (text: string) => {
-		setSearchText(text);
-		if (text.trim() === "") {
-			adjustData(data);
-		} else {
-			const filtered = data.filter((item) =>
-				item.nama?.toLowerCase().includes(text.toLowerCase()),
-			);
-			adjustData(filtered);
-		}
-	};
+  // Fungsi pencarian produk berdasarkan nama
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+  };
 
 	// Format harga ke format rupiah
 	const formatRupiah = (price: number) => {
@@ -93,13 +82,7 @@ const MarketplacePage: NextPage = () => {
 		return () => clearInterval(interval);
 	}, [banners]);
 
-	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-screen">
-				<div>Loading...</div>
-			</div>
-		);
-	}
+
 
 	return (
 		<div className="pt-[4.2rem]">
@@ -139,13 +122,14 @@ const MarketplacePage: NextPage = () => {
 					<div
 						className="relative overflow-hidden rounded-2xl bg-gray-200"
 						style={{ height: "200px" }}>
-						{banners.length > 0 && (
-							<img
-								src={`${STORAGE_URL}/${banners[currentIndex].foto}`}
-								alt="Banner"
-								className="w-full h-full object-cover rounded-2xl"
-							/>
-						)}
+            {banners.length > 0 && (
+              <Image
+                src={getImage(banners[currentIndex].foto)}
+                alt="Banner"
+                fill
+                className="object-cover rounded-2xl"
+              />
+            )}
 					</div>
 					
 					{/* Indicator Dots */}
@@ -190,13 +174,14 @@ const MarketplacePage: NextPage = () => {
 								key={item.id}
 								href={`/marketplace/${item.id}`}>
 								<div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-									{item.foto && (
-										<img
-											src={`${STORAGE_URL}/${item.foto}`}
-											alt={item.nama}
-											className="w-full h-40 object-cover"
-										/>
-									)}
+                  <div className="relative w-full h-40">
+                    <Image
+                      src={getImage(item.foto!)}
+                      alt={item.nama || "Product"}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
 									<div className="p-3">
 										<h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-1">
 											{item.nama}

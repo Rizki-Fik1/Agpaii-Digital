@@ -15,7 +15,7 @@ const ZegoLiveViewer = dynamic(() => import("@/components/live/ZegoLiveViewer"),
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-screen bg-black">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+      <div className="text-white text-sm">Memuat live stream...</div>
     </div>
   ),
 });
@@ -90,13 +90,7 @@ export default function WatchLivePage() {
 
   const viewerCount = live?.viewers?.length || 0;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-black">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-      </div>
-    );
-  }
+
 
   if (!live) {
     return (

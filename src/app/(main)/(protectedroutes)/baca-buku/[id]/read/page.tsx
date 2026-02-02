@@ -202,8 +202,8 @@ const BookReaderPage = () => {
         <TopBar withBackButton>
           <span className="text-white">Baca Buku</span>
         </TopBar>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <div className="flex items-center justify-center h-full">
+           <div className="text-gray-500">Memuat...</div>
         </div>
       </div>
     );
@@ -280,12 +280,9 @@ const BookReaderPage = () => {
       {/* PDF Viewer (iframe) */}
       <div className="flex-1 pt-16 pb-20 overflow-auto">
         {pdfLoading ? (
-          <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white mx-auto mb-3"></div>
               <p className="text-gray-400 text-sm">Memuat dokumen...</p>
             </div>
-          </div>
         ) : iframeError ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">

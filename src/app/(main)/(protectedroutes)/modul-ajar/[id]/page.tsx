@@ -473,7 +473,7 @@ const DetailModulAjarPage: React.FC = () => {
     );
   };
 
-  if (loading) return null;
+
 
   if (!materialData) {
     return (

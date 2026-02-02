@@ -343,13 +343,7 @@ const EditPerangkatAjar: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="pt-[5.21rem] p-6 bg-white min-h-screen flex items-center justify-center">
-        <div className="text-lg">Memuat data modul...</div>
-      </div>
-    );
-  }
+
 
   if (!moduleData) {
     return (

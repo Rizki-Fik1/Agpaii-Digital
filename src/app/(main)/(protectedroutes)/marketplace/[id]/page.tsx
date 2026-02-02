@@ -120,11 +120,26 @@ const ProductDetailPage: NextPage = () => {
 		window.open(url, "_blank");
 	};
 
-  if (loading) return null;
+  if (loading) {
+    return (
+		<div className="pt-[4.2rem] bg-gray-50 min-h-screen">
+			<TopBar withBackButton>Marketplace</TopBar>
+			<div className="container mx-auto pb-24 animate-pulse">
+				<div className="bg-gray-200 h-80 w-full mb-4"></div>
+				<div className="px-5 py-4 space-y-4">
+					<div className="h-8 bg-gray-200 rounded w-3/4"></div>
+					<div className="h-6 bg-gray-200 rounded w-1/2"></div>
+					<div className="h-20 bg-gray-200 rounded w-full"></div>
+				</div>
+			</div>
+		</div>
+    );
+  }
 
 	if (!product) {
 		return (
-			<div className="flex justify-center items-center h-screen">
+			<div className="pt-[4.2rem] flex justify-center items-center h-screen bg-gray-50">
+				<TopBar withBackButton>Marketplace</TopBar>
 				<div>Produk tidak ditemukan</div>
 			</div>
 		);

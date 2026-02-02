@@ -37,7 +37,7 @@ const HistoryTasbihList = () => {
 		});
 	};
 
-	if (loading) return null;
+
 
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen pt-[5.21rem]">

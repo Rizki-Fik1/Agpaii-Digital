@@ -129,7 +129,7 @@ const MyProductPage: NextPage = () => {
     }
   };
 
-  if (loading) return null;
+
 
   return (
     <div className="pt-[4.2rem]">

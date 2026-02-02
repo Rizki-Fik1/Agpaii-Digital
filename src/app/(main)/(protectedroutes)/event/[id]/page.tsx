@@ -52,11 +52,12 @@ export default function EventDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#009788] mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat detail acara...</p>
-        </div>
+      <div className="pt-[4.21rem] px-5 pb-10 bg-gray-50 min-h-screen">
+        <TopBar withBackButton>Detail Event</TopBar>
+        <div className="mt-6 w-full aspect-video rounded-xl bg-gray-200 animate-pulse"></div>
+        <div className="mt-5 h-16 bg-white rounded-xl shadow-sm animate-pulse"></div>
+        <div className="mt-6 h-8 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+        <div className="mt-6 bg-white rounded-xl shadow-sm p-5 h-40 animate-pulse"></div>
       </div>
     );
   }

@@ -344,13 +344,7 @@ const DetailPerangkatAjarPage: React.FC = () => {
     }));
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
-  }
+
 
   if (!materialData) {
     return (

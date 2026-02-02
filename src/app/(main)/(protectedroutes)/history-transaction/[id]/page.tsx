@@ -96,8 +96,6 @@ export default function TransactionDetail() {
   console.log("Transaction data:", transaction);
   console.log("=== TransactionDetail Debug End ===");
 
-  if (isLoading) return null;
-
   if (error) {
     console.log("Query error:", error);
     return (

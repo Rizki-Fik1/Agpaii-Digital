@@ -71,13 +71,7 @@ export default function KelasGuruListPage() {
   }, [router]);
 
   // ================= STATE =================
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500">
-        Memuat kelas...
-      </div>
-    );
-  }
+
 
   if (classes.length === 0) {
     return (

@@ -173,7 +173,16 @@ const ChatScreen: React.FC = () => {
 		onSend();
 	};
 
-	if (loading) return <p>Loading chat...</p>;
+	if (loading) {
+		return (
+			<div className="pt-[3.9rem] bg-slate-100 min-h-screen">
+				<TopBar withBackButton>{othername}</TopBar>
+				<div className="flex items-center justify-center h-[80vh]">
+					<p className="text-gray-500">Memuat percakapan...</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div className="pt-[3.9rem] bg-slate-100 min-h-screen">
