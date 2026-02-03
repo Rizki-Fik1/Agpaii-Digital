@@ -26,6 +26,9 @@ interface Banner {
 }
 
 const MarketplacePage: NextPage = () => {
+    const [searchText, setSearchText] = useState("");
+    const [currentIndex, setCurrentIndex] = useState(0);
+
   /* ---------------- QUERY DATA ---------------- */
   const { data: products = [] } = useQuery({
     queryKey: ["marketplace-products"],
