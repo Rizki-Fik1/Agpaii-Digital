@@ -19,13 +19,17 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: any) {
   );
 
   return new Promise<File>((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(
-        new File([blob as Blob], "cropped.jpeg", {
-          type: "image/jpeg",
-        })
-      );
-    }, "image/jpeg");
+    canvas.toBlob(
+      (blob) => {
+        resolve(
+          new File([blob as Blob], "cropped.jpeg", {
+            type: "image/jpeg",
+          })
+        );
+      },
+      "image/jpeg",
+      0.6
+    );
   });
 }
 
