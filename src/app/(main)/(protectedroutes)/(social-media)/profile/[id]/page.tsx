@@ -18,6 +18,8 @@ import {
 } from "@heroicons/react/24/outline";
 import SocialMediaNavbar from "@/components/nav/social_media_nav";
 
+import UserAvatar from "@/components/ui/user-avatar";
+
 function trimText(text: string, length: number) {
   return text.length > length ? text.slice(0, length) + "..." : text;
 }
@@ -128,13 +130,10 @@ export default function Profile() {
           {/* PROFILE PICTURE - OVERLAPPING */}
           <div className="flex justify-start -mt-16 relative z-10 px-4">
             <div className="border-4 border-white rounded-full overflow-hidden bg-white">
-              <img
-                src={
-                  (profile?.avatar !== null && getImage(profile.avatar)) ||
-                  "/img/profileplacholder.png"
-                }
-                alt="avatar"
-                className="w-32 h-32 object-cover"
+              <UserAvatar
+                src={profile?.avatar}
+                name={profile.name}
+                className="w-32 h-32 text-4xl"
               />
             </div>
           </div>

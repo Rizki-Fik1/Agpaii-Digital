@@ -53,6 +53,9 @@ function extractFileName(path: string) {
   return path.split("/").pop() || path;
 }
 /* ---------------- MAIN COMPONENT ---------------- */
+import UserAvatar from "../ui/user-avatar";
+
+/* ---------------- MAIN COMPONENT ---------------- */
 export default function Post({
   post,
   onImageClick,
@@ -143,10 +146,10 @@ export default function Post({
     <div className="relative flex flex-col pb-6 max-w-[480px]">
       {/* ---------------- HEADER ---------------- */}
       <div className="flex px-4 py-4 gap-3 items-start">
-        <img
-          src={getImage(post.author.avatar)}
-          alt=""
-          className="rounded-full size-10 min-w-10 min-h-10 object-cover border border-slate-200"
+        <UserAvatar
+          src={post.author.avatar}
+          name={post.author.name}
+          className="rounded-full size-10 min-w-10 min-h-10 border border-slate-200 text-sm"
         />
         <div className="-mt-0.5">
           <Link
