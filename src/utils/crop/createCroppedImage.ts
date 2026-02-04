@@ -1,3 +1,5 @@
+import { compressImageToTargetSize } from "../imageCompression";
+
 export async function getCroppedImg(imageSrc: string, pixelCrop: any) {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -18,17 +20,31 @@ export async function getCroppedImg(imageSrc: string, pixelCrop: any) {
     pixelCrop.height
   );
 
-  return new Promise<File>((resolve) => {
+  return new Promise<File>((resolve, reject) => {
     canvas.toBlob(
-      (blob) => {
-        resolve(
-          new File([blob as Blob], "cropped.jpeg", {
-            type: "image/jpeg",
-          })
-        );
+      async (blob) => {
+        if (!blob) {
+          reject(new Error("Canvas is empty"));
+          return;
+        }
+        
+        // Buat file sementara dari hasil crop (kualitas awal tinggi agar tidak double compression artifact)
+        const file = new File([blob], "cropped.jpeg", {
+          type: "image/jpeg",
+        });
+
+        try {
+          // Kompres file tersebut ke target size menggunakan utility baru
+          const compressedFile = await compressImageToTargetSize(file);
+          resolve(compressedFile);
+        } catch (error) {
+          // Fallback jika kompresi gagal (kembalikan file crop original)
+          console.error("Compression failed in createCroppedImage", error);
+          resolve(file);
+        }
       },
       "image/jpeg",
-      0.6
+      1.0 // Mulai dengan kualitas tinggi sebelum dikompres ulang
     );
   });
 }
