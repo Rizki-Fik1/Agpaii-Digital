@@ -11,6 +11,7 @@ import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/utils/crop/createCroppedImage";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { compressImageToTargetSize } from "@/utils/imageCompression";
 
 export default function NewPostPage() {
   const router = useRouter();
@@ -174,54 +175,14 @@ export default function NewPostPage() {
   };
 
   // Fungsi kompresi gambar
-  const compressImage = (file: File): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          // Max width/height 1280px untuk ukuran optimal ~200KB
-          let width = img.width;
-          let height = img.height;
-          const maxSize = 1280;
-          
-          if (width > height && width > maxSize) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          } else if (height > maxSize) {
-            width = (width * maxSize) / height;
-            height = maxSize;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              } else {
-                reject(new Error('Compression failed'));
-              }
-            },
-            'image/jpeg',
-            0.6 // Quality 60% untuk ukuran optimal ~200KB
-          );
-        };
-        img.onerror = reject;
-      };
-      reader.onerror = reject;
-    });
+  // Fungsi kompresi gambar menggunakan utilitas baru
+  const compressImage = async (file: File): Promise<File> => {
+    try {
+      return await compressImageToTargetSize(file);
+    } catch (error) {
+      console.error("Compression failed, using original", error);
+      return file;
+    }
   };
 
   const mediaUsed =
