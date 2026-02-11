@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, ReactNode, useContext, useMemo } from "react";
 import API from "../api/config";
 import { STUDENT_ROLE_ID } from "@/constants/student-data";
@@ -8,11 +8,14 @@ import { STUDENT_ROLE_ID } from "@/constants/student-data";
 export const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const queryClient = useQueryClient();
+
   const {
     data: user,
     isError,
     isLoading,
     isFetching,
+    refetch
   } = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
@@ -25,7 +28,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     },
     refetchOnWindowFocus: false,
+    retry: false
   });
+
+  const setAuth = (newUser: any) => {
+      queryClient.setQueryData(["auth"], newUser);
+  };
 
   const auth = useMemo(() => user, [user]);
 
@@ -36,6 +44,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         authError: isError,
         authLoading: isLoading,
         authPending: isFetching,
+        setAuth, // Allow manual update if needed
+        refetch
       }}
     >
       {children}
