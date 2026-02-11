@@ -5,6 +5,7 @@
 
 // Role ID untuk siswa
 export const STUDENT_ROLE_ID = 8;
+export const MITRA_ROLE_ID = 14;
 
 // Interface untuk materi
 export interface Material {

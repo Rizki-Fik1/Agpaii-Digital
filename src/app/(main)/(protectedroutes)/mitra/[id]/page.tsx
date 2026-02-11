@@ -23,23 +23,38 @@ const MitraDetailPage: React.FC = () => {
 	const STORAGE_URL = process.env.NEXT_PUBLIC_MITRA_URL || "";
 
 	// Fetch Mitra Details
-	useEffect(() => {
-		if (!id) return;
+      useEffect(() => {
+      if (!id) return;
 
-		const fetchMitraData = async () => {
-			try {
-				const response = await axios.get(`${API_URL}/api/mitra/getdata/${id}`);
-				setSubtitle(response.data.mitra);
-				setDescription(response.data.deskripsi);
-				setImageUrl(`${STORAGE_URL}/public/${response.data.gambar}`);
-				setExternalUrl(response.data.external_url);
-			} catch (error) {
-				console.error("Error fetching mitra data:", error);
-			}
-		};
+      const fetchMitraData = async () => {
+          try {
+              const response = await axios.get(
+                  `https://admin.agpaiidigital.org/api/mitra/getdata/${id}`
+              );
 
-		fetchMitraData();
-	}, [id, API_URL, STORAGE_URL]);
+              console.log("DEBUG: Mitra Detail Response", response.data); // Debug log
+
+              setSubtitle(response.data.mitra);
+              setDescription(response.data.deskripsi);
+
+              const img = response.data.gambar
+                  ? (response.data.gambar.startsWith('http') 
+                      ? response.data.gambar 
+                      : `https://file.agpaiidigital.org/${response.data.gambar}`)
+                  : "";
+              
+              console.log("DEBUG: Computed Image URL", img); // Debug log
+              setImageUrl(img);
+
+              setExternalUrl(response.data.external_url);
+          } catch (error) {
+              console.error("Error fetching mitra data:", error);
+          }
+      };
+
+      fetchMitraData();
+  }, [id]);
+
 
 	// Check Confirmation Status
 	useEffect(() => {
@@ -111,6 +126,10 @@ const MitraDetailPage: React.FC = () => {
 				isConfirmed={isConfirmed}
 				onConfirm={() => router.push(`/mitra/confirmdata/${id}`)}
 				onExternalUrlClick={handleOpenExternalUrl}
+                canRegister={
+                    (typeof auth?.role === 'object' ? auth?.role?.name : auth?.role) !== 'Mitra' && 
+                    (typeof auth?.role === 'object' ? auth?.role?.name : auth?.role) !== 'mitra'
+                } // Mitra role cannot register for other mitras
 			/>
 		</div>
 	);

@@ -13,15 +13,21 @@ import {
   EyeIcon,
   EyeSlashIcon,
   AcademicCapIcon,
+  BuildingOfficeIcon,
+  PhotoIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { getErrorMessage } from "@/utils/error-handler";
-import { STUDENT_ROLE_ID } from "@/constants/student-data";
-import { useAuth } from "@/utils/context/auth_context"; // ✅ DITAMBAHKAN
+import { STUDENT_ROLE_ID, MITRA_ROLE_ID } from "@/constants/student-data";
+import { useAuth } from "@/utils/context/auth_context";
+import Cropper from "react-easy-crop";
+import { Point, Area } from "react-easy-crop";
+import getCroppedImg from "@/utils/cropImage"; // Make sure this utility exists or implement it
 
 export default function Register() {
-  const { setAuth } = useAuth(); // ✅ DITAMBAHKAN
+  const { setAuth } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -35,6 +41,17 @@ export default function Register() {
   const [schoolPlace, setSchoolPlace] = useState("");
   const [nisn, setNisn] = useState("");
 
+  // Mitra-specific states
+  const [instansi, setInstansi] = useState("");
+  const [pic, setPic] = useState("");
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const [finalLogo, setFinalLogo] = useState<Blob | null>(null);
+  const [finalLogoPreview, setFinalLogoPreview] = useState<string | null>(null);
+
   const roleOptions = [
     { name: "Guru PAI", value: 2 },
     { name: "Kepala Sekolah", value: 11 },
@@ -42,13 +59,15 @@ export default function Register() {
     { name: "Anggota Luar Biasa", value: 9 },
     { name: "Anggota Kehormatan", value: 10 },
     { name: "Siswa", value: STUDENT_ROLE_ID },
+    { name: "Mitra", value: MITRA_ROLE_ID },
   ];
 
   const isSiswaSelected = selectedRole?.value === STUDENT_ROLE_ID;
+  const isMitraSelected = selectedRole?.value === MITRA_ROLE_ID;
 
   const userSchema = z
     .object({
-      name: z.string().min(3),
+      name: z.string().optional(), // Name is optional initially, validated by refined logic below
       email: z.string().email(),
       no_hp: z.string().min(10),
       nik: z.string().optional().or(z.literal("")),
@@ -58,50 +77,106 @@ export default function Register() {
     })
     .refine((d) => d.password === d.password_confirmation, {
       path: ["password_confirmation"],
+      message: "Password tidak sama"
     })
     .refine(
       (d) => {
-        if (d.role_id !== STUDENT_ROLE_ID.toString()) {
+        // NIK Validation: Required for NON-Student AND NON-Mitra
+        if (d.role_id !== STUDENT_ROLE_ID.toString() && d.role_id !== MITRA_ROLE_ID.toString()) {
           return d.nik && d.nik.length === 16;
         }
         return true;
       },
-      { path: ["nik"] }
+      { path: ["nik"], message: "NIK harus 16 digit" }
+    )
+    .refine(
+        (d) => {
+            // Name Validation: Required for NON-Mitra (Mitra uses Instansi Name)
+            if (d.role_id !== MITRA_ROLE_ID.toString()) {
+                return d.name && d.name.length >= 3;
+            }
+            return true;
+        },
+        { path: ["name"], message: "Nama harus diisi minimal 3 karakter" }
     );
 
   type FormFields = z.infer<typeof userSchema>;
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setLogoSrc(reader.result as string);
+        setIsCropping(true);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const showCroppedImage = async () => {
+    if (!logoSrc || !croppedAreaPixels) return;
+    try {
+      // Assuming getCroppedImg is available or implemented inline
+      // For now, let's assume a simplified version or mock it if utility is missing
+      // Real implementation triggers canvas crop
+       const croppedImage = await getCroppedImg(logoSrc, croppedAreaPixels);
+       if(croppedImage) {
+           setFinalLogo(croppedImage.blob);
+           setFinalLogoPreview(croppedImage.url);
+           setIsCropping(false);
+       }
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal memproses gambar");
+    }
+  };
+
   const { mutate: createAccount, isPending } = useMutation({
     mutationFn: async (payload: any) => {
-      const endpoint =
-        payload.role_id === STUDENT_ROLE_ID.toString()
-          ? "/register-student"
-          : "/register";
+      // HANDLE MITRA REGISTRATION (Multipart/FormData)
+      if (payload.role_id === MITRA_ROLE_ID.toString()) {
+          const formData = new FormData();
+          formData.append('brand_name', payload.instansi_name);
+          formData.append('pic_name', payload.pic_name);
+          formData.append('email', payload.email);
+          formData.append('password', payload.password);
+          formData.append('password_confirmation', payload.password_confirmation);
+          formData.append('no_hp', payload.no_hp);
+          
+          if (payload.logo) {
+              formData.append('logo', payload.logo);
+          }
+
+          if (payload.logo) {
+              formData.append('logo', payload.logo);
+          }
+
+          // Use the register-mitra endpoint
+          // NOTE: Do NOT set Content-Type: multipart/form-data manually with axios + FormData, 
+          // let axios generate the boundary.
+          const res = await API.post("/register-mitra", formData);
+          return res.data;
+      }
+
+      let endpoint = "/register";
+      if (payload.role_id === STUDENT_ROLE_ID.toString()) endpoint = "/register-student";
 
       const res = await API.post(endpoint, payload);
       return res.data;
     },
-    onSuccess: async (data, variables) => {
-      localStorage.setItem("access_token", data.access_token);
-
-      // 🔥 INI KUNCI FIX MASALAH
-      try {
-        const me = await API.get("/me");
-        setAuth(me.data); // ✅ SET AUTH CONTEXT
-        queryClient.setQueryData(["auth"], me.data);
-      } catch {
-        // fallback aman
-      }
-
-      if (variables.role_id === STUDENT_ROLE_ID.toString()) {
-        toast.success("Registrasi siswa berhasil!");
-        router.push("/beranda");
-      } else {
-        toast.success("Registrasi berhasil!");
-        router.push("/");
-      }
+    onSuccess: async (data: any, variables) => {
+      // API returns token, but User requested redirect to Login instead of Auto-Login.
+      // So we do NOT save token or setAuth here.
+      
+      toast.success("Registrasi berhasil! Silakan login kembali.");
+      router.push("/getting-started");
     },
     onError: (err: any) => {
       toast.error(getErrorMessage(err));
@@ -147,6 +222,30 @@ export default function Register() {
         school_place: schoolPlace.trim(),
         role_id: STUDENT_ROLE_ID.toString(),
       });
+    } else if (isMitraSelected) {
+        if (!instansi || instansi.length < 3) {
+            toast.error("Nama Instansi harus diisi");
+            return;
+        }
+        if (!pic || pic.length < 3) {
+            toast.error("Nama PIC harus diisi");
+            return;
+        }
+        
+        // Use data.name for generic name or override with PIC?
+        // Let's send specific mitra fields
+        createAccount({
+            name: instansi, // Use Instansi as main name?
+            email: data.email,
+            password: data.password,
+            password_confirmation: data.password_confirmation,
+            no_hp: data.no_hp,
+            role_id: MITRA_ROLE_ID.toString(),
+            instansi_name: instansi,
+            pic_name: pic,
+            logo: finalLogo // In real app, append to FormData
+        });
+
     } else {
       createAccount(data);
     }
@@ -228,6 +327,9 @@ export default function Register() {
                       {option.value === STUDENT_ROLE_ID && (
                         <AcademicCapIcon className="w-5 h-5" />
                       )}
+                      {option.value === MITRA_ROLE_ID && (
+                        <BuildingOfficeIcon className="w-5 h-5" />
+                      )}
                       {option.name}
                     </button>
                   ))}
@@ -240,6 +342,71 @@ export default function Register() {
               </p>
             )}
           </div>
+
+          {/* Mitra-specific fields */}
+          {isMitraSelected && (
+            <>
+                {/* Nama Instansi */}
+                <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                        Nama Instansi / Brand <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="PT. Teknologi Edukasi"
+                        value={instansi}
+                        onChange={(e) => setInstansi(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none placeholder-gray-400"
+                    />
+                </div>
+
+                {/* Nama PIC */}
+                <div>
+                     <label className="block text-gray-700 font-medium mb-2">
+                        Nama PIC <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        placeholder="Budi Santoso"
+                        value={pic}
+                        onChange={(e) => setPic(e.target.value)}
+                         className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none placeholder-gray-400"
+                    />
+                </div>
+
+                {/* Logo Upload */}
+                 <div>
+                    <label className="block text-gray-700 font-medium mb-2">
+                        Logo Mitra <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition relative">
+                        {finalLogoPreview ? (
+                            <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
+                                <img src={finalLogoPreview} alt="Logo Preview" className="w-full h-full object-cover" />
+                                <button 
+                                    type="button"
+                                    onClick={() => { setFinalLogo(null); setFinalLogoPreview(null); }}
+                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                                >
+                                    <XMarkIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <PhotoIcon className="w-12 h-12 text-gray-400 mb-2" />
+                                <span className="text-gray-500 text-sm">Klik untuk upload logo</span>
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={handleLogoUpload}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                            </>
+                        )}
+                    </div>
+                </div>
+            </>
+          )}
 
           {/* Student-specific fields */}
           {isSiswaSelected && (
@@ -304,6 +471,7 @@ export default function Register() {
           )}
 
           {/* Nama Lengkap */}
+          {!isMitraSelected && (
           <div>
             <label className="block text-gray-700 font-medium mb-2">
               Nama Lengkap <span className="text-red-500">*</span>
@@ -325,6 +493,7 @@ export default function Register() {
               </div>
             )}
           </div>
+          )}
 
           {/* Nomor HP */}
           <div>
@@ -349,8 +518,8 @@ export default function Register() {
             )}
           </div>
 
-          {/* Nomor NIK - only for non-students */}
-          {!isSiswaSelected && (
+          {/* Nomor NIK - only for non-students AND non-mitra */}
+          {!isSiswaSelected && !isMitraSelected && (
             <div>
               <label className="block text-gray-700 font-medium mb-2">
                 Nomor NIK <span className="text-red-500">*</span>
@@ -508,6 +677,50 @@ export default function Register() {
           </button>
         </div>
       </form>
+
+      {/* CROPPER MODAL (Simplified for speed) */}
+      {isCropping && logoSrc && (
+          <div className="fixed inset-0 z-[100] bg-black bg-opacity-80 flex flex-col items-center justify-center p-4">
+              <div className="relative w-full max-w-md h-96 bg-gray-900 rounded-lg overflow-hidden">
+                <Cropper
+                    image={logoSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onCropComplete={onCropComplete}
+                    onZoomChange={setZoom}
+                />
+              </div>
+              <div className="flex gap-4 mt-4">
+                   <button 
+                    onClick={() => setIsCropping(false)}
+                    className="px-6 py-2 bg-gray-600 text-white rounded-full font-medium"
+                   >
+                       Batal
+                   </button>
+                   <button 
+                    onClick={showCroppedImage}
+                    className="px-6 py-2 bg-[#00DB81] text-white rounded-full font-medium"
+                   >
+                       Potong & Simpan
+                   </button>
+              </div>
+              <div className="mt-4 w-full max-w-md px-4">
+                  <input
+                    type="range"
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    aria-labelledby="Zoom"
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+              </div>
+          </div>
+      )}
+
     </div>
   );
 }

@@ -14,6 +14,7 @@ export default function TopBar({
 	dots,
 	kelolaButton,
 	tambahButton,
+    rightContent,
 }: {
 	children?: ReactNode;
 	withBackButton?: boolean;
@@ -21,6 +22,7 @@ export default function TopBar({
 	dots?: string;
 	kelolaButton?: string;
 	tambahButton?: string;
+    rightContent?: ReactNode;
 }) {
 	const router = useRouter();
 
@@ -40,9 +42,16 @@ export default function TopBar({
 					className="size-6 cursor-pointer text-white hover:opacity-80 transition-opacity"
 				/>
 			)}
-			<h1 className="text-white font-medium ml-3 flex-grow capitalize">
-				{children}
-			</h1>
+			<div className="flex-grow flex items-center justify-between ml-3">
+                <h1 className="text-white font-medium capitalize truncate">
+                    {children}
+                </h1>
+                {rightContent && (
+                    <div className="ml-2 flex-shrink-0">
+                        {rightContent}
+                    </div>
+                )}
+            </div>
 
 			{/* Tambah Button */}
 			{tambahButton && (
