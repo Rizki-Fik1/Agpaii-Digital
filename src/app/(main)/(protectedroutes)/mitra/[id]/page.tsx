@@ -37,11 +37,24 @@ const MitraDetailPage: React.FC = () => {
               setSubtitle(response.data.mitra);
               setDescription(response.data.deskripsi);
 
-              const img = response.data.gambar
-                  ? (response.data.gambar.startsWith('http') 
-                      ? response.data.gambar 
-                      : `https://file.agpaiidigital.org/${response.data.gambar}`)
-                  : "";
+              let img = "";
+              if (response.data.gambar) {
+                  let raw = response.data.gambar;
+                  try {
+                      if (raw.startsWith('[') || raw.startsWith('{')) {
+                           const parsed = JSON.parse(raw);
+                           if (Array.isArray(parsed) && parsed.length > 0) {
+                               raw = parsed[0];
+                           } else if (typeof parsed === 'string') {
+                               raw = parsed;
+                           }
+                      }
+                  } catch (e) {}
+
+                  img = raw.startsWith('http') 
+                      ? raw 
+                      : `https://file.agpaiidigital.org/${raw}`;
+              }
               
               console.log("DEBUG: Computed Image URL", img); // Debug log
               setImageUrl(img);

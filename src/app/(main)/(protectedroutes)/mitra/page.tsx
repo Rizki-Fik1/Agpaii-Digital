@@ -25,6 +25,30 @@ interface MitraItem {
     isRegistered?: boolean;
 }
 
+// Helper to safely parse image URL
+const getValidImageUrl = (gambar: string | null) => {
+    if (!gambar) return "";
+    
+    let url = gambar;
+    
+    // Try to parse if it's a JSON string (for multiple images)
+    try {
+        if (gambar.startsWith('[') || gambar.startsWith('{')) {
+             const parsed = JSON.parse(gambar);
+             if (Array.isArray(parsed) && parsed.length > 0) {
+                 url = parsed[0]; // Take first image
+             } else if (typeof parsed === 'string') {
+                 url = parsed;
+             }
+        }
+    } catch (e) {
+        // Not JSON, treat as string
+    }
+
+    if (url.startsWith('http')) return url;
+    return `https://file.agpaiidigital.org/${url}`;
+};
+
 const MitraPage: React.FC = () => {
 	const router = useRouter();
     const { auth } = useAuth();
@@ -202,9 +226,12 @@ const MitraPage: React.FC = () => {
                                 <div className="relative h-48 w-full overflow-hidden">
                                     {item.gambar ? (
     									<img
-    										src={item.gambar?.startsWith('http') ? item.gambar : `https://file.agpaiidigital.org/${item.gambar}`}
+    										src={getValidImageUrl(item.gambar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra)}&background=random`}
     										alt={item.mitra}
-    										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+    										className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra)}&background=random`;
+                                            }}
     									/>
                                     ) : (
                                         <div className="w-full h-full bg-slate-100 flex items-center justify-center">

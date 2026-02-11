@@ -14,6 +14,7 @@ import { useAuth } from "@/utils/context/auth_context";
 interface MitraItem {
 	id: number;
 	mitra: string;
+    judul_campaign?: string;
 	deskripsi: string;
 	external_url: string;
 	gambar: string | null;
@@ -22,7 +23,28 @@ interface MitraItem {
 		nama: string | null;
 	};
     isRegistered?: boolean;
+    isOwner?: boolean;
+    is_approved?: number; // 0 or 1
+    approved_at?: string | null;
 }
+
+
+// Helper to safely parse image URL
+const getValidImageUrl = (gambar: string | null) => {
+    if (!gambar) return "";
+    let url = gambar;
+    try {
+        if (gambar.startsWith('[') || gambar.startsWith('{')) {
+             const parsed = JSON.parse(gambar);
+             if (Array.isArray(parsed) && parsed.length > 0) {
+                 url = parsed[0];
+             }
+        }
+    } catch (e) {}
+
+    if (url.startsWith('http')) return url;
+    return `https://file.agpaiidigital.org/${url}`;
+};
 
 const MyMitraPage: React.FC = () => {
 	const router = useRouter();
@@ -39,26 +61,51 @@ const MyMitraPage: React.FC = () => {
 		const fetchMyMitra = async () => {
 			setLoading(true);
 			try {
-                // 1. Get All Mitra first
-				const res = await axios.get<{ data: MitraItem[] }>(`${API_URL}/api/mitra`);
-                const allMitra = res.data.data || [];
+                // 1. Fetch "Created By Me" using the new endpoint
+                // This endpoint returns all created items (approved or pending)
+				const resCreated = await axios.get<{ data: any[] }>(`${API_URL}/api/mitra/by-user`, {
+                    params: { user_id: auth?.id }
+                });
+                
+                // Map response to MitraItem
+                const createdByMe = (resCreated.data.data || []).map((item: any) => ({
+                    ...item,
+                    gambar: item.images && item.images.length > 0 ? item.images[0] : null,
+                    isRegistered: true, // Mark as mine
+                    isOwner: true // Helper to distinguish owner vs joined
+                }));
 
-                // 2. Filter for Registered Only
-                const registered: MitraItem[] = [];
+                // 2. Fetch "Registered" (Joined) Mitra
+                // We still need to check global list for items I joined but didn't create
+                // Optimization: Just fetch all approved and check status, OR if we had a "my-joined-mitra" endpoint
+                // For now, let's keep the existing logic for "joined" items but merge with "created"
+                
+				const resAll = await axios.get<{ data: MitraItem[] }>(`${API_URL}/api/mitra`);
+                const allMitra = resAll.data.data || [];
+
+                const joined: MitraItem[] = [];
                 await Promise.all(allMitra.map(async (item) => {
+                    // Skip if already in createdByMe
+                    if (createdByMe.find((c: any) => c.id === item.id)) return;
+
                     try {
                         const checkRes = await axios.get(
                             `${API_URL}/api/mitra/checklistdata?user_id=${auth?.id}&mitra_id=${item.id}`
                         );
                         if (checkRes.data > 0) {
-                            registered.push({ ...item, isRegistered: true });
+                            joined.push({ ...item, isRegistered: true, isOwner: false });
                         }
-                    } catch (err) {
-                        console.error(`Error checking status for mitra ${item.id}`, err);
+                    } catch (err: any) {
+                        // Silent fail for check status (avoid console spam especially if 404)
+                        if (err.response && err.response.status !== 404) {
+                             console.warn(`Error checking status for mitra ${item.id}`, err);
+                        }
                     }
                 }));
 
-				setMyMitraList(registered);
+                // Merge lists
+                setMyMitraList([...createdByMe, ...joined]);
+
 			} catch (error) {
 				console.error("Gagal mengambil data mitra:", error);
 			} finally {
@@ -133,9 +180,12 @@ const MyMitraPage: React.FC = () => {
                                 <div className="relative h-48 w-full overflow-hidden">
                                     {item.gambar ? (
     									<img
-    										src={item.gambar?.startsWith('http') ? item.gambar : `https://file.agpaiidigital.org/${item.gambar}`}
+    										src={getValidImageUrl(item.gambar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || 'Mitra')}&background=random`}
     										alt={item.mitra}
     										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || 'Mitra')}&background=random`;
+                                            }}
     									/>
                                     ) : (
                                         <div className="w-full h-full bg-slate-100 flex items-center justify-center">
@@ -145,11 +195,31 @@ const MyMitraPage: React.FC = () => {
                                     <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
                                     
                                     {/* Registered Badge */}
-                                    <div className="absolute top-3 right-3">
-                                        <div className="bg-green-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                            <FiCheckCircle />
-                                            Terdaftar
-                                        </div>
+                                    {/* Badges */}
+                                    {/* Badges */}
+                                    <div className="absolute top-3 right-3 flex flex-col gap-1 items-end z-20">
+
+                                        
+                                        {item.isOwner && item.is_approved === 0 && (
+                                            <div className="bg-yellow-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                                                <span>⏳</span>
+                                                Menunggu Verifikasi
+                                            </div>
+                                        )}
+                                        
+                                        {item.isOwner && item.is_approved === 1 && (
+                                            <div className="bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                                                <FiCheckCircle className="w-3 h-3" />
+                                                Disetujui
+                                            </div>
+                                        )}
+
+                                        {item.isRegistered && !item.isOwner && (
+                                            <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                                                <FiCheckCircle className="w-3 h-3" />
+                                                Terdaftar
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -159,7 +229,7 @@ const MyMitraPage: React.FC = () => {
                                         <FiArrowRight className="w-4 h-4" />
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg leading-tight line-clamp-1 group-hover:text-green-600 transition-colors">
-    									{item.mitra}
+    									{item.judul_campaign || item.mitra}
     								</h3>
                                     <div className="flex items-center gap-1 text-xs text-gray-400 mt-1 font-medium">
                                         <span>Lihat Detail</span>
