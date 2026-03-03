@@ -9,43 +9,72 @@ import { useAuth } from "@/utils/context/auth_context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+
+/* ===============================
+   TYPES
+=============================== */
 
 type Bank = {
   id: number;
   name: string;
 };
 
+/* ===============================
+   SCHEMA (ENTERPRISE CONDITIONAL)
+=============================== */
+
 const schema = z.object({
   is_pns: z.string(),
-  employment_status: z.string().optional(),
-  pendidikan: z.string(),
-  jurusan: z.string(),
-  kampus: z.string(),
-  is_certification: z.string(),
-  is_non_pns_inpassing: z.string(),
-  pemasukan: z.string(),
-  pengeluaran: z.string(),
-  kepemilikan_rumah: z.string(),
-  bank_id: z.string().optional(),
+
+  employment_status: z.string(),
+
   is_tpp_received: z.string().optional(),
+
   thr_tpg_2023_50: z.string().optional(),
   gaji_13_tpg_2023_50: z.string().optional(),
   thr_tpg_2024_100: z.string().optional(),
   gaji_13_tpg_2024_100: z.string().optional(),
+
+  pendidikan: z.string(),
+  jurusan: z.string(),
+  kampus: z.string(),
+
+  is_certification: z.string(),
+  is_non_pns_inpassing: z.string(),
+
+  pemasukan: z.string(),
+  pengeluaran: z.string(),
+  kepemilikan_rumah: z.string(),
+
+  bank_id: z.string().optional(),
   bank_account_no: z.string().optional(),
-});
+})
+  .superRefine((data, ctx) => {
+    if (data.is_pns === "1") {
+      if (!data.employment_status || data.employment_status.trim() === "") {
+        ctx.addIssue({
+          path: ["employment_status"],
+          code: z.ZodIssueCode.custom,
+          message: "Status Kepegawaian wajib diisi untuk ASN",
+        });
+      }
+    }
+  });
 
 type Fields = z.infer<typeof schema>;
+
+/* ===============================
+   COMPONENT
+=============================== */
 
 export default function EditStatus() {
   const { auth: user } = useAuth();
   const queryClient = useQueryClient();
   const router = useRouter();
-
   const {
     formState: { errors },
     handleSubmit,
@@ -58,13 +87,12 @@ export default function EditStatus() {
   });
 
   const watchedValues = useWatch({ control });
+  const isPns = watch("is_pns");
 
+  const employmentStatus = watch("employment_status");
   const [banks, setBanks] = useState<Bank[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isBankFeatureEnabled, setIsBankFeatureEnabled] = useState(false);
-
-  const isPns = watch("is_pns");
-  const employmentStatus = watch("employment_status");
 
   /* ===============================
      EMPTY CHECK HELPER
@@ -78,9 +106,9 @@ export default function EditStatus() {
   };
 
   const getBorderColor = (fieldName: keyof Fields) => {
-    if (!isFieldEmpty(fieldName))
-      return "border-slate-300 focus:border-[#009788]";
-    return "border-red-500 focus:border-red-500";
+    return !isFieldEmpty(fieldName)
+      ? "border-slate-300 focus:border-[#009788]"
+      : "border-red-500 focus:border-red-500";
   };
 
   /* ===============================
@@ -88,53 +116,70 @@ export default function EditStatus() {
   =============================== */
 
   useEffect(() => {
-    fetch(
-      `${process.env.NEXT_PUBLIC_MITRA_URL}/api/feature-status/bank_feature`,
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        setIsBankFeatureEnabled(data.is_enabled);
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
-
-    const fetchBanks = async () => {
+    const init = async () => {
       try {
-        const res = await API.get("/bank");
-        if (res.status === 200) {
-          setBanks(res.data);
+        const featureRes = await fetch(
+          `${process.env.NEXT_PUBLIC_MITRA_URL}/api/feature-status/bank_feature`,
+        );
+        const featureData = await featureRes.json();
+        setIsBankFeatureEnabled(featureData.is_enabled);
+
+        const bankRes = await API.get("/bank");
+        if (bankRes.status === 200) {
+          setBanks(bankRes.data);
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchBanks();
+    init();
 
     if (user?.pns_status) {
-      reset({
-        is_pns: user.pns_status.is_pns?.toString(),
-        employment_status: user.pns_status.employment_status ?? "",
-        pendidikan: user.pns_status.pendidikan ?? "",
-        jurusan: user.pns_status.jurusan ?? "",
-        kampus: user.pns_status.kampus ?? "",
-        is_certification: user.pns_status.is_certification?.toString() ?? "",
-        is_non_pns_inpassing:
-          user.pns_status.is_non_pns_inpassing?.toString() ?? "",
-        pemasukan: user.pns_status.pemasukan ?? "",
-        pengeluaran: user.pns_status.pengeluaran ?? "",
-        kepemilikan_rumah: user.pns_status.kepemilikan_rumah ?? "",
-        is_tpp_received: user.pns_status.is_tpp_received?.toString() ?? "",
-        thr_tpg_2023_50: user.pns_status.thr_tpg_2023_50?.toString() ?? "",
-        gaji_13_tpg_2023_50:
-          user.pns_status.gaji_13_tpg_2023_50?.toString() ?? "",
-        thr_tpg_2024_100: user.pns_status.thr_tpg_2024_100?.toString() ?? "",
-        gaji_13_tpg_2024_100:
-          user.pns_status.gaji_13_tpg_2024_100?.toString() ?? "",
-        bank_account_no: user.pns_status.bank_account_no ?? "",
-        bank_id: user.pns_status.bank_id?.toString() ?? "",
-      });
-    }
+  reset({
+    is_pns: user.pns_status.is_pns?.toString() ?? "",
+
+    employment_status: user.pns_status.employment_status ?? "",
+
+    is_tpp_received:
+      user.pns_status.is_tpp_received?.toString() ?? "",
+
+    thr_tpg_2023_50:
+      user.pns_status.thr_tpg_2023_50?.toString() ?? "",
+
+    gaji_13_tpg_2023_50:
+      user.pns_status.gaji_13_tpg_2023_50?.toString() ?? "",
+
+    thr_tpg_2024_100:
+      user.pns_status.thr_tpg_2024_100?.toString() ?? "",
+
+    gaji_13_tpg_2024_100:
+      user.pns_status.gaji_13_tpg_2024_100?.toString() ?? "",
+
+    pendidikan: user.pns_status.pendidikan ?? "",
+    jurusan: user.pns_status.jurusan ?? "",
+    kampus: user.pns_status.kampus ?? "",
+
+    is_certification:
+      user.pns_status.is_certification?.toString() ?? "",
+
+    is_non_pns_inpassing:
+      user.pns_status.is_non_pns_inpassing?.toString() ?? "",
+
+    pemasukan: user.pns_status.pemasukan ?? "",
+    pengeluaran: user.pns_status.pengeluaran ?? "",
+    kepemilikan_rumah:
+      user.pns_status.kepemilikan_rumah ?? "",
+
+    bank_account_no:
+      user.pns_status.bank_account_no ?? "",
+
+    bank_id:
+      user.pns_status.bank_id?.toString() ?? "",
+  });
+}
   }, [user, reset]);
 
   /* ===============================
@@ -142,7 +187,7 @@ export default function EditStatus() {
   =============================== */
 
   const { mutate: updateStatus, isPending } = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Fields) => {
       const res = await API.post(`/users/${user.id}/updatestatus`, data);
       return res.data;
     },
@@ -155,10 +200,11 @@ export default function EditStatus() {
   });
 
   /* ===============================
-     DYNAMIC FORM CONFIG
+     DYNAMIC FORM CONFIG (SMART)
   =============================== */
 
-  const forms = [
+  const forms = useMemo(() => {
+  const baseForms: any[] = [
     {
       name: "is_pns",
       label: "Status Guru",
@@ -168,6 +214,86 @@ export default function EditStatus() {
         { name: "Non ASN", value: "0" },
       ],
     },
+
+    {
+      name: "employment_status",
+      label: "Status Kepegawaian",
+      type: "select",
+      options:
+        isPns === "1"
+          ? [
+              { name: "PNS Pemda", value: "PNS Pemda" },
+              { name: "PNS Kemenag", value: "PNS Kemenag" },
+              { name: "PPPK Pemda", value: "PPPK Pemda" },
+              { name: "PPPK Kemenag", value: "PPPK Kemenag" },
+            ]
+          : [
+              { name: "Guru Tetap Yayasan", value: "Guru Tetap Yayasan" },
+              { name: "Honor Yayasan", value: "Honor Yayasan" },
+              { name: "Honor Daerah/KKI/PJLP", value: "Honor Daerah/KKI/PJLP" },
+              { name: "Honor Murni Sekolah", value: "Honor Murni Sekolah" },
+            ],
+    },
+  ];
+
+  if (isPns === "1") {
+    baseForms.push({
+      name: "is_tpp_received",
+      label:
+        "Sudah mendapat TPP/TKD/Tamsil/Tunjangan Daerah/Tukin?",
+      type: "select",
+      options: [
+        { name: "Sudah", value: "1" },
+        { name: "Belum", value: "0" },
+      ],
+    });
+  }
+
+  if (
+    employmentStatus === "PNS Pemda" ||
+    employmentStatus === "PPPK Pemda"
+  ) {
+    baseForms.push(
+      {
+        name: "thr_tpg_2023_50",
+        label: "THR TPG 2023 50%",
+        type: "select",
+        options: [
+          { name: "Sudah", value: "1" },
+          { name: "Belum", value: "0" },
+        ],
+      },
+      {
+        name: "gaji_13_tpg_2023_50",
+        label: "Gaji 13 TPG 2023 50%",
+        type: "select",
+        options: [
+          { name: "Sudah", value: "1" },
+          { name: "Belum", value: "0" },
+        ],
+      },
+      {
+        name: "thr_tpg_2024_100",
+        label: "THR TPG 2024 100%",
+        type: "select",
+        options: [
+          { name: "Sudah", value: "1" },
+          { name: "Belum", value: "0" },
+        ],
+      },
+      {
+        name: "gaji_13_tpg_2024_100",
+        label: "Gaji 13 TPG 2024 100%",
+        type: "select",
+        options: [
+          { name: "Sudah", value: "1" },
+          { name: "Belum", value: "0" },
+        ],
+      }
+    );
+  }
+
+  baseForms.push(
     {
       name: "pendidikan",
       label: "Pendidikan",
@@ -227,50 +353,63 @@ export default function EditStatus() {
         { name: "Orang Tua", value: "Orang Tua" },
         { name: "Sewa", value: "Sewa" },
       ],
-    },
-    ...(isBankFeatureEnabled
-      ? [
-          {
-            name: "bank_id",
-            label: "Bank",
-            type: "select",
-            options: banks.map((bank) => ({
-              name: bank.name,
-              value: bank.id.toString(),
-            })),
-          },
-          {
-            name: "bank_account_no",
-            label: "No Rekening",
-            type: "input",
-          },
-        ]
-      : []),
-  ];
+    }
+  );
 
-  if (isLoading)
+  if (isBankFeatureEnabled) {
+    baseForms.push(
+      {
+        name: "bank_id",
+        label: "Bank",
+        type: "select",
+        options: banks.map((bank) => ({
+          name: bank.name,
+          value: bank.id.toString(),
+        })),
+      },
+      {
+        name: "bank_account_no",
+        label: "No Rekening",
+        type: "input",
+      }
+    );
+  }
+
+  return baseForms;
+}, [isPns, employmentStatus, banks, isBankFeatureEnabled]);
+
+  /* ===============================
+     LOADING
+  =============================== */
+
+  if (isLoading) {
     return (
       <div className="pt-[4.21rem] pb-20">
         <TopBar withBackButton>Edit Status Guru</TopBar>
         <div className="flex justify-center items-center h-64">
-          <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+          <Loader className="size-8" />
         </div>
       </div>
     );
+  }
+
+  /* ===============================
+     RENDER
+  =============================== */
 
   return (
     <div className="pb-20 pt-[4.21rem]">
       <TopBar withBackButton>Edit Status Guru</TopBar>
 
       <form
-        onSubmit={handleSubmit(updateStatus as any)}
+        onSubmit={handleSubmit(updateStatus)}
         className="flex flex-col px-6 pt-8 gap-3"
       >
         {forms.map((field, i) => (
           <div key={i} className="flex flex-col">
             <h1 className="text-sm text-slate-700 mb-1">
               {field.label}
-              {isFieldEmpty(field.name as keyof Fields) && (
+              {isFieldEmpty(field.name) && (
                 <span className="text-red-500 ml-1">*</span>
               )}
             </h1>
@@ -283,9 +422,9 @@ export default function EditStatus() {
               inputType="text"
               options={field.options}
               className={`rounded-md border px-3 py-2 ${getBorderColor(
-                field.name as keyof Fields,
+                field.name,
               )}`}
-              error={errors[field.name as keyof Fields]}
+              error={errors[field.name]}
             />
           </div>
         ))}

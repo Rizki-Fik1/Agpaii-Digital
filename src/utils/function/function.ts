@@ -16,14 +16,11 @@ export const getUserStatus = (user: any) => {
 
 export const isInformationProfileCompleted = (user: any) => {
 	const keys = [
-		"nip",
 		"nik",
 		"contact",
 		"unit_kerja",
 		"gender",
 		"birthdate",
-		"headmaster_name",
-		"headmaster_nip",
 		"school_status",
 	];
 	return keys.every((val) => user.profile[val] != null);
