@@ -204,3 +204,4 @@ export type StudentProfile = {
   nisn: string;
   school_place: string;
 };
+ 

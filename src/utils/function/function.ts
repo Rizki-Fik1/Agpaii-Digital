@@ -16,16 +16,11 @@ export const getUserStatus = (user: any) => {
 
 export const isInformationProfileCompleted = (user: any) => {
 	const keys = [
-		"nip",
 		"nik",
 		"contact",
-		"school_place",
-		"educational_level_id",
 		"unit_kerja",
 		"gender",
 		"birthdate",
-		"headmaster_name",
-		"headmaster_nip",
 		"school_status",
 	];
 	return keys.every((val) => user.profile[val] != null);
@@ -53,7 +48,6 @@ export const isPnsStatusCompleted = (user: any) => {
 		"is_pns",
 		"is_certification",
 		"is_non_pns_inpassing",
-		"employment_status",
 		"pendidikan",
 		"jurusan",
 		"kampus",

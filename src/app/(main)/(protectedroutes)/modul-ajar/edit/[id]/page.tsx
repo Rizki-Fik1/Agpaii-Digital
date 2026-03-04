@@ -343,8 +343,6 @@ const EditPerangkatAjar: React.FC = () => {
     }
   };
 
-
-
   if (!moduleData) {
     return (
       <div className="pt-[5.21rem] p-6 bg-white min-h-screen">

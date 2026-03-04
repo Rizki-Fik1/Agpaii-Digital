@@ -37,8 +37,6 @@ const HistoryTasbihList = () => {
 		});
 	};
 
-
-
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen pt-[5.21rem]">
 			<TopBar withBackButton>Riwayat Tasbih</TopBar>

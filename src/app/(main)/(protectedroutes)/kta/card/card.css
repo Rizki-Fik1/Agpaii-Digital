@@ -26,10 +26,10 @@
 }
 
 /* Optional: Keep hover for additional interactivity, or remove if not wanted */
-.card:hover .content:not(.flipped) {
+/* .card:hover .content:not(.flipped) {
   transform: rotateY(180deg);
   transition: transform 0.5s;
-}
+} */
 
 .front,
 .back {

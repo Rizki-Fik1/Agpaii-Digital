@@ -41,7 +41,7 @@ export default function StudentNavbar() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-lg md:hidden">
       <div className="flex items-stretch justify-around h-16">
         {navList.map((item, i) => (
           <Link

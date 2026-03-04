@@ -168,6 +168,7 @@ export default function Partner() {
 	}, [registeredUser]);
 
 	if (isLoading || loading) return null;
+      
 	return (
 		<div className="py-[4.21rem]">
 			{/* Modal Confirm Data */}

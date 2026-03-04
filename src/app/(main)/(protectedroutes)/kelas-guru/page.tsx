@@ -72,7 +72,6 @@ export default function KelasGuruListPage() {
 
   // ================= STATE =================
 
-
   if (classes.length === 0) {
     return (
       <div className="max-w-[480px] mx-auto min-h-screen bg-white">

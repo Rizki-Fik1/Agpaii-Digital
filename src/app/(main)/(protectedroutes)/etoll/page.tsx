@@ -21,7 +21,12 @@ export default function ETollForm() {
     { id: string; value: number; name: string; label: string }[]
   >([]);
   const [paymentChannels, setPaymentChannels] = useState<
-    { code: string; name: string; group: string; total_fee: { flat: number; percent: string } }[]
+    {
+      code: string;
+      name: string;
+      group: string;
+      total_fee: { flat: number; percent: string };
+    }[]
   >([]);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -40,13 +45,13 @@ export default function ETollForm() {
     setETollOptions([]);
     try {
       const response = await fetch(
-        `https://mitra.agpaiidigital.org/api/filter-products?category_id=20&operator_id=${providerId}`,
+        `https://admin.agpaiidigital.org/api/filter-products?category_id=20&operator_id=${providerId}`,
         {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${auth?.token || ""}`,
           },
-        }
+        },
       );
       const data = await response.json();
 
@@ -67,7 +72,9 @@ export default function ETollForm() {
       setETollOptions(options);
     } catch (err: any) {
       console.error("Fetch e-toll products error:", err); // Debugging
-      setError(err.message || "Terjadi kesalahan saat mengambil data produk e-toll");
+      setError(
+        err.message || "Terjadi kesalahan saat mengambil data produk e-toll",
+      );
       setETollOptions([]);
     } finally {
       setLoading(false);
@@ -78,12 +85,15 @@ export default function ETollForm() {
   useEffect(() => {
     const fetchChannels = async () => {
       try {
-        const response = await fetch("https://mitra.agpaiidigital.org/api/tripay/payment-channels", {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${auth?.token || ""}`,
+        const response = await fetch(
+          "https://admin.agpaiidigital.org/api/tripay/payment-channels",
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${auth?.token || ""}`,
+            },
           },
-        });
+        );
         const data = await response.json();
 
         console.log("Fetch payment channels response:", data); // Debugging
@@ -126,7 +136,9 @@ export default function ETollForm() {
   // Validasi voucher
   const validateVoucher = async () => {
     if (!voucherCode || !selectedCode) {
-      setVoucherError("Masukkan kode voucher dan pilih nominal e-toll terlebih dahulu");
+      setVoucherError(
+        "Masukkan kode voucher dan pilih nominal e-toll terlebih dahulu",
+      );
       setOriginalPrice(null);
       setFinalPrice(null);
       return;
@@ -136,7 +148,7 @@ export default function ETollForm() {
     setVoucherError(null);
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/tripay/ppob/validate-voucher",
+        "https://admin.agpaiidigital.org/api/tripay/ppob/validate-voucher",
         {
           method: "POST",
           headers: {
@@ -148,7 +160,7 @@ export default function ETollForm() {
             voucher_code: voucherCode,
             code: selectedCode,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -161,7 +173,9 @@ export default function ETollForm() {
       }
     } catch (err: any) {
       console.error("Voucher validation error:", err); // Debugging
-      setVoucherError(err.message || "Terjadi kesalahan saat memvalidasi voucher");
+      setVoucherError(
+        err.message || "Terjadi kesalahan saat memvalidasi voucher",
+      );
       setOriginalPrice(null);
       setFinalPrice(null);
     } finally {
@@ -193,7 +207,9 @@ export default function ETollForm() {
     setPhone(newPhone);
     // Validasi nomor telepon (asumsi format Indonesia: 10-13 digit, dimulai dengan 08)
     if (newPhone && !/^08\d{8,11}$/.test(newPhone)) {
-      setError("Nomor telepon harus berformat Indonesia (contoh: 081234567890)!");
+      setError(
+        "Nomor telepon harus berformat Indonesia (contoh: 081234567890)!",
+      );
     } else {
       setError(null);
     }
@@ -221,7 +237,11 @@ export default function ETollForm() {
   };
 
   // Handler pemilihan nominal
-  const handleNominalSelect = (item: { id: string; value: number; label: string }) => {
+  const handleNominalSelect = (item: {
+    id: string;
+    value: number;
+    label: string;
+  }) => {
     setSelectedNominal(item.value.toString());
     setSelectedCode(item.id);
     setOriginalPrice(null);
@@ -235,8 +255,17 @@ export default function ETollForm() {
   // Handler submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!noKartu || !phone || !selectedNominal || !selectedCode || !operatorId || !paymentMethod) {
-      alert("Harap isi nomor kartu, nomor telepon, pilih nominal e-toll, pilih provider, dan pilih metode pembayaran!");
+    if (
+      !noKartu ||
+      !phone ||
+      !selectedNominal ||
+      !selectedCode ||
+      !operatorId ||
+      !paymentMethod
+    ) {
+      alert(
+        "Harap isi nomor kartu, nomor telepon, pilih nominal e-toll, pilih provider, dan pilih metode pembayaran!",
+      );
       return;
     }
     if (!/^\d{16}$/.test(noKartu)) {
@@ -257,7 +286,7 @@ export default function ETollForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/tripay/ppob/transaksi/pembelian",
+        "https://admin.agpaiidigital.org/api/tripay/ppob/transaksi/pembelian",
         {
           method: "POST",
           headers: {
@@ -274,11 +303,11 @@ export default function ETollForm() {
             pin: "3456",
             method: paymentMethod,
             phone: phone,
-    		customer_name: auth.name || undefined,
+            customer_name: auth.name || undefined,
             customer_email: auth.email || undefined,
             voucher_code: voucherCode || undefined,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -311,16 +340,20 @@ export default function ETollForm() {
       : 0;
 
   // Calculate total
-  const total = finalPrice !== null && voucherDiscount > 0 ? finalPrice : subtotal;
+  const total =
+    finalPrice !== null && voucherDiscount > 0 ? finalPrice : subtotal;
 
   // Group payment channels by their group
-  const groupedChannels = paymentChannels.reduce((acc, channel) => {
-    if (!acc[channel.group]) {
-      acc[channel.group] = [];
-    }
-    acc[channel.group].push(channel);
-    return acc;
-  }, {} as Record<string, typeof paymentChannels>);
+  const groupedChannels = paymentChannels.reduce(
+    (acc, channel) => {
+      if (!acc[channel.group]) {
+        acc[channel.group] = [];
+      }
+      acc[channel.group].push(channel);
+      return acc;
+    },
+    {} as Record<string, typeof paymentChannels>,
+  );
 
   return (
     <div className="max-w-md mx-auto mt-6">
@@ -331,7 +364,9 @@ export default function ETollForm() {
       </Link>
       <form onSubmit={handleSubmit} className="px-6 sm:px-8 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor Kartu E-toll</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor Kartu E-toll
+          </label>
           <input
             type="text"
             placeholder="Masukkan nomor kartu e-toll (contoh: 1234567890123456)"
@@ -342,7 +377,9 @@ export default function ETollForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor Telepon</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor Telepon
+          </label>
           <input
             type="tel"
             placeholder="Contoh: 081234567890"
@@ -350,12 +387,16 @@ export default function ETollForm() {
             onChange={handlePhoneChange}
             className="mt-2 w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#009788]"
           />
-          {loading && <p className="mt-2 text-sm text-gray-500">Memuat data...</p>}
+          {loading && (
+            <p className="mt-2 text-sm text-gray-500">Memuat data...</p>
+          )}
           {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-3">Pilih Provider E-toll</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">
+            Pilih Provider E-toll
+          </label>
           <select
             value={operatorId || ""}
             onChange={handleProviderSelect}
@@ -373,7 +414,9 @@ export default function ETollForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-3">Pilih Nominal E-toll</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">
+            Pilih Nominal E-toll
+          </label>
           {eTollOptions.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">
               {eTollOptions.map((item) => (
@@ -384,7 +427,7 @@ export default function ETollForm() {
                     "cursor-pointer rounded-xl border p-4 text-center shadow-md transition hover:shadow-lg",
                     selectedNominal === item.value.toString()
                       ? "border-[#009788] bg-[#009788]/10 text-[#009788] font-semibold"
-                      : "border-slate-200 bg-white text-slate-700"
+                      : "border-slate-200 bg-white text-slate-700",
                   )}
                 >
                   <p className="text-lg font-bold">{item.name}</p>
@@ -394,13 +437,17 @@ export default function ETollForm() {
             </div>
           ) : (
             <p className="text-sm text-gray-500">
-              {loading ? "Memuat nominal..." : "Pilih provider e-toll untuk melihat nominal"}
+              {loading
+                ? "Memuat nominal..."
+                : "Pilih provider e-toll untuk melihat nominal"}
             </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-3">Metode Pembayaran</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">
+            Metode Pembayaran
+          </label>
           {paymentChannels.length > 0 ? (
             <select
               value={paymentMethod}
@@ -411,7 +458,12 @@ export default function ETollForm() {
                 <optgroup key={group} label={group}>
                   {channels.map((channel) => (
                     <option key={channel.code} value={channel.code}>
-                      {channel.name} (Biaya: Rp {channel.total_fee.flat.toLocaleString("id-ID")} {channel.total_fee.percent !== "0.00" ? `+ ${channel.total_fee.percent}%` : ""})
+                      {channel.name} (Biaya: Rp{" "}
+                      {channel.total_fee.flat.toLocaleString("id-ID")}{" "}
+                      {channel.total_fee.percent !== "0.00"
+                        ? `+ ${channel.total_fee.percent}%`
+                        : ""}
+                      )
                     </option>
                   ))}
                 </optgroup>
@@ -440,10 +492,11 @@ export default function ETollForm() {
             </div>
           </div>
         )}
-        
-        
+
         <div className="voucher-input">
-          <label className="block text-sm font-medium text-slate-700">Kode Voucher</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Kode Voucher
+          </label>
           <div className="flex space-x-2 mt-2">
             <input
               type="text"
@@ -461,23 +514,39 @@ export default function ETollForm() {
               Cek
             </button>
           </div>
-          {voucherError && <p className="mt-2 text-sm text-red-600">{voucherError}</p>}
+          {voucherError && (
+            <p className="mt-2 text-sm text-red-600">{voucherError}</p>
+          )}
           {finalPrice && originalPrice && finalPrice !== originalPrice && (
             <p className="mt-2 text-sm text-[#009788]">
-              Harga setelah diskon: Rp {finalPrice.toLocaleString("id-ID")} (Harga asli: Rp {originalPrice.toLocaleString("id-ID")})
+              Harga setelah diskon: Rp {finalPrice.toLocaleString("id-ID")}{" "}
+              (Harga asli: Rp {originalPrice.toLocaleString("id-ID")})
             </p>
           )}
         </div>
 
-
         <button
           type="submit"
-          disabled={loading || !operatorId || !selectedNominal || eTollOptions.length === 0 || !paymentMethod || !phone || (voucherCode && voucherError)}
+          disabled={
+            loading ||
+            !operatorId ||
+            !selectedNominal ||
+            eTollOptions.length === 0 ||
+            !paymentMethod ||
+            !phone ||
+            (voucherCode && voucherError)
+          }
           className={clsx(
             "w-full py-3 rounded-lg shadow-md transition",
-            loading || !operatorId || !selectedNominal || eTollOptions.length === 0 || !paymentMethod || !phone || (voucherCode && voucherError)
+            loading ||
+              !operatorId ||
+              !selectedNominal ||
+              eTollOptions.length === 0 ||
+              !paymentMethod ||
+              !phone ||
+              (voucherCode && voucherError)
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-[#009788] text-white hover:bg-[#007f6d]"
+              : "bg-[#009788] text-white hover:bg-[#007f6d]",
           )}
         >
           {loading ? "Memproses..." : "Beli E-toll"}

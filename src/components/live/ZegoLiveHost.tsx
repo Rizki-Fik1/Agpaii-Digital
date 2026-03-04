@@ -35,25 +35,36 @@ export default function ZegoLiveHost({
   const peakViewerRef = useRef<number>(0);
   const hasEndedRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false);
+  const hasStartedLiveRef = useRef<boolean>(false);
+  const abortTimeoutRef = useRef<any>(null);
 
   const viewerCount = viewers.length;
 
   // Function to end live stream
-  const endLive = useCallback(async () => {
+  const endLive = useCallback(async (shouldNavigate = true, targetRoute = "/live") => {
     if (hasEndedRef.current) return;
     hasEndedRef.current = true;
 
     try {
       const liveRef = doc(db, "lives", liveId);
-      await updateDoc(liveRef, {
-        status: "ended",
-        endedAt: serverTimestamp(),
-        peakViewers: peakViewerRef.current,
-      });
+      if (!hasStartedLiveRef.current) {
+        // If they never actually started the live stream, mark as aborted so it doesn't show in history
+        await updateDoc(liveRef, {
+          status: "aborted",
+        });
+      } else {
+        await updateDoc(liveRef, {
+          status: "ended",
+          endedAt: serverTimestamp(),
+          peakViewers: peakViewerRef.current,
+        });
+      }
     } catch (error) {
       console.error("Error ending live:", error);
     }
-    router.replace("/live");
+    if (shouldNavigate) {
+      router.replace(targetRoute);
+    }
   }, [liveId, router]);
 
   // Real-time viewers subscription
@@ -126,8 +137,21 @@ export default function ZegoLiveHost({
           maxUsers: 1000,
           layout: "Auto",
           showLayoutButton: false,
+          autoHideFooter: false,
+          onLiveStart: async () => {
+            try {
+              hasStartedLiveRef.current = true;
+              const liveRef = doc(db, "lives", liveId);
+              await updateDoc(liveRef, { status: "live" });
+            } catch (error) {
+              console.error("Error updating status to live:", error);
+            }
+          },
           onLeaveRoom: () => {
             endLive();
+          },
+          onReturnToHomeScreenClicked: () => {
+            endLive(true, "/live/start");
           },
           onLiveEnd: () => {
             endLive();
@@ -138,10 +162,22 @@ export default function ZegoLiveHost({
       }
     };
 
+    if (abortTimeoutRef.current) {
+      clearTimeout(abortTimeoutRef.current);
+      abortTimeoutRef.current = null;
+    }
+
     initZego();
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      
+      abortTimeoutRef.current = setTimeout(() => {
+        if (!hasEndedRef.current) {
+          endLive(false); // Clean up the garbage document without pushing routing.
+        }
+      }, 500);
+
       if (zegoRef.current) {
         try {
           zegoRef.current.destroy();
@@ -155,7 +191,7 @@ export default function ZegoLiveHost({
   }, [roomId, userId, userName, endLive]);
 
   return (
-    <div className="min-h-screen bg-black relative -ml-20">
+    <div className="fixed inset-0 z-50 bg-black">
       {/* LIVE Badge & Viewer Count */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
         <div className="bg-red-600 px-2 py-1 rounded text-white text-xs font-bold flex items-center gap-1">
@@ -180,7 +216,7 @@ export default function ZegoLiveHost({
 
       <div
         ref={containerRef}
-        className="w-full h-screen"
+        className="w-full h-full"
       />
 
       {/* Viewers Modal */}

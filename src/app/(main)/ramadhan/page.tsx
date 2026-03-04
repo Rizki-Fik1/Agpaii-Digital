@@ -406,7 +406,7 @@ const RamadhanDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-green-50 pt-[4.2rem] pb-6">
-     <TopBar withBackButton={!!user}>Ramadhan 1447H</TopBar>
+      <TopBar withBackButton={!!user}>Ramadhan 1447H</TopBar>
 
       {/* Floating Audio Control */}
       <div className="fixed bottom-20 right-4 z-50">

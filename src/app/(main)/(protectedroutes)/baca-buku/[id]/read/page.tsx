@@ -280,9 +280,9 @@ const BookReaderPage = () => {
       {/* PDF Viewer (iframe) */}
       <div className="flex-1 pt-16 pb-20 overflow-auto">
         {pdfLoading ? (
-            <div className="text-center">
-              <p className="text-gray-400 text-sm">Memuat dokumen...</p>
-            </div>
+          <div className="text-center">
+            <p className="text-gray-400 text-sm">Memuat dokumen...</p>
+          </div>
         ) : iframeError ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">

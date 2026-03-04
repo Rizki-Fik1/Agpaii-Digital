@@ -11,7 +11,7 @@ import { ReactNode } from "react";
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { auth, authLoading } = useAuth();
   const pathname = usePathname();
-
+ 
   if (authLoading) return null;
 
   // Redirect ke halaman login jika tidak ada auth

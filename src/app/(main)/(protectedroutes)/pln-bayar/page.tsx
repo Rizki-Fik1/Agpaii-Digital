@@ -32,12 +32,12 @@ export default function PLNBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/tripay/postpaid/products?operator_id=38",
+        "https://admin.agpaiidigital.org/api/tripay/postpaid/products?operator_id=38",
         {
           headers: {
             Accept: "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -83,7 +83,7 @@ export default function PLNBillCheckForm() {
 
   // Filter products based on search term
   const filteredProducts = products.filter((item) =>
-    item.name?.trim().toLowerCase().includes(searchTerm.trim().toLowerCase())
+    item.name?.trim().toLowerCase().includes(searchTerm.trim().toLowerCase()),
   );
 
   // Handle input change (timpa products)
@@ -103,12 +103,12 @@ export default function PLNBillCheckForm() {
 
       // pisahkan hasil yang startsWith dan includes
       const startsWithMatches = originalProducts.filter((item) =>
-        item.name?.trim().toLowerCase().startsWith(lowerValue)
+        item.name?.trim().toLowerCase().startsWith(lowerValue),
       );
       const includesMatches = originalProducts.filter(
         (item) =>
           item.name?.trim().toLowerCase().includes(lowerValue) &&
-          !item.name?.trim().toLowerCase().startsWith(lowerValue)
+          !item.name?.trim().toLowerCase().startsWith(lowerValue),
       );
 
       // gabungkan, startsWith duluan
@@ -139,7 +139,7 @@ export default function PLNBillCheckForm() {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev < products.length - 1 ? prev + 1 : prev
+        prev < products.length - 1 ? prev + 1 : prev,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -157,7 +157,9 @@ export default function PLNBillCheckForm() {
   const handleCheckBill = async (e) => {
     e.preventDefault();
     if (!phone || !noPelanggan || !selectedProduct) {
-      setError("Harap isi nomor telepon, nomor pelanggan, dan pilih produk PLN!");
+      setError(
+        "Harap isi nomor telepon, nomor pelanggan, dan pilih produk PLN!",
+      );
       return;
     }
 
@@ -167,7 +169,7 @@ export default function PLNBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/check-bill",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/check-bill",
         {
           method: "POST",
           headers: {
@@ -180,7 +182,7 @@ export default function PLNBillCheckForm() {
             no_pelanggan: noPelanggan,
             pin: "3456",
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -219,7 +221,7 @@ export default function PLNBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/store-postpaid",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/store-postpaid",
         {
           method: "POST",
           headers: {
@@ -238,7 +240,7 @@ export default function PLNBillCheckForm() {
             customer_email: auth.email || undefined,
             amount: billDetails.jumlah_bayar,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -264,7 +266,9 @@ export default function PLNBillCheckForm() {
       </Link>
       <form onSubmit={handleCheckBill} className="px-6 sm:px-8 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor HP</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor HP
+          </label>
           <input
             type="tel"
             placeholder="Contoh: 081234567890"
@@ -275,11 +279,18 @@ export default function PLNBillCheckForm() {
         </div>
 
         <div ref={dropdownRef}>
-          <label className="block text-sm font-medium text-slate-700 mb-3">Pilih Produk PLN</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">
+            Pilih Produk PLN
+          </label>
           <input
             ref={inputRef}
             type="text"
-            placeholder={selectedProduct ? originalProducts.find((p) => p.id === selectedProduct)?.name || "Pilih produk PLN" : "Pilih produk PLN"}
+            placeholder={
+              selectedProduct
+                ? originalProducts.find((p) => p.id === selectedProduct)
+                    ?.name || "Pilih produk PLN"
+                : "Pilih produk PLN"
+            }
             value={displayValue}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
@@ -299,7 +310,7 @@ export default function PLNBillCheckForm() {
                         "px-4 py-2 text-sm cursor-pointer transition",
                         highlightedIndex === index
                           ? "bg-[#009788] text-white"
-                          : "text-slate-700 hover:bg-[#009788]/10"
+                          : "text-slate-700 hover:bg-[#009788]/10",
                       )}
                     >
                       {item.label}
@@ -307,7 +318,9 @@ export default function PLNBillCheckForm() {
                   ))
                 ) : (
                   <li className="px-4 py-2 text-sm text-gray-500">
-                    {loading ? "Memuat produk PLN..." : "Tidak ada produk ditemukan"}
+                    {loading
+                      ? "Memuat produk PLN..."
+                      : "Tidak ada produk ditemukan"}
                   </li>
                 )}
               </ul>
@@ -316,7 +329,9 @@ export default function PLNBillCheckForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor Pelanggan</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor Pelanggan
+          </label>
           <input
             type="text"
             placeholder="Masukkan nomor pelanggan PLN"
@@ -335,7 +350,7 @@ export default function PLNBillCheckForm() {
             "w-full py-3 rounded-lg shadow-md transition",
             loading || !phone || !noPelanggan || !selectedProduct
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-[#009788] text-white hover:bg-[#007f6d]"
+              : "bg-[#009788] text-white hover:bg-[#007f6d]",
           )}
         >
           {loading ? "Memeriksa Tagihan..." : "Cek Tagihan"}
@@ -344,7 +359,9 @@ export default function PLNBillCheckForm() {
 
       {billDetails && (
         <div className="mt-6 px-6 sm:px-8 border-t pt-4">
-          <h3 className="text-lg font-semibold text-slate-700">Detail Tagihan</h3>
+          <h3 className="text-lg font-semibold text-slate-700">
+            Detail Tagihan
+          </h3>
           <div className="mt-2 space-y-2 text-sm text-slate-700">
             <div className="flex justify-between">
               <span>Tagihan ID:</span>
@@ -360,7 +377,9 @@ export default function PLNBillCheckForm() {
             </div>
             <div className="flex justify-between">
               <span>Jumlah Tagihan:</span>
-              <span>Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}</span>
+              <span>
+                Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}
+              </span>
             </div>
             <div className="flex justify-between">
               <span>Biaya Admin:</span>
@@ -382,7 +401,7 @@ export default function PLNBillCheckForm() {
               "w-full mt-4 py-3 rounded-lg shadow-md transition",
               loading
                 ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-[#009788] text-white hover:bg-[#007f6d]"
+                : "bg-[#009788] text-white hover:bg-[#007f6d]",
             )}
           >
             {loading ? "Memproses..." : "Lanjut ke Pembayaran"}

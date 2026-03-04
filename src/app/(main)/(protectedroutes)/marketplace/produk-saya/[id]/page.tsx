@@ -189,7 +189,6 @@ export default function EditProductPage() {
 
 	// ====== 4) RENDER ======
 
-
 	return (
 		<div className="pt-[4.2rem]">
 			<TopBar withBackButton>Edit Produk</TopBar>

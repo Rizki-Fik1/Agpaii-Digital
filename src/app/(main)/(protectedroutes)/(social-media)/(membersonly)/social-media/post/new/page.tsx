@@ -192,34 +192,36 @@ export default function NewPostPage() {
     youtubeUrl.length > 0;
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 min-h-screen bg-white md:bg-[#FAFBFC]">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col"
       >
         {/* HEADER */}
-        <div className="fixed top-0 left-0 right-0 z-[99] max-w-[480px] mx-auto bg-teal-700 text-white px-4 py-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="p-1"
-          >
-            <ArrowLeftIcon className="size-6 text-white" />
-          </button>
-          <h1 className="font-semibold text-lg">Buat Postingan</h1>
-          <div className="w-6"></div>
+        <div className="fixed top-0 left-0 right-0 z-[99] md:left-20 lg:left-64 bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
+          <div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <ArrowLeftIcon className="size-5 text-white" />
+            </button>
+            <h1 className="font-semibold text-lg text-white">Buat Postingan</h1>
+            <div className="w-8"></div>
+          </div>
         </div>
 
         {/* MAIN CONTENT */}
-        <div className="pt-20 px-4 pb-6 bg-white min-h-screen">
+        <div className="pt-20 px-4 md:px-8 lg:px-12 pb-6 bg-white md:bg-transparent min-h-screen">
           {/* BORDERED POSTING SECTION */}
-          <div className="border border-slate-300 rounded-lg p-4 bg-white">
+          <div className="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm">
             {/* TEXTAREA */}
             <textarea
               onChange={(e) => setText(e.target.value)}
               value={text}
               placeholder="Ketik sesuatu..."
-              className="w-full border-0 resize-none px-0 py-4 text-lg placeholder-slate-400 focus:outline-none focus:ring-0 bg-white"
+              className="w-full border-0 resize-none px-0 py-4 text-base placeholder-slate-400 focus:outline-none focus:ring-0 bg-white"
               rows={6}
             ></textarea>
 
@@ -246,8 +248,8 @@ export default function NewPostPage() {
                 <div className="flex gap-3">
                   {/* Upload Gambar */}
                   <label className="cursor-pointer">
-                    <div className="bg-teal-100 p-3 rounded-lg hover:bg-teal-200 transition">
-                      <PhotoIcon className="size-6 text-teal-600" />
+                    <div className="bg-teal-50 p-3 rounded-xl hover:bg-teal-100 transition-colors">
+                      <PhotoIcon className="size-5 text-[#009788]" />
                     </div>
                     <input
                       type="file"
@@ -266,8 +268,8 @@ export default function NewPostPage() {
 
                   {/* Upload Dokumen */}
                   <label className="cursor-pointer">
-                    <div className="bg-teal-100 p-3 rounded-lg hover:bg-teal-200 transition">
-                      <DocumentPlusIcon className="size-6 text-teal-600" />
+                    <div className="bg-teal-50 p-3 rounded-xl hover:bg-teal-100 transition-colors">
+                      <DocumentPlusIcon className="size-5 text-[#009788]" />
                     </div>
                     <input
                       type="file"
@@ -290,9 +292,9 @@ export default function NewPostPage() {
                       resetAllExcept("youtube");
                       setYoutubeMode(!youtubeMode);
                     }}
-                    className="bg-teal-100 p-3 rounded-lg hover:bg-teal-200 transition"
+                    className="bg-teal-50 p-3 rounded-xl hover:bg-teal-100 transition-colors"
                   >
-                    <PlayIcon className="size-6 text-teal-600" />
+                    <PlayIcon className="size-5 text-[#009788]" />
                   </button>
                 </div>
               )}
@@ -301,7 +303,7 @@ export default function NewPostPage() {
               <button
                 disabled={text.length === 0}
                 type="submit"
-                className="disabled:bg-slate-300 bg-teal-600 hover:bg-teal-700 transition rounded-full text-white px-8 py-3 text-sm font-medium"
+                className="disabled:bg-slate-200 disabled:text-slate-400 bg-[#009788] hover:bg-[#00867a] transition-colors rounded-xl text-white px-8 py-3 text-sm font-semibold shadow-sm"
               >
                 Posting
               </button>
@@ -395,11 +397,11 @@ export default function NewPostPage() {
 
       {/* CROP MODAL */}
       {cropMode && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md max-h-screen overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4">Edit Gambar</h2>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md max-h-screen overflow-y-auto">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Edit Gambar</h2>
             
-            <div className="relative w-full h-80 bg-slate-100 mb-4 rounded-lg overflow-hidden">
+            <div className="relative w-full h-80 bg-slate-100 mb-4 rounded-xl overflow-hidden">
               <Cropper
                 image={cropImageSrc}
                 crop={crop}
@@ -414,7 +416,7 @@ export default function NewPostPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-slate-500 mb-2">
                 Zoom: {(zoom * 100).toFixed(0)}%
               </label>
               <input
@@ -424,7 +426,7 @@ export default function NewPostPage() {
                 step={0.1}
                 value={zoom}
                 onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-[#009788]"
               />
             </div>
 
@@ -432,14 +434,14 @@ export default function NewPostPage() {
               <button
                 type="button"
                 onClick={() => setCropMode(false)}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm transition-colors"
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={applyCrop}
-                className="flex-1 px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-medium"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#009788] hover:bg-[#00867a] text-white font-medium text-sm transition-colors"
               >
                 Terapkan
               </button>

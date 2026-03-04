@@ -344,8 +344,6 @@ const DetailPerangkatAjarPage: React.FC = () => {
     }));
   };
 
-
-
   if (!materialData) {
     return (
       <div className="flex justify-center items-center h-screen">

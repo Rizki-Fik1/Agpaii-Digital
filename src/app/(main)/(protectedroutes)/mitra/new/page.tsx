@@ -16,7 +16,7 @@ const API_URL = "https://admin.agpaiidigital.org";
 ================================ */
 interface KategoriMitra {
   id: number;
-  kategori_mitra: string;
+  kategori_mitra: string; 
 }
 
 export default function CreateMitraPage() {

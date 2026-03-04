@@ -169,10 +169,13 @@ export default function Members() {
 
 	return (
 		<div className="pt-[4.21rem]">
-			<TopBar withBackButton>Informasi Anggota</TopBar>
+            <TopBar
+                withBackButton>
+                Informasi Anggota
+            </TopBar>
 
 			{/* Header */}
-			<div className="flex mx-6 bg-[#009788] mt-8 rounded-lg h-[12rem] relative">
+			<div className="flex mx-6 md:mx-auto md:max-w-5xl bg-gradient-to-r from-[#006557] to-[#009788] md:mt-10 mt-8 rounded-2xl h-[12rem] relative shadow-md">
 				<img
 					src="/svg/indonesian.svg"
 					alt=""
@@ -190,13 +193,22 @@ export default function Members() {
 
 			{/* Tombol Filter & Search */}
 			<div className="flex items-center justify-between mt-6 px-6">
-				<h2 className="font-semibold text-xl">{title}</h2>
-				<button
-					onClick={() => setIsFilterOpen(true)}
-					className="flex items-center gap-2 border border-slate-300 px-3 py-2 rounded-md text-sm">
-					Filter
-				</button>
-			</div>
+                <h2 className="font-semibold text-xl">{title}</h2>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsFilterOpen(true)}
+                        className="flex items-center gap-2 border border-slate-300 px-3 py-2 rounded-md text-sm">
+                        Filter
+                    </button>
+
+                    <Link
+                        href="/member/export"
+                        className="flex items-center gap-2 bg-[#266565] text-white px-3 py-2 rounded-md text-sm hover:opacity-90">
+                        Export
+                    </Link>
+                </div>
+            </div>
 
 			{/* Input search */}
 			<div className="px-6 mt-4">

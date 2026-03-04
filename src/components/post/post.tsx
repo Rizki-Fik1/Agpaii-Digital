@@ -143,7 +143,7 @@ export default function Post({
     setDeleteModalOpen(false);
   };
   return (
-    <div className="relative flex flex-col pb-6 max-w-[480px]">
+    <div className="relative flex flex-col pb-6 max-w-[480px] md:max-w-none w-full">
       {/* ---------------- HEADER ---------------- */}
       <div className="flex px-4 py-4 gap-3 items-start">
         <UserAvatar

@@ -97,11 +97,15 @@ export default function ZegoLiveViewer({
             },
           },
           showUserList: false,
+          autoHideFooter: false,
           onJoinRoom: () => {
             addViewer();
           },
           onLeaveRoom: () => {
             removeViewer();
+          },
+          onReturnToHomeScreenClicked: () => {
+            window.location.href = "/live";
           },
         });
       } catch (error) {
@@ -132,10 +136,10 @@ export default function ZegoLiveViewer({
   }, [roomId, liveId, userId, userName]);
 
   return (
-    <div className="min-h-screen bg-black relative -ml-20">
+    <div className="fixed inset-0 z-50 bg-black">
       <div
         ref={containerRef}
-        className="w-full h-screen"
+        className="w-full h-full"
       />
     </div>
   );

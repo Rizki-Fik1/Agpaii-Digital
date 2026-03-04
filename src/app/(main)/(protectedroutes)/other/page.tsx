@@ -26,6 +26,7 @@ export default function OthersMenuPage() {
 				{ label: "KTA Digital", icon: "/svg/ikon-kta.svg", link: "/kta" },
 				{ label: "Live", icon: "/svg/ikon-live.svg", link: "/live" },
 				{ label: "Sosial Media", icon: "/svg/ikon-sosmed.svg", link: "/social-media" },
+                { label: "Data Iuran", icon: "/svg/iuran.svg", link: "/iuran" },
 			],
 		},
 		{
@@ -37,7 +38,7 @@ export default function OthersMenuPage() {
 				{ label: "Ruang Guru", icon: "/svg/ikon guru.svg", link: "/ruang-guru" },
 				{ label: "Perangkat Ajar", icon: "/svg/ikon perangkat.svg", link: "/perangkat-ajar" },
 				{ label: "RPP Digital", icon: "/svg/ikon-rpp.svg", link: "/rpp" },
-				{ label: "Tryout", icon: "/svg/ikon try out.svg", link: "https://cbt.agpaiidigital.org" },
+				{ label: "Tryout", icon: "/svg/ikon try out.svg", link: "/cbt" },
 				{label: "Modul Digital",icon: "/svg/modul_digital.svg",link: "/modul-ajar"},
 			],
 		},
@@ -83,7 +84,6 @@ export default function OthersMenuPage() {
 		setShowLogoutModal(false);
 		logout();
 	};
-
 
 
 	return (

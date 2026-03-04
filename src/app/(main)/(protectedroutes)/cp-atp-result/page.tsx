@@ -17,7 +17,7 @@ export default function CpAtpResultPage() {
   useEffect(() => {
     if (!faseId || !mapelId) return;
     axios
-      .get("https://mitra.agpaiidigital.org/api/search-cp-atp", {
+      .get("https://admin.agpaiidigital.org/api/search-cp-atp", {
         params: { fase_id: faseId, id_mapel: mapelId },
       })
       .then((res) => {

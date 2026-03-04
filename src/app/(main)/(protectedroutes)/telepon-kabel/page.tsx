@@ -49,12 +49,12 @@ export default function PBBBillCheckForm() {
     try {
       console.log("Fetching PBB products from API...");
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/tripay/postpaid/products?operator_id=104",
+        "https://admin.agpaiidigital.org/api/tripay/postpaid/products?operator_id=104",
         {
           headers: {
             Accept: "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -109,7 +109,7 @@ export default function PBBBillCheckForm() {
   // Debounced search handler
   const filterProducts = useCallback(
     debounce((term: string) => setSearchTerm(term), 300),
-    []
+    [],
   );
 
   // Filter products based on name
@@ -167,7 +167,7 @@ export default function PBBBillCheckForm() {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev < filteredProducts.length - 1 ? prev + 1 : prev
+        prev < filteredProducts.length - 1 ? prev + 1 : prev,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -185,7 +185,9 @@ export default function PBBBillCheckForm() {
   const handleCheckBill = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || !noPelanggan || !selectedProduct) {
-      setError("Harap isi nomor telepon, nomor pelanggan, dan pilih produk PBB!");
+      setError(
+        "Harap isi nomor telepon, nomor pelanggan, dan pilih produk PBB!",
+      );
       return;
     }
 
@@ -194,9 +196,13 @@ export default function PBBBillCheckForm() {
     setBillDetails(null);
 
     try {
-      console.log("Checking bill with:", { product: selectedProduct, phone, no_pelanggan: noPelanggan });
+      console.log("Checking bill with:", {
+        product: selectedProduct,
+        phone,
+        no_pelanggan: noPelanggan,
+      });
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/check-bill",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/check-bill",
         {
           method: "POST",
           headers: {
@@ -209,7 +215,7 @@ export default function PBBBillCheckForm() {
             no_pelanggan: noPelanggan,
             pin: "3456",
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -258,7 +264,7 @@ export default function PBBBillCheckForm() {
         amount: billDetails.jumlah_tagihan,
       });
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/store-postpaid",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/store-postpaid",
         {
           method: "POST",
           headers: {
@@ -277,7 +283,7 @@ export default function PBBBillCheckForm() {
             customer_email: auth.email || undefined,
             amount: billDetails.jumlah_tagihan,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -304,9 +310,14 @@ export default function PBBBillCheckForm() {
           Kembali ke AGPAY
         </button>
       </Link>
-      <form onSubmit={handleCheckBill} className="space-y-6 bg-white rounded-xl shadow-lg p-6 sm:p-8">
+      <form
+        onSubmit={handleCheckBill}
+        className="space-y-6 bg-white rounded-xl shadow-lg p-6 sm:p-8"
+      >
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nomor HP</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Nomor HP
+          </label>
           <input
             type="tel"
             placeholder="Contoh: 081234567890"
@@ -318,12 +329,19 @@ export default function PBBBillCheckForm() {
         </div>
 
         <div ref={dropdownRef}>
-          <label className="block text-sm font-medium text-gray-700">Pilih Produk Telepon Kabel</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Pilih Produk Telepon Kabel
+          </label>
           <div className="relative mt-2">
             <input
               ref={inputRef}
               type="text"
-              placeholder={selectedProduct ? products.find((p) => p.id === selectedProduct)?.name || "Pilih produk PBB" : "Cari produk Telepon Kabel..."}
+              placeholder={
+                selectedProduct
+                  ? products.find((p) => p.id === selectedProduct)?.name ||
+                    "Pilih produk PBB"
+                  : "Cari produk Telepon Kabel..."
+              }
               value={searchTerm}
               onChange={handleInputChange}
               onFocus={handleInputFocus}
@@ -352,9 +370,24 @@ export default function PBBBillCheckForm() {
               >
                 {loading ? (
                   <li className="px-4 py-2 text-sm text-gray-500 flex items-center">
-                    <svg className="animate-spin h-5 w-5 mr-2 text-grey-500" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z" />
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2 text-grey-500"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8 8 8 0 01-8-8z"
+                      />
                     </svg>
                     Memuat produk...
                   </li>
@@ -367,7 +400,7 @@ export default function PBBBillCheckForm() {
                         "px-4 py-2 text-sm cursor-pointer transition",
                         highlightedIndex === index
                           ? "bg-grey-500 text-white"
-                          : "text-gray-700 hover:bg-grey-50"
+                          : "text-gray-700 hover:bg-grey-50",
                       )}
                       role="option"
                       aria-selected={highlightedIndex === index}
@@ -386,7 +419,9 @@ export default function PBBBillCheckForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nomor Objek Pajak (NOP)</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Nomor Objek Pajak (NOP)
+          </label>
           <input
             type="text"
             placeholder="Masukkan Nomor Objek Pajak (NOP)"
@@ -410,7 +445,7 @@ export default function PBBBillCheckForm() {
             "w-full py-3 rounded-lg shadow-md transition font-medium",
             loading || !phone || !noPelanggan || !selectedProduct
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-grey-600 text-white hover:bg-grey-700"
+              : "bg-grey-600 text-white hover:bg-grey-700",
           )}
         >
           {loading ? "Memeriksa Tagihan..." : "Cek Tagihan"}
@@ -419,7 +454,9 @@ export default function PBBBillCheckForm() {
 
       {billDetails && (
         <div className="mt-6 bg-white rounded-xl shadow-lg p-6 sm:p-8 border-t border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Detail Tagihan</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Detail Tagihan
+          </h3>
           <div className="space-y-3 text-sm text-gray-700">
             <div className="flex justify-between">
               <span className="font-medium">Tagihan ID:</span>
@@ -435,7 +472,9 @@ export default function PBBBillCheckForm() {
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Jumlah Tagihan:</span>
-              <span>Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}</span>
+              <span>
+                Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}
+              </span>
             </div>
             {selectedProduct && (
               <div className="flex justify-between">
@@ -460,7 +499,7 @@ export default function PBBBillCheckForm() {
               "w-full mt-6 py-3 rounded-lg shadow-md transition font-medium",
               loading
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-grey-600 text-white hover:bg-grey-700"
+                : "bg-grey-600 text-white hover:bg-grey-700",
             )}
           >
             {loading ? "Memproses..." : "Lanjut ke Pembayaran"}

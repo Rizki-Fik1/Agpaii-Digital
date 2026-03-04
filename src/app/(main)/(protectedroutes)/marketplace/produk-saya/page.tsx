@@ -129,8 +129,6 @@ const MyProductPage: NextPage = () => {
     }
   };
 
-
-
   return (
     <div className="pt-[4.2rem]">
       <TopBar withBackButton>Produk Saya</TopBar>

@@ -39,12 +39,12 @@ export default function BPJSBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/tripay/postpaid/products?operator_id=39",
+        "https://admin.agpaiidigital.org/api/tripay/postpaid/products?operator_id=39",
         {
           headers: {
             Accept: "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -77,7 +77,10 @@ export default function BPJSBillCheckForm() {
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
         setHighlightedIndex(-1);
       }
@@ -88,7 +91,7 @@ export default function BPJSBillCheckForm() {
 
   // Filter products based on search term
   const filteredProducts = products.filter((item) =>
-    item.name?.trim().toLowerCase().includes(searchTerm.trim().toLowerCase())
+    item.name?.trim().toLowerCase().includes(searchTerm.trim().toLowerCase()),
   );
 
   // Handle input change
@@ -124,7 +127,7 @@ export default function BPJSBillCheckForm() {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev < filteredProducts.length - 1 ? prev + 1 : prev
+        prev < filteredProducts.length - 1 ? prev + 1 : prev,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -142,7 +145,9 @@ export default function BPJSBillCheckForm() {
   const handleCheckBill = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || !noPelanggan || !selectedProduct) {
-      setError("Harap isi nomor telepon, nomor peserta, dan pilih produk BPJS!");
+      setError(
+        "Harap isi nomor telepon, nomor peserta, dan pilih produk BPJS!",
+      );
       return;
     }
 
@@ -152,7 +157,7 @@ export default function BPJSBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/check-bill",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/check-bill",
         {
           method: "POST",
           headers: {
@@ -165,7 +170,7 @@ export default function BPJSBillCheckForm() {
             no_pelanggan: noPelanggan,
             pin: "3456",
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -200,7 +205,7 @@ export default function BPJSBillCheckForm() {
 
     try {
       const response = await fetch(
-        "https://mitra.agpaiidigital.org/api/ppob-transaction/store-postpaid",
+        "https://admin.agpaiidigital.org/api/ppob-transaction/store-postpaid",
         {
           method: "POST",
           headers: {
@@ -215,13 +220,13 @@ export default function BPJSBillCheckForm() {
             pin: "3456",
             method: "QRIS",
             customer_phone: phone,
-    		customer_name: auth.name || undefined,
+            customer_name: auth.name || undefined,
             customer_email: auth.email || undefined,
             amount: billDetails.jumlah_tagihan,
             phone,
             no_pelanggan: noPelanggan,
           }),
-        }
+        },
       );
 
       const result = await response.json();
@@ -247,7 +252,9 @@ export default function BPJSBillCheckForm() {
       </Link>
       <form onSubmit={handleCheckBill} className="px-6 sm:px-8 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor HP</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor HP
+          </label>
           <input
             type="tel"
             placeholder="Contoh: 081234567890"
@@ -258,11 +265,18 @@ export default function BPJSBillCheckForm() {
         </div>
 
         <div ref={dropdownRef}>
-          <label className="block text-sm font-medium text-slate-700 mb-3">Pilih Produk BPJS</label>
+          <label className="block text-sm font-medium text-slate-700 mb-3">
+            Pilih Produk BPJS
+          </label>
           <input
             ref={inputRef}
             type="text"
-            placeholder={selectedProduct ? products.find((p) => p.id === selectedProduct)?.name || "Pilih produk BPJS" : "Pilih produk BPJS"}
+            placeholder={
+              selectedProduct
+                ? products.find((p) => p.id === selectedProduct)?.name ||
+                  "Pilih produk BPJS"
+                : "Pilih produk BPJS"
+            }
             value={displayValue}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
@@ -282,7 +296,7 @@ export default function BPJSBillCheckForm() {
                         "px-4 py-2 text-sm cursor-pointer transition",
                         highlightedIndex === index
                           ? "bg-[#009788] text-white"
-                          : "text-slate-700 hover:bg-[#009788]/10"
+                          : "text-slate-700 hover:bg-[#009788]/10",
                       )}
                     >
                       {item.label}
@@ -290,7 +304,9 @@ export default function BPJSBillCheckForm() {
                   ))
                 ) : (
                   <li className="px-4 py-2 text-sm text-gray-500">
-                    {loading ? "Memuat produk BPJS..." : "Tidak ada produk ditemukan"}
+                    {loading
+                      ? "Memuat produk BPJS..."
+                      : "Tidak ada produk ditemukan"}
                   </li>
                 )}
               </ul>
@@ -299,7 +315,9 @@ export default function BPJSBillCheckForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700">Nomor Peserta</label>
+          <label className="block text-sm font-medium text-slate-700">
+            Nomor Peserta
+          </label>
           <input
             type="text"
             placeholder="Masukkan nomor peserta BPJS"
@@ -318,7 +336,7 @@ export default function BPJSBillCheckForm() {
             "w-full py-3 rounded-lg shadow-md transition",
             loading || !phone || !noPelanggan || !selectedProduct
               ? "bg-gray-400 text-white cursor-not-allowed"
-              : "bg-[#009788] text-white hover:bg-[#007f6d]"
+              : "bg-[#009788] text-white hover:bg-[#007f6d]",
           )}
         >
           {loading ? "Memeriksa Tagihan..." : "Cek Tagihan"}
@@ -327,7 +345,9 @@ export default function BPJSBillCheckForm() {
 
       {billDetails && (
         <div className="mt-6 px-6 sm:px-8 border-t pt-4">
-          <h3 className="text-lg font-semibold text-slate-700">Detail Tagihan</h3>
+          <h3 className="text-lg font-semibold text-slate-700">
+            Detail Tagihan
+          </h3>
           <div className="mt-2 space-y-2 text-sm text-slate-700">
             <div className="flex justify-between">
               <span>Tagihan ID:</span>
@@ -343,7 +363,9 @@ export default function BPJSBillCheckForm() {
             </div>
             <div className="flex justify-between">
               <span>Jumlah Tagihan:</span>
-              <span>Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}</span>
+              <span>
+                Rp {billDetails.jumlah_tagihan.toLocaleString("id-ID")}
+              </span>
             </div>
             {selectedProduct && (
               <div className="flex justify-between">
@@ -368,7 +390,7 @@ export default function BPJSBillCheckForm() {
               "w-full mt-4 py-3 rounded-lg shadow-md transition",
               loading
                 ? "bg-gray-400 text-white cursor-not-allowed"
-                : "bg-[#009788] text-white hover:bg-[#007f6d]"
+                : "bg-[#009788] text-white hover:bg-[#007f6d]",
             )}
           >
             {loading ? "Memproses..." : "Lanjut ke Pembayaran"}
