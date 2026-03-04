@@ -362,7 +362,7 @@ export default function SocialMedia() {
       </div>
 
       {/* User Avatar + Search Bar */}
-      <div className="sticky top-[4rem] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-4 md:px-8 py-3 mt-2 flex items-center gap-3">
+      <div className="sticky top-[4rem] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-4 md:px-8 py-3 mt-2 mx-4 flex items-center gap-3">
         <img
           src={
             (user?.avatar !== null && getImage(user.avatar)) ||
@@ -381,7 +381,7 @@ export default function SocialMedia() {
       </div>
 
       {/* Posts Feed */}
-      <div className="flex flex-col bg-white md:bg-transparent pt-8 mt-8 md:px-6 lg:px-8">
+      <div className="flex flex-col bg-white md:bg-transparent pt-4 mt-4 md:pt-6 md:px-0 lg:px-4">
         {/* Pending Post Preview with Progress Bar */}
         {pendingPost && (
           <div className={`relative flex flex-col pb-6 max-w-[480px] transition-opacity duration-300 ${uploadError ? 'opacity-100' : uploadProgress < 100 ? 'opacity-60' : 'opacity-100'}`}>

@@ -143,7 +143,7 @@ export default function Post({
     setDeleteModalOpen(false);
   };
   return (
-    <div className="relative flex flex-col pb-6 max-w-[480px] md:max-w-none w-full">
+    <div className="relative flex flex-col pb-4 max-w-[480px] md:max-w-none w-full bg-white border-b border-slate-100 md:border md:border-slate-200 md:rounded-2xl md:shadow-sm md:mb-6 overflow-hidden">
       {/* ---------------- HEADER ---------------- */}
       <div className="flex px-4 py-4 gap-3 items-start">
         <UserAvatar
@@ -188,11 +188,11 @@ export default function Post({
         )}
       </div>
       {/* ---------------- MEDIA AREA ---------------- */}
-      <div className="w-full overflow-hidden">
+      <div className="w-full overflow-hidden mt-2">
         {/* GAMBAR */}
         {post.images.length > 0 ? (
           <Swiper
-            className="mySwiper h-[23rem]"
+            className="mySwiper h-[26rem] md:h-[30rem]"
             pagination={{ dynamicBullets: true }}
             modules={[Pagination]}
           >
@@ -214,8 +214,8 @@ export default function Post({
         {/* YOUTUBE EMBED */}
         {post.images.length === 0 && youtubeId && (
           <div
-            className="mx-4 mt-2 rounded-lg overflow-hidden border border-slate-300 relative"
-            style={{ height: "270px" }}
+            className="mx-0 md:mx-4 mt-2 overflow-hidden border-y md:border border-slate-200 md:rounded-xl relative"
+            style={{ height: "300px" }}
           >
             <iframe
               src={`https://www.youtube.com/embed/${youtubeId}?rel=0`}
@@ -226,11 +226,11 @@ export default function Post({
               referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
             ></iframe>
-            <div className="absolute bottom-0 w-full bg-black/60 text-white text-xs px-3 py-2 flex items-center gap-2 pointer-events-none">
-              <div className="bg-red-600 rounded-sm px-1.5 py-0.5 text-[10px] font-bold">
+            <div className="absolute top-0 w-full bg-gradient-to-b from-black/60 to-transparent text-white text-xs px-4 py-3 flex items-center gap-2 pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
+              <div className="bg-red-600 rounded px-1.5 py-0.5 text-[10px] font-bold">
                 YouTube
               </div>
-              <span className="truncate">{post.youtube_url}</span>
+              <span className="truncate font-medium">{post.youtube_url}</span>
             </div>
           </div>
         )}
@@ -238,7 +238,7 @@ export default function Post({
         {post.images.length === 0 && !youtubeId && (
           <div
             style={{ backgroundImage: "url(/img/post.png)" }}
-            className="flex justify-center items-center size-full bg-cover bg-center px-8 text-white text-xl font-medium text-center h-[23rem]"
+            className="flex justify-center items-center size-full bg-cover bg-center px-8 md:rounded-xl text-white text-xl font-medium text-center h-[23rem]"
           >
             {trimText(post.body, 125)}
           </div>
@@ -254,12 +254,12 @@ export default function Post({
             href={getImage(post.document)}
             target="_blank"
             rel="noopener noreferrer"
-            className="block relative bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 hover:border-blue-300 transition-all hover:shadow-md group"
+            className="block relative bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all group"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition">
+              <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm group-hover:bg-blue-100 group-hover:border-blue-200 transition">
                 <svg
-                  className="size-8 text-blue-600"
+                  className="size-7 text-blue-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -273,16 +273,16 @@ export default function Post({
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-slate-800 truncate group-hover:text-blue-700 transition">
+                <p className="font-semibold text-slate-800 text-sm truncate group-hover:text-blue-700 transition">
                   {extractFileName(post.document)}
                 </p>
-                <p className="text-sm text-slate-500 mt-0.5">
+                <p className="text-[0.7rem] text-slate-500 mt-0.5 uppercase tracking-wide">
                   Klik untuk membuka dokumen
                 </p>
               </div>
-              <div className="text-blue-600 group-hover:translate-x-1 transition-transform">
+              <div className="text-blue-500 bg-white p-2 rounded-full shadow-sm border border-slate-100 group-hover:bg-blue-50 group-hover:-translate-x-1 transition-all">
                 <svg
-                  className="size-5"
+                  className="size-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -300,7 +300,7 @@ export default function Post({
         </div>
       )}
       {/* ---------------- LIKE / COMMENT ---------------- */}
-      <div className="flex flex-col px-4">
+      <div className="flex flex-col px-4 md:px-5">
         <div className="flex items-center justify-between pb-2 pt-4 px-1">
           {/* LEFT: Like & Comment */}
           <div className="flex gap-4 items-center *:cursor-pointer">
@@ -348,15 +348,15 @@ export default function Post({
           {post.body.length > 125 && (
             <Link
               href={"/social-media/post/" + post.id}
-              className="text-slate-500 text-sm ml-2"
+              className="text-slate-400 text-sm ml-2 font-medium hover:text-teal-600 transition-colors"
             >
-              Selengkapnya
+              Selengkapnya...
             </Link>
           )}
         </div>
         {post.comments_count > 0 && (
           <Link
-            className="text-sm text-neutral-700 mt-2"
+            className="text-[13px] font-medium text-slate-400 mt-3 hover:text-slate-600 transition-colors block"
             href={"/social-media/post/" + post.id}
           >
             Lihat semua {post.comments_count} komentar

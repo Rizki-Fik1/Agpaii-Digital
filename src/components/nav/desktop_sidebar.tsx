@@ -58,50 +58,7 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
 
   let navGroups: { group: string | null; items: any[] }[] = [];
 
-  if (isSocialMedia && getUserStatus(auth) === Status.ACTIVE) {
-    navGroups = [
-      {
-        group: "Sosial Media",
-        items: [
-          {
-            id: "beranda",
-            label: "Beranda",
-            icon: <HomeIcon className="size-6" />,
-            active: pathname === "/social-media",
-            link: "/social-media",
-          },
-          {
-            id: "disukai",
-            label: "Disukai",
-            icon: <HeartIcon className="size-6" />,
-            active: pathname === "/social-media/liked",
-            link: "/social-media/liked",
-          },
-          {
-            id: "posting",
-            label: "Posting Baru",
-            icon: <PlusIcon className="size-6" />,
-            link: "/social-media/post/new",
-            active: false,
-          },
-          {
-            id: "pesan",
-            label: "Pesan",
-            icon: <ChatBubbleLeftIcon className="size-6" />,
-            link: "/social-media/chat",
-            active: pathname === "/social-media/chat",
-          },
-          {
-            id: "profil",
-            label: "Profil",
-            icon: <UserIcon className="size-6" />,
-            link: `/profile/${auth.id}`,
-            active: pathname.startsWith(`/profile/${auth.id}`),
-          },
-        ]
-      }
-    ];
-  } else if (isStudent) {
+  if (isStudent) {
     navGroups = [
       {
         group: "Menu Siswa",
@@ -403,3 +360,4 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
     </aside>
   );
 }
+

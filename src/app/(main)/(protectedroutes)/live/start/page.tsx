@@ -88,7 +88,7 @@ export default function StartLivePage() {
       </div>
 
       {/* Content */}
-      <div className="pt-20 px-4 md:px-8 lg:px-12 pb-8">
+      <div className="pt-20 md:pt-28 px-4 md:px-8 lg:px-12 pb-8">
         <div className="max-w-lg mx-auto">
           {/* Preview Card */}
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 mb-5 border border-white/10 shadow-xl">

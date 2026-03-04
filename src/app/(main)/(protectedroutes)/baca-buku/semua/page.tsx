@@ -211,16 +211,16 @@ function SemuaBukuContent() {
   const sortedBooks = getSortedBooks();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC]">
       <TopBar withBackButton>Semua Buku</TopBar>
 
-      <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6">
+      <div className="max-w-[480px] md:max-w-none mx-auto pt-[3.8rem] pb-6">
         {/* Tab Filter */}
-        <div className="bg-white sticky top-[3.8rem] z-40 px-4 py-3 border-b border-gray-100 shadow-sm">
-          <div className="flex gap-2">
+        <div className="bg-white sticky top-[3.8rem] z-40 px-4 py-3 border-b border-gray-100 shadow-sm md:px-0">
+          <div className="flex gap-2 md:max-w-6xl md:mx-auto md:px-8 xl:px-12">
             <button
               onClick={() => handleTabChange("all")}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex-1 md:flex-none py-2 px-3 md:px-6 rounded-lg text-xs md:text-sm font-medium transition-colors ${
                 activeTab === "all"
                   ? "bg-teal-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -230,7 +230,7 @@ function SemuaBukuContent() {
             </button>
             <button
               onClick={() => handleTabChange("likes")}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+              className={`flex-1 md:flex-none py-2 px-3 md:px-6 rounded-lg text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                 activeTab === "likes"
                   ? "bg-rose-500 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -241,7 +241,7 @@ function SemuaBukuContent() {
             </button>
             <button
               onClick={() => handleTabChange("views")}
-              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+              className={`flex-1 md:flex-none py-2 px-3 md:px-6 rounded-lg text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                 activeTab === "views"
                   ? "bg-teal-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -254,8 +254,8 @@ function SemuaBukuContent() {
         </div>
 
         {/* Books Count */}
-        <div className="px-4 py-3">
-          <p className="text-xs text-gray-500">
+        <div className="px-4 py-3 md:max-w-6xl md:mx-auto md:px-8 xl:px-12">
+          <p className="text-xs md:text-sm text-gray-500">
             Menampilkan{" "}
             <span className="font-semibold text-gray-700">
               {sortedBooks.length}
@@ -268,19 +268,19 @@ function SemuaBukuContent() {
 
         {/* Error Message */}
         {error && (
-          <div className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-lg mx-4">
+          <div className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-lg mx-4 md:max-w-6xl md:mx-auto md:px-8">
             {error}
           </div>
         )}
 
         {/* Books Grid */}
-        <div className="px-4">
+        <div className="px-4 md:max-w-6xl md:mx-auto md:px-8 xl:px-12">
           {loading && sortedBooks.length === 0 ? (
             <div className="flex items-center justify-center py-16">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600" />
             </div>
           ) : sortedBooks.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-5">
               {sortedBooks.map((book) => (
                 <BookCard key={book.id} book={book} />
               ))}

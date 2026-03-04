@@ -1270,7 +1270,7 @@ export default function KelasGuruDetailPage() {
 
   if (loadingClass) {
     return (
-      <div className="w-full max-w-[480px] mx-auto min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-[480px] md:max-w-none mx-auto min-h-screen flex items-center justify-center">
         <p className="text-slate-400">Memuat kelas...</p>
       </div>
     );
@@ -1278,34 +1278,34 @@ export default function KelasGuruDetailPage() {
 
   if (!classInfo) {
     return (
-      <div className="w-full max-w-[480px] mx-auto min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-[480px] md:max-w-none mx-auto min-h-screen flex items-center justify-center">
         <p className="text-slate-500">Kelas tidak ditemukan</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen pb-24">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
+    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12">
+      {/* MOBILE HEADER */}
+      <div className="md:hidden bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 shadow-md rounded-b-2xl">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => router.back()} className="p-1">
+          <button onClick={() => router.back()} className="p-1 hover:bg-white/10 rounded-full transition">
             <ChevronLeftIcon className="size-6 text-white" />
           </button>
           <div>
-            <h1 className="text-lg font-semibold">{classInfo.name}</h1>
+            <h1 className="text-lg font-semibold leading-tight">{classInfo.name}</h1>
             <p className="text-xs text-white/80">{classInfo.school_place}</p>
           </div>
         </div>
-        <div className="bg-white/20 rounded-lg p-3">
+        <div className="bg-white/20 rounded-xl p-3 border border-white/10 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <UserGroupIcon className="size-5" />
-              <span className="text-sm">
+              <span className="text-sm font-medium">
                 {classInfo.total_students ?? students.length} Siswa
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-3 text-xs opacity-90">
               <span className="flex items-center gap-1">
                 <BookOpenIcon className="size-4" />
                 {materials.length} Materi
@@ -1318,8 +1318,53 @@ export default function KelasGuruDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* DESKTOP HERO BANNER */}
+      <div className="hidden md:block relative pt-16 pb-24 px-8 xl:px-12 shadow-md overflow-hidden z-0 bg-gradient-to-r from-teal-600 to-teal-500">
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\\"60\\\" height=\\\"60\\\" viewBox=\\\"0 0 60 60\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"%3E%3Cg fill=\\\"none\\\" fill-rule=\\\"evenodd\\\"%3E%3Cg fill=\\\"%23ffffff\\\" fill-opacity=\\\"1\\\"%3E%3Cpath d=\\\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
+        ></div>
+        <div className="relative z-10 max-w-6xl mx-auto flex items-center justify-between">
+          <div className="text-white">
+            <div className="flex items-center gap-3 mb-2">
+               <button onClick={() => router.back()} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors border border-white/20 backdrop-blur-sm">
+                  <ChevronLeftIcon className="size-5 text-white" />
+               </button>
+               <h1 className="text-3xl font-bold tracking-tight">{classInfo.name}</h1>
+            </div>
+            <p className="text-white/90 max-w-xl text-sm leading-relaxed pl-12">
+              {classInfo.school_place}
+            </p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 flex items-center gap-6 xl:gap-8 shadow-xl">
+            <div className="flex items-center gap-4">
+               <div className="bg-white/20 rounded-xl p-3">
+                 <UserGroupIcon className="size-8 text-white" />
+               </div>
+               <div>
+                 <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Total Siswa</p>
+                 <p className="text-white font-black text-3xl mt-1">
+                   {classInfo.total_students ?? students.length} <span className="text-lg font-medium opacity-80">Orang</span>
+                 </p>
+               </div>
+            </div>
+            <div className="w-px h-16 bg-white/20"></div>
+            <div className="flex flex-col gap-3">
+               <div className="flex items-center gap-2">
+                 <BookOpenIcon className="size-5 text-white/80" />
+                 <p className="text-white font-medium">{materials.length} <span className="text-white/80 text-sm">Materi</span></p>
+               </div>
+               <div className="flex items-center gap-2">
+                 <ClipboardDocumentListIcon className="size-5 text-white/80" />
+                 <p className="text-white font-medium">{exercises.length} <span className="text-white/80 text-sm">Latihan</span></p>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Tab Navigation */}
-      <div className="flex border-b border-slate-200 overflow-x-auto">
+      <div className="flex border-b border-slate-200 overflow-x-auto bg-white md:max-w-6xl md:mx-auto md:rounded-t-2xl md:mt-6 md:shadow-sm">
         {[
           { id: "siswa" as TabType, label: "Siswa" },
           { id: "presensi" as TabType, label: "Presensi" },
@@ -1331,10 +1376,10 @@ export default function KelasGuruDetailPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={clsx(
-              "flex-1 py-3 text-sm font-medium transition whitespace-nowrap px-2",
+              "flex-1 py-3 text-sm font-medium transition whitespace-nowrap px-2 md:py-4",
               activeTab === tab.id
-                ? "text-teal-600 border-b-2 border-teal-600"
-                : "text-slate-500"
+                ? "text-teal-600 border-b-2 border-teal-600 bg-teal-50/30 md:bg-teal-50 md:rounded-tl-2xl"
+                : "text-slate-500 hover:text-teal-600 hover:bg-slate-50"
             )}
           >
             {tab.label}
@@ -1342,7 +1387,7 @@ export default function KelasGuruDetailPage() {
         ))}
       </div>
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 md:p-8 md:max-w-6xl md:mx-auto md:bg-white md:-mt-px md:rounded-b-2xl md:shadow-sm min-h-[50vh]">
         {/* Siswa Tab */}
         {activeTab === "siswa" && (
           <div className="space-y-4">
@@ -1438,29 +1483,29 @@ export default function KelasGuruDetailPage() {
                   {stats.filled}/{stats.total} terisi
                 </span>
               </div>
-              <div className="max-h-[400px] overflow-y-auto space-y-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 max-h-[400px] md:max-h-max overflow-y-auto space-y-3 md:space-y-0 p-3 md:p-4 bg-slate-50 border border-slate-200 rounded-xl">
                 {students.map((student, index) => (
                   <div
                     key={student.id}
                     className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="w-7 h-7 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="w-7 h-7 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
                         {index + 1}
                       </span>
-                      <div>
-                        <p className="font-medium text-slate-700">
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-700 truncate">
                           {student.name}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-[10px] md:text-xs text-slate-400">
                           NISN: {student.profile?.nisn ?? "-"}
                         </p>
-                        <p className="text-xs text-slate-400">
-                          Nama Sekolah: {student.profile?.school_place ?? "-"}
+                        <p className="text-[10px] md:text-xs text-slate-400 truncate">
+                          Sekolah: {student.profile?.school_place ?? "-"}
                         </p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                       {STATUS_OPTIONS.map((option) => (
                         <button
                           key={option.value}
@@ -1468,7 +1513,7 @@ export default function KelasGuruDetailPage() {
                             handleStatusChange(student.id, option.value)
                           }
                           className={clsx(
-                            "flex flex-col items-center gap-1 py-2 px-1 rounded-lg border-2 transition text-xs",
+                            "flex flex-col items-center justify-center gap-1 py-1.5 md:py-2 px-0.5 rounded-lg border-2 transition text-[10px] md:text-xs",
                             attendanceData[student.id] === option.value
                               ? option.value === "hadir"
                                 ? "border-green-500 bg-green-50"
@@ -1533,6 +1578,54 @@ export default function KelasGuruDetailPage() {
                 {stats.filled} dari {stats.total} siswa tercatat
               </p>
             </div>
+
+            {/* Tombol Simpan Presensi */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <button
+                onClick={handleSaveAttendance}
+                disabled={isSaving}
+                className={clsx(
+                  "w-full py-3 rounded-xl font-semibold text-white transition flex items-center justify-center gap-2",
+                  saveSuccess
+                    ? "bg-green-500"
+                    : isSaving
+                    ? "bg-teal-400"
+                    : "bg-teal-600 hover:bg-teal-700"
+                )}
+              >
+                {isSaving ? (
+                  <>
+                    <svg
+                      className="animate-spin size-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Menyimpan...
+                  </>
+                ) : saveSuccess ? (
+                  <>
+                    <CheckCircleSolidIcon className="size-5" />
+                    Tersimpan!
+                  </>
+                ) : (
+                  "Simpan Presensi"
+                )}
+              </button>
+            </div>
           </div>
         )}
         {/* Materi Tab */}
@@ -1554,11 +1647,11 @@ export default function KelasGuruDetailPage() {
                 baru.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {materials.map((material) => (
                   <div
                     key={material.id}
-                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all md:hover:-translate-y-1 cursor-pointer"
                     onClick={() => fetchMaterialDetail(material.id)}
                   >
                     <div className="flex items-start gap-3">
@@ -1598,7 +1691,7 @@ export default function KelasGuruDetailPage() {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 flex-col sm:flex-row" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleEditMaterial(material)}
                           className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
@@ -1685,50 +1778,50 @@ export default function KelasGuruDetailPage() {
                 latihan baru.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {exercises.map((exercise) => (
                   <button
                     key={exercise.id}
                     onClick={() => handleOpenExerciseDetail(exercise)}
                     className={clsx(
-                      "w-full bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition text-left",
-                      exercise.isCompleted
+                      "w-full bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all md:hover:-translate-y-1 text-left flex flex-col h-full",
+                      exercise.is_completed
                         ? "border-green-300 bg-green-50/50"
                         : "border-slate-200"
                     )}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3 w-full">
                       <div
                         className={clsx(
                           "p-3 rounded-xl",
-                          exercise.isCompleted
+                          exercise.is_completed
                             ? "bg-green-100"
                             : "bg-orange-100"
                         )}
                       >
-                        {exercise.isCompleted ? (
+                        {exercise.is_completed ? (
                           <CheckCircleSolidIcon className="size-6 text-green-600" />
                         ) : (
                           <ClipboardDocumentListIcon className="size-6 text-orange-600" />
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-slate-700">
+                          <h4 className="font-semibold text-slate-700 truncate">
                             {exercise.title}
                           </h4>
 
                           {exercise.is_repost && (
                             <span
                               className="px-2 py-0.5 text-[10px] font-semibold rounded-full 
-                     bg-purple-100 text-purple-700 border border-purple-200"
+                     bg-purple-100 text-purple-700 border border-purple-200 shrink-0"
                             >
                               Repost
                             </span>
                           )}
                         </div>
                         {exercise.is_repost && exercise.reposted_from && (
-                          <p className="text-[10px] text-purple-600 mt-1">
+                          <p className="text-[10px] text-purple-600 mt-1 truncate">
                             Repost dari{" "}
                             <strong>
                               {exercise.reposted_from.teacher.name}
@@ -1741,28 +1834,28 @@ export default function KelasGuruDetailPage() {
                           <span>•</span>
                           <span>{exercise.duration} menit</span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-1">
+                        <p className="text-[10px] md:text-xs text-slate-400 mt-1 font-medium">
                           Deadline: {formatDeadline(exercise.deadline)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-col sm:flex-row">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditExercise(exercise);
                           }}
-                          className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
+                          className="p-1.5 md:p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition"
                         >
-                          <PencilIcon className="size-5" />
+                          <PencilIcon className="size-4 md:size-5" />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteExercise(exercise.id);
                           }}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                          className="p-1.5 md:p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
                         >
-                          <TrashIcon className="size-5" />
+                          <TrashIcon className="size-4 md:size-5" />
                         </button>
                       </div>
                     </div>
@@ -1787,12 +1880,12 @@ export default function KelasGuruDetailPage() {
                 Baru
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-3 md:space-y-0">
               {discussionsLoading && (
-                <p className="text-sm text-slate-400">Memuat diskusi...</p>
+                <p className="text-sm text-slate-400 col-span-full">Memuat diskusi...</p>
               )}
               {!discussionsLoading && discussions.length === 0 && (
-                <p className="text-sm text-slate-400">Belum ada diskusi</p>
+                <p className="text-sm text-slate-400 col-span-full">Belum ada diskusi</p>
               )}
               {discussions.map((discussion) => (
                 <div
@@ -1934,63 +2027,15 @@ export default function KelasGuruDetailPage() {
           </div>
         )}
       </div>
-      {/* Save Button - Presensi Tab */}
-      {activeTab === "presensi" && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 max-w-[480px] mx-auto">
-          <button
-            onClick={handleSaveAttendance}
-            disabled={isSaving}
-            className={clsx(
-              "w-full py-3 rounded-xl font-semibold text-white transition flex items-center justify-center gap-2",
-              saveSuccess
-                ? "bg-green-500"
-                : isSaving
-                ? "bg-teal-400"
-                : "bg-teal-600 hover:bg-teal-700"
-            )}
-          >
-            {isSaving ? (
-              <>
-                <svg
-                  className="animate-spin size-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Menyimpan...
-              </>
-            ) : saveSuccess ? (
-              <>
-                <CheckCircleSolidIcon className="size-5" />
-                Tersimpan!
-              </>
-            ) : (
-              "Simpan Presensi"
-            )}
-          </button>
-        </div>
-      )}
+
       {/* Modals */}
       {showAddMaterialModal && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+        <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => setShowAddMaterialModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-t-2xl p-4 pb-6 max-h-[80vh] overflow-auto">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-t-2xl md:rounded-2xl p-4 md:p-6 pb-6 max-h-[80vh] overflow-auto shadow-2xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-700">
                 Tambah Materi
@@ -2115,11 +2160,11 @@ export default function KelasGuruDetailPage() {
       {showAddExerciseModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => setShowAddExerciseModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[90vh] overflow-auto mx-4">
-            <div className="flex items-center justify-between mb-4 sticky top-0 bg-white pb-2 border-b border-slate-100">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-2xl p-4 md:p-6 pb-6 max-h-[90vh] overflow-auto mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 sticky -top-4 bg-white pb-2 border-b border-slate-100 z-10">
               <h3 className="text-lg font-semibold text-slate-700">
                 Tambah Latihan Soal
               </h3>
@@ -2215,15 +2260,15 @@ export default function KelasGuruDetailPage() {
       {showExerciseDetailModal && selectedExercise && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => {
               setShowExerciseDetailModal(false);
               setSelectedExercise(null);
               setSearchQuery("");
             }}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4">
-            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
+          <div className="relative w-full max-w-[480px] md:max-w-4xl bg-white md:rounded-3xl max-h-[90vh] h-full md:h-[85vh] overflow-hidden flex flex-col mx-auto shadow-2xl">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 md:px-6">
               <div className="flex items-center gap-3 mb-3">
                 <button
                   onClick={() => {
@@ -2371,9 +2416,9 @@ export default function KelasGuruDetailPage() {
         </div>
       )}
       {showSelectQuestionModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[400] p-4">
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+        <div className="fixed inset-0 bg-black/50 md:backdrop-blur-sm flex items-center justify-center z-[400] p-4">
+          <div className="relative w-full max-w-[480px] md:max-w-2xl bg-white rounded-2xl md:rounded-3xl max-h-[90vh] md:h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between p-4 md:px-6 border-b border-slate-200 bg-white sticky top-0 z-10">
               <div>
                 <h3 className="text-lg font-semibold text-slate-700">
                   Pilih Soal
@@ -2459,14 +2504,14 @@ export default function KelasGuruDetailPage() {
       {showAddStudentModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => {
               setShowAddStudentModal(false);
               setStudentSearch("");
               setStudentSearchResults([]);
             }}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-2xl p-4 md:p-6 pb-6 max-h-[80vh] overflow-auto mx-4 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-700">
                 Tambah Siswa
@@ -2566,10 +2611,10 @@ export default function KelasGuruDetailPage() {
       {showEditMaterialModal && editingMaterial && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => setShowEditMaterialModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[80vh] overflow-auto mx-4">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-2xl p-4 md:p-6 pb-6 max-h-[80vh] overflow-auto mx-4 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-700">
                 Edit Materi
@@ -2742,10 +2787,10 @@ export default function KelasGuruDetailPage() {
       {showRepostExerciseModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => setShowRepostExerciseModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl p-4 pb-6 max-h-[85vh] overflow-auto mx-4">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-2xl p-4 md:p-6 pb-6 max-h-[85vh] md:max-h-[80vh] overflow-auto mx-4 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-700">
@@ -2831,12 +2876,12 @@ export default function KelasGuruDetailPage() {
         </div>
       )}
       {showAddDiscussionModal && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+        <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => setShowAddDiscussionModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-t-2xl p-4 pb-6">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-t-2xl md:rounded-2xl p-4 md:p-6 pb-6 shadow-2xl mx-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-700">
                 Tambah Diskusi
@@ -2938,13 +2983,13 @@ export default function KelasGuruDetailPage() {
       {showDeleteConfirmModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div 
-            className="absolute inset-0 bg-black/50" 
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm" 
             onClick={() => {
               setShowDeleteConfirmModal(false);
               setExerciseToDelete(null);
             }}
           />
-          <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-6 shadow-xl">
+          <div className="relative w-full max-w-[400px] mx-4 bg-white rounded-2xl p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-slate-700 mb-2">
               Hapus Latihan?
             </h3>
@@ -2977,13 +3022,13 @@ export default function KelasGuruDetailPage() {
       {showEditExerciseModal && editingExercise && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div 
-            className="absolute inset-0 bg-black/50" 
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm" 
             onClick={() => {
               setShowEditExerciseModal(false);
               setEditingExercise(null);
             }}
           />
-          <div className="relative w-full max-w-[440px] mx-4 bg-white rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-[440px] md:max-w-xl mx-4 bg-white rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-slate-700 mb-4">
               Edit Latihan
             </h3>
@@ -3071,13 +3116,13 @@ export default function KelasGuruDetailPage() {
       {showMaterialDetailModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 md:backdrop-blur-sm"
             onClick={() => {
               setShowMaterialDetailModal(false);
               setSelectedMaterial(null);
             }}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-2xl max-h-[90vh] overflow-hidden flex flex-col mx-4">
+          <div className="relative w-full max-w-[480px] md:max-w-4xl bg-white md:rounded-3xl max-h-[90vh] h-full md:h-[85vh] overflow-hidden flex flex-col mx-auto shadow-2xl">
             {loadingMaterialDetail ? (
               /* Loading State */
               <div className="flex items-center justify-center p-20">
