@@ -670,6 +670,37 @@ export default function SocialMedia() {
           </div>
         )}
         
+        {/* Skeleton Loaders */}
+        {isLoading && (
+          <div className="flex flex-col">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col pb-6 max-w-[480px] md:max-w-none animate-pulse">
+                {/* Header skeleton */}
+                <div className="flex px-4 py-4 gap-3 items-start">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="h-3.5 w-28 bg-slate-200 rounded-full mb-2" />
+                    <div className="h-3 w-40 bg-slate-100 rounded-full mb-1.5" />
+                    <div className="h-2.5 w-16 bg-slate-100 rounded-full" />
+                  </div>
+                </div>
+                {/* Image area skeleton */}
+                <div className="w-full h-[23rem] bg-slate-200" />
+                {/* Action bar skeleton */}
+                <div className="px-4 pt-4">
+                  <div className="flex gap-4 mb-3">
+                    <div className="w-7 h-7 rounded bg-slate-200" />
+                    <div className="w-7 h-7 rounded bg-slate-200" />
+                  </div>
+                  <div className="h-3 w-16 bg-slate-200 rounded-full mb-3" />
+                  <div className="h-3 w-full bg-slate-100 rounded-full mb-2" />
+                  <div className="h-3 w-3/4 bg-slate-100 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {!isLoading &&
           data?.pages.map((page, iPage) => {
             // Default value untuk page?.data jika undefined
