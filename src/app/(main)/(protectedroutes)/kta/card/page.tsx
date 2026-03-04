@@ -120,7 +120,24 @@ export default function Card() {
     return "";
   };
 
-  if (isLoading || templateLoading) return null;
+  if (isLoading || templateLoading) return (
+    <div className="overflow-y-hidden min-h-screen bg-white md:bg-[#FAFBFC]">
+      <TopBar withBackButton>Kartu Tanda Anggota</TopBar>
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="flex flex-col items-center gap-5">
+          {/* Card skeleton placeholder */}
+          <div className="w-72 h-44 rounded-2xl bg-gradient-to-br from-teal-100 to-emerald-50 animate-pulse shadow-lg border border-teal-200/50 flex items-center justify-center">
+            <svg className="size-16 text-teal-300/60" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" /></svg>
+          </div>
+          {/* Spinner */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-[3px] border-teal-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-slate-500 font-medium">Memuat kartu KTA...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   if (isError) return <div>{error?.message}</div>;
 
