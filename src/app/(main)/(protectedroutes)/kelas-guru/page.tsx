@@ -74,7 +74,7 @@ export default function KelasGuruListPage() {
 
   if (classes.length === 0) {
     return (
-      <div className="max-w-[480px] mx-auto min-h-screen bg-white">
+      <div className="w-full max-w-[480px] md:max-w-none mx-auto min-h-screen bg-white">
         <div className="p-6 text-center text-slate-500">
           <p className="mb-4">Belum ada kelas</p>
           <Link
@@ -91,10 +91,10 @@ export default function KelasGuruListPage() {
 
   // ================= VIEW =================
   return (
-    <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen">
+    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12">
       {/* Header */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 md:rounded-b-2xl shadow-md">
+        <div className="flex items-center justify-between mb-4 md:max-w-6xl md:mx-auto">
           <div className="flex items-center gap-3">
             <button onClick={() => router.back()} className="p-1">
               <ChevronLeftIcon className="size-6 text-white" />
@@ -116,7 +116,7 @@ export default function KelasGuruListPage() {
           </Link>
         </div>
 
-        <div className="bg-white/20 rounded-lg p-3 flex items-center gap-3">
+        <div className="bg-white/20 rounded-lg p-3 flex items-center gap-3 md:max-w-6xl md:mx-auto">
           <AcademicCapIcon className="size-6 text-white" />
           <div>
             <p className="text-white/80 text-xs">Total Kelas</p>
@@ -128,31 +128,40 @@ export default function KelasGuruListPage() {
       </div>
 
       {/* List */}
-      <div className="p-4  space-y-4">
+      <div className="p-4 space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 md:space-y-0 md:max-w-6xl md:mx-auto md:mt-8">
         {classes.map((kelas) => (
-          <Link key={kelas.id} href={`/kelas-guru/${kelas.id}`} className="block mb-4">
+          <Link key={kelas.id} href={`/kelas-guru/${kelas.id}`} className="block">
             <div
               className={clsx(
-                "bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-5 shadow hover:shadow-lg mt-4 transition"
+                "bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-5 shadow hover:shadow-xl transition h-full flex flex-col relative overflow-hidden group/item"
               )}
             >
-              <span className="text-white text-xs bg-white/20 px-2 py-0.5 rounded-full">
-                {kelas.subject}
-              </span>
+              {/* Decorative icon */}
+              <div className="absolute -bottom-6 -right-4 opacity-10 group-hover/item:opacity-20 transition-opacity">
+                <AcademicCapIcon className="size-32 text-white" />
+              </div>
+              
+              <div className="relative z-10 flex-1">
+                <span className="text-white text-xs bg-white/20 px-2.5 py-1 rounded-md font-bold uppercase tracking-wide border border-white/10 backdrop-blur-sm">
+                  {kelas.subject}
+                </span>
 
-              <h3 className="text-white font-bold text-lg mt-2">
-                {kelas.name}
-              </h3>
+                <h3 className="text-white font-bold text-lg md:text-xl mt-3 leading-tight">
+                  {kelas.name}
+                </h3>
 
-              <p className="text-white/80 text-sm">{kelas.school_place}</p>
+                <p className="text-white/80 text-sm mt-1">{kelas.school_place}</p>
+              </div>
 
-              <div className="flex items-center gap-4 mt-4 text-white/90 text-sm">
-                <div className="flex items-center gap-1">
-                  <UserGroupIcon className="size-5" />
-                  {kelas.students_count} Siswa
+              <div className="flex items-center mt-6 text-white/90 text-sm relative z-10 bg-black/10 w-fit px-3 py-1.5 rounded-md border border-white/5">
+                <div className="flex items-center gap-1.5">
+                  <UserGroupIcon className="size-4" />
+                  <span className="font-semibold">{kelas.students_count} <span className="font-normal text-white/70">Siswa</span></span>
                 </div>
-
-                <ChevronRightIcon className="size-5 ml-auto" />
+              </div>
+              
+              <div className="absolute right-5 bottom-5 bg-white/20 text-white rounded-full p-2 transition-colors">
+                 <ChevronRightIcon className="size-5" />
               </div>
             </div>
           </Link>

@@ -23,6 +23,7 @@ import {
   PencilIcon,
   TrashIcon,
   EllipsisVerticalIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -709,7 +710,7 @@ export default function KelasDetailPage() {
 
   if (classLoading) {
     return (
-      <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-[480px] md:max-w-none mx-auto bg-white min-h-screen flex items-center justify-center">
         <p className="text-slate-400">Memuat kelas...</p>
       </div>
     );
@@ -717,7 +718,7 @@ export default function KelasDetailPage() {
 
   if (!classInfo) {
     return (
-      <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-[480px] md:max-w-none mx-auto bg-white min-h-screen flex items-center justify-center">
         <p className="text-slate-500">Kelas tidak ditemukan</p>
       </div>
     );
@@ -731,23 +732,23 @@ export default function KelasDetailPage() {
   };
 
   return (
-    <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen pb-20">
-      {/* Header */}
+    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12">
+      {/* MOBILE HEADER */}
       <div
-        className={clsx("bg-gradient-to-r text-white p-4 pt-6", headerGradient)}
+        className={clsx("md:hidden bg-gradient-to-r text-white p-4 pt-6 shadow-md rounded-b-2xl", headerGradient)}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <Link href="/kelas" className="p-1">
+            <Link href="/kelas" className="p-1 hover:bg-white/10 rounded-full transition">
               <ChevronLeftIcon className="size-6 text-white" />
             </Link>
             <div>
-              <h1 className="text-lg font-semibold">{classInfo.name}</h1>
+              <h1 className="text-lg font-semibold leading-tight">{classInfo.name}</h1>
               <p className="text-xs text-white/80">{classInfo.school_place}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/20 rounded-lg p-3">
+        <div className="bg-white/20 rounded-xl p-3 border border-white/10 backdrop-blur-sm">
           <p className="text-sm">
             <span className="font-medium">Guru:</span>{" "}
             {classInfo.teacher?.name || "-"}
@@ -758,21 +759,90 @@ export default function KelasDetailPage() {
         </div>
       </div>
 
+      {/* DESKTOP HERO BANNER */}
+      <div className={clsx("hidden md:block relative pt-16 pb-24 px-8 xl:px-12 shadow-md overflow-hidden z-0 bg-gradient-to-r", headerGradient)}>
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\\"60\\\" height=\\\"60\\\" viewBox=\\\"0 0 60 60\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"%3E%3Cg fill=\\\"none\\\" fill-rule=\\\"evenodd\\\"%3E%3Cg fill=\\\"%23ffffff\\\" fill-opacity=\\\"1\\\"%3E%3Cpath d=\\\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
+        ></div>
+        <div className="relative z-10 max-w-6xl mx-auto flex items-center justify-between">
+          <div className="text-white">
+            <div className="flex items-center gap-3 mb-2">
+               <Link href="/kelas" className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors border border-white/20 backdrop-blur-sm">
+                  <ChevronLeftIcon className="size-5 text-white" />
+               </Link>
+               <h1 className="text-3xl font-bold tracking-tight">{classInfo.name}</h1>
+            </div>
+            <p className="text-white/90 max-w-xl text-sm leading-relaxed pl-12">
+              {classInfo.school_place}
+            </p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 flex items-center gap-4 shadow-xl">
+            <div className="bg-white/20 rounded-xl p-3">
+              <UserGroupIcon className="size-8 text-white" />
+            </div>
+            <div>
+              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Total Siswa</p>
+              <p className="text-white font-black text-3xl">
+                {classInfo.total_students} <span className="text-lg font-medium opacity-80">Orang</span>
+              </p>
+            </div>
+            <div className="w-px h-12 bg-white/20 mx-2"></div>
+            <div>
+               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Pengajar</p>
+               <p className="text-white font-bold text-lg mt-1">{classInfo.teacher?.name || "-"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="md:max-w-6xl md:mx-auto md:px-8 xl:px-12 md:-mt-14 relative z-20">
+         {/* Desktop Tabs */}
+         <div className="hidden md:flex bg-white rounded-2xl shadow-lg border border-slate-100 p-2 mb-6 gap-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={clsx(
+                  "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all",
+                  activeTab === tab.id 
+                    ? "bg-teal-50 text-teal-700" 
+                    : "text-slate-500 hover:bg-slate-50 hover:text-teal-600"
+                )}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+         </div>
+
       {/* Tab Content */}
-      <div className="p-4">
+      <div className="p-4 md:p-8 md:bg-white md:rounded-3xl md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] md:border md:border-slate-100 min-h-[50vh]">
         {/* Materi Tab */}
         {activeTab === "materi" && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">
+          <div className="space-y-4">
+            <h2 className="text-lg md:text-xl font-bold text-slate-700 hidden md:block border-b border-slate-100 pb-4 mb-6">
+              Materi Pembelajaran
+            </h2>
+            <h2 className="text-lg font-semibold text-slate-700 mb-4 md:hidden">
               Materi Pembelajaran
             </h2>
             {materialsLoading && (
-              <p className="text-sm text-slate-400">Memuat materi...</p>
+              <div className="flex flex-col items-center justify-center py-10">
+                 <div className="w-8 h-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin"></div>
+              </div>
             )}
 
             {!materialsLoading && materials.length === 0 && (
-              <p className="text-sm text-slate-400">Belum ada materi</p>
+              <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                 <BookOpenIcon className="size-12 text-slate-300 mb-3" />
+                 <p className="text-sm font-semibold text-slate-500">Belum ada materi</p>
+                 <p className="text-xs text-slate-400 mt-1">Materi akan muncul di sini setelah diunggah oleh guru.</p>
+              </div>
             )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
             {materials.map((material) => (
               <div
@@ -820,22 +890,33 @@ export default function KelasDetailPage() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
         {/* Latihan Tab */}
         {activeTab === "latihan" && (
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-slate-700 mb-4">
+          <div className="space-y-4">
+            <h2 className="text-lg md:text-xl font-bold text-slate-700 hidden md:block border-b border-slate-100 pb-4 mb-6">
+              Latihan Soal
+            </h2>
+            <h2 className="text-lg font-semibold text-slate-700 mb-4 md:hidden">
               Latihan Soal
             </h2>
             {exercisesLoading && (
-              <p className="text-sm text-slate-400">Memuat latihan...</p>
+              <div className="flex flex-col items-center justify-center py-10">
+                 <div className="w-8 h-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin"></div>
+              </div>
             )}
 
             {!exercisesLoading && exercises.length === 0 && (
-              <p className="text-sm text-slate-400">Belum ada latihan</p>
+              <div className="flex flex-col items-center justify-center py-16 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                 <ClipboardDocumentListIcon className="size-12 text-slate-300 mb-3" />
+                 <p className="text-sm font-semibold text-slate-500">Belum ada latihan</p>
+              </div>
             )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
             {exercises.map((exercise) => (
               <div
@@ -905,33 +986,40 @@ export default function KelasDetailPage() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
         {/* Diskusi Tab */}
         {activeTab === "diskusi" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-700">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-2">
+              <h2 className="text-lg md:text-xl font-bold text-slate-700">
                 Diskusi Kelas
               </h2>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+                className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 transition shadow-md hover:shadow-lg hover:-translate-y-0.5"
               >
-                <PlusIcon className="w-4 h-4" />
-                Baru
+                <PlusIcon className="w-5 h-5" />
+                Buat Topik Baru
               </button>
             </div>
 
-            {/* Discussions List - using local state */}
-            <div className="space-y-4">
+            {/* Discussions List */}
+            <div className="space-y-5 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:grid-cols-3">
               {discussionsLoading && (
-                <p className="text-sm text-slate-400">Memuat diskusi...</p>
+                <div className="col-span-full flex justify-center py-10">
+                   <div className="w-8 h-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin"></div>
+                </div>
               )}
 
               {!discussionsLoading && discussions.length === 0 && (
-                <p className="text-sm text-slate-400">Belum ada diskusi</p>
+                <div className="col-span-full flex flex-col items-center justify-center py-16 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                 <ChatBubbleBottomCenterTextIcon className="size-12 text-slate-300 mb-3" />
+                 <p className="text-sm font-semibold text-slate-500">Belum ada diskusi</p>
+                 <p className="text-xs text-slate-400 mt-1">Jadilah yang pertama memulai diskusi!</p>
+                </div>
               )}
 
               {discussions.map((discussion) => (
@@ -1196,10 +1284,11 @@ export default function KelasDetailPage() {
           </div>
         )}
       </div>
+      </div>
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-lg">
-        <div className="flex items-end justify-around h-16 px-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgb(0,0,0,0.05)] rounded-t-2xl">
+        <div className="flex items-end justify-around h-16 px-2 pb-1">
           {tabs.slice(0, 2).map((tab) => (
             <button
               key={tab.id}
@@ -1268,8 +1357,8 @@ export default function KelasDetailPage() {
 
       {/* Material Detail Modal */}
       {selectedMaterial && (
-        <div className="fixed inset-0 z-[200] bg-slate-100">
-          <div className="flex flex-col h-full max-w-[480px] mx-auto bg-white shadow-xl">
+        <div className="fixed inset-0 z-[200] bg-slate-100 md:bg-black/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center md:p-6">
+          <div className="flex flex-col h-full max-w-[480px] w-full md:max-w-5xl md:h-[90vh] md:rounded-3xl mx-auto bg-white shadow-2xl overflow-hidden">
             {/* Modal Header with gradient */}
             <div
               className={clsx(
@@ -1499,8 +1588,8 @@ export default function KelasDetailPage() {
 
       {/* Quiz Modal */}
       {selectedExercise && (
-        <div className="fixed inset-0 z-[200] bg-white">
-          <div className="flex flex-col h-full max-w-[480px] mx-auto">
+        <div className="fixed inset-0 z-[200] bg-white md:bg-black/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center md:p-8">
+          <div className="flex flex-col h-full max-w-[480px] w-full md:max-w-4xl md:h-[90vh] md:rounded-3xl mx-auto shadow-2xl overflow-hidden bg-white">
             {/* Quiz Header */}
             <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-4 text-white">
               <div className="flex items-center gap-3">
@@ -1693,12 +1782,12 @@ export default function KelasDetailPage() {
 
       {/* Add Discussion Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+        <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowAddModal(false)}
           />
-          <div className="relative w-full max-w-[480px] bg-white rounded-t-2xl p-4 pb-6">
+          <div className="relative w-full max-w-[480px] md:max-w-xl bg-white rounded-t-2xl md:rounded-2xl p-4 md:p-6 pb-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-700">
                 Tambah Diskusi

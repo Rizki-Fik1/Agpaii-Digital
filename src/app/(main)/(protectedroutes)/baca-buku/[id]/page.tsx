@@ -228,7 +228,7 @@ const BookDetailPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 pt-[4.2rem]">
         <TopBar withBackButton>Detail Buku</TopBar>
-        <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6 px-4">
+        <div className="max-w-[480px] md:max-w-4xl mx-auto pt-[3.8rem] pb-6 px-4">
              <div className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
                 <div className="h-64 bg-gray-200 rounded-xl mb-4"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
@@ -258,12 +258,14 @@ const BookDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC]">
       <TopBar withBackButton>Detail Buku</TopBar>
 
-      {/* Main Container - Single Frame */}
-      <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6 px-4">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Main Container */}
+      <div className="max-w-[480px] md:max-w-none mx-auto pt-[3.8rem] pb-6 px-4 md:px-0">
+
+        {/* MOBILE: Original single-column card layout */}
+        <div className="md:hidden bg-white rounded-2xl shadow-sm overflow-hidden">
           {/* Book Cover - Centered */}
           <div className="flex justify-center py-6 px-4 bg-gradient-to-b from-gray-50 to-white">
             <div className="w-40 aspect-[3/4] rounded-xl overflow-hidden shadow-xl bg-gray-200">
@@ -411,15 +413,6 @@ const BookDetailPage = () => {
                 Unduh Buku
               </button>
 
-              {/* Preview Button */}
-              {/* <button
-                onClick={handlePreview}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-medium text-xs transition-colors"
-              >
-                <FaRegFileAlt className="w-3.5 h-3.5" />
-                Preview
-              </button> */}
-
               {/* Like Button */}
               <button
                 onClick={handleLike}
@@ -436,6 +429,147 @@ const BookDetailPage = () => {
                 )}
                 Suka
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* DESKTOP: Two-column layout */}
+        <div className="hidden md:block max-w-5xl mx-auto py-8">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex">
+              {/* Left: Book Cover */}
+              <div className="w-80 flex-shrink-0 bg-gradient-to-b from-gray-50 to-white p-8 flex flex-col items-center justify-start border-r border-gray-100">
+                <div className="w-52 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl bg-gray-200">
+                  <img
+                    src={book.coverDataUrl || book.cover}
+                    alt={book.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      if (target.nextElementSibling) {
+                        (target.nextElementSibling as HTMLElement).style.display = "flex";
+                      }
+                    }}
+                  />
+                  <div
+                    className={`w-full h-full bg-gradient-to-br ${getCategoryGradient(book.category)} flex-col items-center justify-center p-3 text-white`}
+                    style={{ display: "none" }}
+                  >
+                    <FaBookOpen className="w-12 h-12 mb-2" />
+                    <p className="text-sm text-center font-bold line-clamp-3">{book.title}</p>
+                  </div>
+                </div>
+
+                {/* Statistics Row */}
+                <div className="flex justify-center gap-8 mt-8 w-full">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-teal-600">{book.downloadCount || 0}</p>
+                    <p className="text-xs text-gray-500">Unduhan</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-teal-600">{likeCount}</p>
+                    <p className="text-xs text-gray-500">Suka</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-teal-600">{book.viewCount || 0}</p>
+                    <p className="text-xs text-gray-500">Dilihat</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-8 w-full space-y-3 px-4">
+                  <button
+                    onClick={handleDownload}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-medium text-sm transition-colors"
+                  >
+                    <BsDownload className="w-4 h-4" />
+                    Unduh Buku
+                  </button>
+                  <button
+                    onClick={handleLike}
+                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-colors ${
+                      isLiked
+                        ? "bg-rose-500 hover:bg-rose-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {isLiked ? (
+                      <BiSolidLike className="w-4 h-4" />
+                    ) : (
+                      <BiLike className="w-4 h-4" />
+                    )}
+                    {isLiked ? "Disukai" : "Suka"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Book Info */}
+              <div className="flex-1 p-8">
+                {/* Title & Author */}
+                <div className="mb-6">
+                  <span className="inline-block bg-amber-100 text-amber-700 text-xs px-3 py-1 rounded-full font-semibold mb-3">
+                    {book.category}
+                  </span>
+                  <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2">
+                    {book.title}
+                  </h1>
+                  <p className="text-gray-500">oleh {book.author}</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Diunggah {formatDate(book.uploadDate)}
+                  </p>
+                </div>
+
+                {/* Book Information */}
+                <div className="mb-6">
+                  <h2 className="font-bold text-gray-900 mb-4 text-base border-b border-gray-100 pb-3">
+                    Informasi Buku
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex">
+                      <span className="text-sm text-gray-500 w-28 flex-shrink-0">Jenjang</span>
+                      <span className="text-sm text-gray-500 mr-2">:</span>
+                      <span className="text-sm text-gray-800">{book.jenjang || "-"}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-sm text-gray-500 w-28 flex-shrink-0">Halaman</span>
+                      <span className="text-sm text-gray-500 mr-2">:</span>
+                      <span className="text-sm text-gray-800">{book.pages ? `${book.pages} halaman` : "-"}</span>
+                    </div>
+                    {book.publisher && (
+                      <div className="flex">
+                        <span className="text-sm text-gray-500 w-28 flex-shrink-0">Penerbit</span>
+                        <span className="text-sm text-gray-500 mr-2">:</span>
+                        <span className="text-sm text-gray-800">{book.publisher}</span>
+                      </div>
+                    )}
+                    {book.year && (
+                      <div className="flex">
+                        <span className="text-sm text-gray-500 w-28 flex-shrink-0">Tahun Terbit</span>
+                        <span className="text-sm text-gray-500 mr-2">:</span>
+                        <span className="text-sm text-gray-800">{book.year}</span>
+                      </div>
+                    )}
+                    {book.isbn && (
+                      <div className="flex col-span-2">
+                        <span className="text-sm text-gray-500 w-28 flex-shrink-0">ISBN</span>
+                        <span className="text-sm text-gray-500 mr-2">:</span>
+                        <span className="text-sm text-gray-800">{book.isbn}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h2 className="font-bold text-gray-900 mb-3 text-base border-b border-gray-100 pb-3">
+                    Deskripsi Singkat
+                  </h2>
+                  <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                    {book.description || "Deskripsi buku belum tersedia."}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

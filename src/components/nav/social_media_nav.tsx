@@ -68,7 +68,9 @@ export default function SocialMediaNavbar() {
 
   return (
     !isNavHidden() && (
-      <div className="fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-lg md:hidden">
+      <>
+      {/* MOBILE VIEW - Bottom Fixed Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] md:hidden">
         <div className="flex items-stretch justify-around h-16">
           {navList.map((list, i) => {
             const isPostingButton = list.id === "posting";
@@ -123,6 +125,66 @@ export default function SocialMediaNavbar() {
           })}
         </div>
       </div>
+
+      {/* DESKTOP VIEW - Right Sidebar Navigation */}
+      <div className="hidden lg:block fixed right-0 top-0 bottom-0 w-[240px] xl:w-[280px] bg-white border-l border-slate-200 shadow-sm z-40 pt-[5.5rem] p-6 lg:block">
+        <div className="flex flex-col gap-2">
+          {navList.map((list, i) => {
+            const isPostingButton = list.id === "posting";
+            const isChatConversation =
+              pathname.startsWith("/social-media/chat/") &&
+              pathname !== "/social-media/chat";
+
+            if (isPostingButton && isChatConversation) return null;
+
+            if (isPostingButton) {
+              return (
+                <Link
+                  key={`desk-${i}`}
+                  href={list.link}
+                  className="mt w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white p-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 group"
+                >
+                  <PlusIcon className="size-5" />
+                  <span className="tracking-wide">Buat Postingan</span>
+                </Link>
+              );
+            }
+
+            return (
+              <Link
+                key={`desk-${i}`}
+                href={list.link}
+                onClick={() => setActiveTab(list.id)}
+                className={clsx(
+                  "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all group font-semibold",
+                  list.active
+                    ? "bg-teal-50 text-teal-700"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-teal-600"
+                )}
+              >
+                <div
+                  className={clsx(
+                    "transition-colors",
+                    list.active ? "text-teal-600" : "text-slate-400 group-hover:text-teal-500"
+                  )}
+                >
+                  {list.icon}
+                </div>
+                <span className="text-sm tracking-wide">
+                  {list.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+        
+        {/* Footer / Copyright di Sidebar */}
+        <div className="absolute bottom-6 left-6 right-6 text-center text-xs text-slate-400 font-medium">
+          <p>© {new Date().getFullYear()} AGPAII Digital.</p>
+          <p className="mt-1">Hak Cipta Dilindungi.</p>
+        </div>
+      </div>
+      </>
     )
   );
 }

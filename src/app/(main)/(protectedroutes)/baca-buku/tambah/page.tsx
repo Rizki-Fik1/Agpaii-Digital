@@ -337,23 +337,29 @@ const TambahBukuPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC]">
       <TopBar withBackButton>Tambah Buku</TopBar>
 
-      <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-6 px-4">
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+      <div className="max-w-[480px] md:max-w-4xl mx-auto pt-[3.8rem] pb-6 px-4 md:px-8">
+        <form onSubmit={handleSubmit} className="space-y-4 py-4 md:py-8">
+          {/* Desktop heading */}
+          <div className="hidden md:block mb-2">
+            <h1 className="text-2xl font-bold text-gray-900">Tambah Buku Baru</h1>
+            <p className="text-gray-500 text-sm mt-1">Unggah e-Book dalam format PDF untuk ditambahkan ke perpustakaan.</p>
+          </div>
+
           {/* PDF Upload Card */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden md:shadow-md">
+            <div className="px-5 py-4 border-b border-gray-100 md:px-6 md:py-5">
+              <h3 className="font-bold text-gray-900 text-sm md:text-base">
                 Upload File e-Book (PDF)
               </h3>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs md:text-sm text-gray-500 mt-1">
                 Sampul buku akan diambil otomatis dari halaman pertama PDF
               </p>
             </div>
 
-            <div className="p-5">
+            <div className="p-5 md:p-6">
               {pdfFile ? (
                 <div className="space-y-4">
                   {/* PDF Info */}
@@ -363,7 +369,7 @@ const TambahBukuPage = () => {
                         <BsCheckCircle className="w-4 h-4 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-gray-800 line-clamp-1">
+                        <p className="text-xs md:text-sm font-medium text-gray-800 line-clamp-1">
                           {pdfFile.name}
                         </p>
                         <p className="text-[10px] text-gray-500">
@@ -385,7 +391,7 @@ const TambahBukuPage = () => {
                     <p className="text-xs text-gray-600 mb-2 font-medium">
                       Preview Sampul:
                     </p>
-                    <div className="w-28 mx-auto">
+                    <div className="w-28 mx-auto md:mx-0">
                       <div className="w-full aspect-[3/4] rounded-lg overflow-hidden shadow-lg border border-gray-100">
                         {coverPreview ? (
                           <img
@@ -407,7 +413,7 @@ const TambahBukuPage = () => {
                   </div>
 
                   {/* Cover upload control (visible) */}
-                  <div className="mt-3 flex items-center justify-center gap-3">
+                  <div className="mt-3 flex items-center justify-center md:justify-start gap-3">
                     <label className="inline-flex items-center gap-2 cursor-pointer">
                       <input
                         id="cover-upload"
@@ -486,7 +492,7 @@ const TambahBukuPage = () => {
                   </div>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-teal-500 hover:bg-teal-50/30 transition-all">
+                <label className="flex flex-col items-center justify-center py-8 md:py-12 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-teal-500 hover:bg-teal-50/30 transition-all">
                   <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-3">
                     <BsFileEarmarkPdf className="w-7 h-7 text-red-500" />
                   </div>
@@ -511,17 +517,17 @@ const TambahBukuPage = () => {
           </div>
 
           {/* Book Information Card */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-sm">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden md:shadow-md">
+            <div className="px-5 py-4 border-b border-gray-100 md:px-6 md:py-5">
+              <h3 className="font-bold text-gray-900 text-sm md:text-base">
                 Informasi Buku
               </h3>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 md:p-6 md:space-y-5">
               {/* Nama Buku */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1.5">
+                <label className="block text-xs md:text-sm text-gray-600 mb-1.5">
                   Nama Buku <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -530,22 +536,22 @@ const TambahBukuPage = () => {
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="Masukkan judul buku"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2.5 md:py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
 
               {/* Kategori & Jenjang Row (select jenjang first) */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1.5">
+                  <label className="block text-xs md:text-sm text-gray-600 mb-1.5">
                     Kategori <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full px-3 py-2.5 md:py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                     required
                   >
                     <option value="">Pilih</option>
@@ -561,14 +567,14 @@ const TambahBukuPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1.5">
+                  <label className="block text-xs md:text-sm text-gray-600 mb-1.5">
                     Jenjang Buku
                   </label>
                   <select
                     name="jenjangId"
                     value={formData.jenjangId}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full px-3 py-2.5 md:py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                   >
                     <option value="">Pilih</option>
                     {loadingJenjang ? (
@@ -592,7 +598,7 @@ const TambahBukuPage = () => {
 
               {/* Fase (depends on selected jenjang) */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1.5">
+                <label className="block text-xs md:text-sm text-gray-600 mb-1.5">
                   Fase
                   {!loadingFase &&
                     formData.jenjangId &&
@@ -607,7 +613,7 @@ const TambahBukuPage = () => {
                   value={formData.faseId}
                   onChange={handleInputChange}
                   disabled={!formData.jenjangId || loadingFase}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white disabled:opacity-50"
+                  className="w-full px-3 py-2.5 md:py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white disabled:opacity-50"
                 >
                   {!formData.jenjangId ? (
                     <option value="">Pilih jenjang dulu</option>
@@ -646,7 +652,7 @@ const TambahBukuPage = () => {
 
               {/* Deskripsi */}
               <div>
-                <label className="block text-xs text-gray-600 mb-1.5">
+                <label className="block text-xs md:text-sm text-gray-600 mb-1.5">
                   Deskripsi Singkat
                 </label>
                 <textarea
@@ -655,17 +661,17 @@ const TambahBukuPage = () => {
                   onChange={handleInputChange}
                   placeholder="Deskripsi singkat tentang buku ini..."
                   rows={3}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                  className="w-full px-3 py-2.5 md:py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
                 />
               </div>
             </div>
 
             {/* Submit Button - Inside Card */}
-            <div className="px-5 pb-5">
+            <div className="px-5 pb-5 md:px-6 md:pb-6">
               <button
                 type="submit"
                 disabled={isSubmitting || !pdfFile}
-                className="w-full py-3 bg-teal-700 hover:bg-teal-800 disabled:bg-gray-300 text-white rounded-lg font-semibold text-sm transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 md:py-3.5 bg-teal-700 hover:bg-teal-800 disabled:bg-gray-300 text-white rounded-lg md:rounded-xl font-semibold text-sm transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>

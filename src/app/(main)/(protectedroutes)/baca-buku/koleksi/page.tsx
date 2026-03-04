@@ -138,11 +138,11 @@ const KoleksiBukuPage = () => {
     const coverSrc = book.coverDataUrl || book.cover;
 
     return (
-      <div className="bg-white rounded-xl p-3 shadow-sm flex gap-3 relative">
+      <div className="bg-white rounded-xl p-3 shadow-sm flex gap-3 relative md:hover:shadow-md md:transition-shadow">
         {/* Book Cover */}
         <div
           onClick={() => handleBookClick(book.id)}
-          className="w-20 flex-shrink-0 cursor-pointer"
+          className="w-20 md:w-24 flex-shrink-0 cursor-pointer"
         >
           <div className="w-full aspect-[3/4] rounded-lg overflow-hidden shadow-md bg-gray-200">
             {/* Book Cover Image */}
@@ -183,7 +183,7 @@ const KoleksiBukuPage = () => {
           <span className="inline-block bg-teal-100 text-teal-700 text-[10px] px-2 py-0.5 rounded-full font-medium mb-1">
             {book.category}
           </span>
-          <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 leading-tight mb-0.5">
+          <h3 className="font-semibold text-gray-800 text-sm md:text-base line-clamp-2 leading-tight mb-0.5">
             {book.title}
           </h3>
           <p className="text-xs text-gray-500 line-clamp-1">{book.author}</p>
@@ -232,11 +232,11 @@ const KoleksiBukuPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-[3.8rem] pb-6">
+    <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC] pt-[3.8rem] pb-6">
       <TopBar withBackButton>Buku Saya</TopBar>
 
-      {/* Header */}
-      <div className="bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700 px-4 py-6">
+      {/* MOBILE Header */}
+      <div className="md:hidden bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700 px-4 py-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
             <BsBookmark className="w-6 h-6 text-white" />
@@ -252,22 +252,43 @@ const KoleksiBukuPage = () => {
         </div>
       </div>
 
+      {/* DESKTOP Hero */}
+      <div className="hidden md:block relative pt-12 pb-16 px-8 xl:px-12 overflow-hidden bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
+        ></div>
+        <div className="relative z-10 max-w-6xl mx-auto flex items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/20">
+            <BsBookmark className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-white text-3xl font-bold tracking-tight">
+              Koleksi Buku Saya
+            </h2>
+            <p className="text-white/80 text-base mt-1">
+              {likedBooks.length} buku tersimpan
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Error Message */}
       {error && (
-        <div className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-lg mx-4 mt-4">
+        <div className="px-4 py-2 bg-red-50 text-red-600 text-xs rounded-lg mx-4 mt-4 md:max-w-6xl md:mx-auto">
           {error}
         </div>
       )}
 
       {/* Books List */}
-      <div className="px-4 py-5">
+      <div className="px-4 py-5 md:max-w-6xl md:mx-auto md:px-8 xl:px-12 md:py-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mb-4" />
             <p className="text-gray-500 text-center">Memuat buku...</p>
           </div>
         ) : likedBooks.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
             {likedBooks.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}

@@ -1,0 +1,191 @@
+﻿src/app/(main)/(protectedroutes)/(social-media)/profile/edit/status/page.tsx(405,32): error TS2345: Argument of type 'UseMutateFunction<any, any, { is_pns: string; is_certification: string; is_non_pns_inpassing: string; pendidikan: string; jurusan: string; kampus: string; pemasukan: string; pengeluaran: string; kepemilikan_rumah: string; ... 7 more ...; bank_account_no?: string | undefined; }, unknown>' is not assignable to parameter of type 'SubmitHandler<{ is_pns: string; is_certification: string; is_non_pns_inpassing: string; pendidikan: string; jurusan: string; kampus: string; pemasukan: string; pengeluaran: string; kepemilikan_rumah: string; ... 7 more ...; bank_account_no?: string | undefined; }>'.
+  Types of parameters 'options' and 'event' are incompatible.
+    Type 'BaseSyntheticEvent<object, any, any> | undefined' is not assignable to type 'MutateOptions<any, any, { is_pns: string; is_certification: string; is_non_pns_inpassing: string; pendidikan: string; jurusan: string; kampus: string; pemasukan: string; pengeluaran: string; kepemilikan_rumah: string; ... 7 more ...; bank_account_no?: string | undefined; }, unknown> | undefined'.
+      Type 'BaseSyntheticEvent<object, any, any>' has no properties in common with type 'MutateOptions<any, any, { is_pns: string; is_certification: string; is_non_pns_inpassing: string; pendidikan: string; jurusan: string; kampus: string; pemasukan: string; pengeluaran: string; kepemilikan_rumah: string; ... 7 more ...; bank_account_no?: string | undefined; }, unknown>'.
+src/app/(main)/(protectedroutes)/(social-media)/profile/edit/status/page.tsx(427,22): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'FieldErrors<{ is_pns: string; is_certification: string; is_non_pns_inpassing: string; pendidikan: string; jurusan: string; kampus: string; pemasukan: string; pengeluaran: string; kepemilikan_rumah: string; ... 7 more ...; bank_account_no?: string | undefined; }>'.
+src/app/(main)/(protectedroutes)/(student)/kelas/[id]/page.tsx(781,16): error TS2304: Cannot find name 'UserGroupIcon'.
+src/app/(main)/(protectedroutes)/(student)/kelas/[id]/page.tsx(1571,31): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number | Date'.
+      Type 'undefined' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+      Type 'undefined' is not assignable to type 'string | number'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(56,18): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(57,15): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(65,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(179,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(190,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(217,35): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(239,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/bpjs/page.tsx(240,13): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/etoll/page.tsx(530,11): error TS2322: Type 'string | true | null' is not assignable to type 'boolean | undefined'.
+  Type 'null' is not assignable to type 'boolean | undefined'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(44,31): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string, value: string | Blob): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'string | Blob'.
+      Type 'string[]' is not assignable to type 'string | Blob'.
+        Type 'string[]' is missing the following properties from type 'Blob': size, type, arrayBuffer, bytes, and 2 more.
+  Overload 2 of 3, '(name: string, value: string): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+      Type 'string[]' is not assignable to type 'string'.
+  Overload 3 of 3, '(name: string, blobValue: Blob, filename?: string | undefined): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'Blob'.
+      Type 'string' is not assignable to type 'Blob'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(46,33): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string, value: string | Blob): void', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'string | Blob'.
+      Type 'null' is not assignable to type 'string | Blob'.
+  Overload 2 of 3, '(name: string, value: string): void', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'string'.
+      Type 'null' is not assignable to type 'string'.
+  Overload 3 of 3, '(name: string, blobValue: Blob, filename?: string | undefined): void', gave the following error.
+    Argument of type 'number | null' is not assignable to parameter of type 'Blob'.
+      Type 'null' is not assignable to type 'Blob'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(73,20): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(81,31): error TS2339: Property 'avatar' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(85,47): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(86,58): error TS2339: Property 'email' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(118,28): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(121,45): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(125,57): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/add/page.tsx(127,24): error TS2339: Property 'session_name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(74,25): error TS7006: Parameter 'text' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(79,32): error TS7006: Parameter 'sessionId' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(84,37): error TS7006: Parameter 'userId' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(105,33): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string, value: string | Blob): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'string | Blob'.
+      Type 'string[]' is not assignable to type 'string | Blob'.
+        Type 'string[]' is missing the following properties from type 'Blob': size, type, arrayBuffer, bytes, and 2 more.
+  Overload 2 of 3, '(name: string, value: string): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'string'.
+      Type 'string[]' is not assignable to type 'string'.
+  Overload 3 of 3, '(name: string, blobValue: Blob, filename?: string | undefined): void', gave the following error.
+    Argument of type 'string | string[]' is not assignable to parameter of type 'Blob'.
+      Type 'string' is not assignable to type 'Blob'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(106,32): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string, value: string | Blob): void', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'string | Blob'.
+  Overload 2 of 3, '(name: string, value: string): void', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'string'.
+  Overload 3 of 3, '(name: string, blobValue: Blob, filename?: string | undefined): void', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'Blob'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(162,20): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(165,37): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(169,50): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(171,16): error TS2339: Property 'session_name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(190,20): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(196,56): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(199,34): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(203,49): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(204,60): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(212,18): error TS2339: Property 'certificate' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(214,71): error TS2339: Property 'certificate' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(224,18): error TS2339: Property 'certificate' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(226,55): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(237,37): error TS2339: Property 'user' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(275,40): error TS18047: 'e.target.files' is possibly 'null'.
+src/app/(main)/(protectedroutes)/event/[id]/peserta/page.tsx(275,40): error TS2345: Argument of type 'File' is not assignable to parameter of type 'SetStateAction<null>'.
+  Type 'File' provides no match for the signature '(prevState: null): null'.
+src/app/(main)/(protectedroutes)/event/edit/[id]/page.tsx(492,20): error TS2322: Type '{ children: any[]; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; disabled?: boolean | undefined; name: "province_id"; ref: RefCallBack; }' is not assignable to type 'DetailedHTMLProps<SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>'.
+  Type '{ children: any[]; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; disabled?: boolean | undefined; name: "province_id"; ref: RefCallBack; }' is not assignable to type 'SelectHTMLAttributes<HTMLSelectElement>'.
+    Types of property 'value' are incompatible.
+      Type 'string | null' is not assignable to type 'string | number | readonly string[] | undefined'.
+        Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/(main)/(protectedroutes)/event/edit/[id]/page.tsx(497,43): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/edit/[id]/page.tsx(523,20): error TS2322: Type '{ children: any[]; disabled: boolean; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; name: "city_id"; ref: RefCallBack; }' is not assignable to type 'DetailedHTMLProps<SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>'.
+  Type '{ children: any[]; disabled: boolean; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; name: "city_id"; ref: RefCallBack; }' is not assignable to type 'SelectHTMLAttributes<HTMLSelectElement>'.
+    Types of property 'value' are incompatible.
+      Type 'string | null' is not assignable to type 'string | number | readonly string[] | undefined'.
+        Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/(main)/(protectedroutes)/event/edit/[id]/page.tsx(529,39): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/new/page.tsx(17,31): error TS2724: '"react-hook-form"' has no exported member named 'watch'. Did you mean 'Watch'?
+src/app/(main)/(protectedroutes)/event/new/page.tsx(482,22): error TS2322: Type '{ children: any[]; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; disabled?: boolean | undefined; name: "province_id"; ref: RefCallBack; }' is not assignable to type 'DetailedHTMLProps<SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>'.
+  Type '{ children: any[]; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; disabled?: boolean | undefined; name: "province_id"; ref: RefCallBack; }' is not assignable to type 'SelectHTMLAttributes<HTMLSelectElement>'.
+    Types of property 'value' are incompatible.
+      Type 'string | null' is not assignable to type 'string | number | readonly string[] | undefined'.
+        Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/(main)/(protectedroutes)/event/new/page.tsx(487,45): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/event/new/page.tsx(512,22): error TS2322: Type '{ children: any[]; disabled: boolean; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; name: "city_id"; ref: RefCallBack; }' is not assignable to type 'DetailedHTMLProps<SelectHTMLAttributes<HTMLSelectElement>, HTMLSelectElement>'.
+  Type '{ children: any[]; disabled: boolean; className: string; onChange: (...event: any[]) => void; onBlur: Noop; value: string | null; name: "city_id"; ref: RefCallBack; }' is not assignable to type 'SelectHTMLAttributes<HTMLSelectElement>'.
+    Types of property 'value' are incompatible.
+      Type 'string | null' is not assignable to type 'string | number | readonly string[] | undefined'.
+        Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/(main)/(protectedroutes)/event/new/page.tsx(518,41): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(156,5): error TS2304: Cannot find name 'RegisteredStudent'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(1087,48): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(1230,40): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(1740,32): error TS2551: Property 'isCompleted' does not exist on type 'Exercise'. Did you mean 'is_completed'?
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(1749,36): error TS2551: Property 'isCompleted' does not exist on type 'Exercise'. Did you mean 'is_completed'?
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(1754,35): error TS2551: Property 'isCompleted' does not exist on type 'Exercise'. Did you mean 'is_completed'?
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2349,59): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2352,39): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2353,40): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2357,63): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2465,59): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2472,57): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2475,37): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2476,38): error TS2339: Property 'difficulty' does not exist on type 'Question'.
+src/app/(main)/(protectedroutes)/kelas-guru/[id]/page.tsx(2870,14): error TS2304: Cannot find name 'PUBLIC_EXERCISES'.
+src/app/(main)/(protectedroutes)/Multifinance/page.tsx(229,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/Multifinance/page.tsx(260,31): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/app/(main)/(protectedroutes)/page.tsx(529,45): error TS7006: Parameter 'post' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/page.tsx(529,51): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pbb/page.tsx(229,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/pbb/page.tsx(260,31): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/app/(main)/(protectedroutes)/pdam/page.tsx(176,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/pdam/page.tsx(216,35): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(56,18): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(57,15): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(65,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(179,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(190,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(217,35): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(239,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pembayaran-internet/page.tsx(240,13): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(49,18): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(50,15): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(60,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(74,33): error TS7006: Parameter 'event' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(75,55): error TS2339: Property 'contains' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(86,10): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(90,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(106,14): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(110,16): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(111,17): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(120,26): error TS7006: Parameter 'productId' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(121,53): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(123,41): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(136,26): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(149,48): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(157,34): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(161,9): error TS2345: Argument of type '"Harap isi nomor telepon, nomor pelanggan, dan pilih produk PLN!"' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(191,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '(prevState: null) => null'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(204,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(213,16): error TS2345: Argument of type '"Tidak ada tagihan atau produk untuk diproses"' is not assignable to parameter of type 'SetStateAction<null>'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(233,35): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(235,36): error TS2339: Property 'api_trxid' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(241,33): error TS2339: Property 'jumlah_bayar' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(253,16): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(254,13): error TS18046: 'err' is of type 'unknown'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(290,50): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(291,23): error TS2339: Property 'name' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(307,33): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(308,57): error TS2339: Property 'id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(316,29): error TS2339: Property 'label' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(368,34): error TS2339: Property 'tagihan_id' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(372,34): error TS2339: Property 'nama' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(376,34): error TS2339: Property 'periode' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(381,33): error TS2339: Property 'jumlah_tagihan' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(386,37): error TS2339: Property 'biaya_admin' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(390,37): error TS2339: Property 'jumlah_bayar' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/pln-bayar/page.tsx(394,34): error TS2339: Property 'api_trxid' does not exist on type 'never'.
+src/app/(main)/(protectedroutes)/telepon-kabel/page.tsx(226,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | ((prevState: { tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; } | null) => { ...; } | null)'.
+src/app/(main)/(protectedroutes)/telepon-kabel/page.tsx(257,31): error TS2339: Property 'id' does not exist on type '{ tagihan_id: string; jumlah_tagihan: number; nama: string; periode: string; api_trxid: string; }'.
+src/components/cbt/cbt-list.tsx(6,46): error TS2307: Cannot find module 'lucide-react' or its corresponding type declarations.
+src/components/cbt/cbt-list.tsx(33,29): error TS2339: Property 'message' does not exist on type '{ success: boolean; data: CBTPaket[]; }'.
+src/components/cbt/cbt-list.tsx(60,27): error TS2339: Property 'message' does not exist on type '{ success: boolean; data: any; }'.
+src/constants/ramadhan-icons.ts(78,3): error TS2724: '"react-icons/gi"' has no exported member named 'GiCrescent'. Did you mean 'GiPresent'?
+src/lib/onesignal.ts(10,5): error TS2739: Type '{ enable: false; }' is missing the following properties from type '{ displayPredicate?: (() => boolean | Promise<boolean>) | undefined; enable?: boolean | undefined; offset?: { bottom: string; left: string; right: string; } | undefined; prenotify: boolean; position?: "bottom-left" | ... 1 more ... | undefined; showCredit: boolean; size?: "small" | ... 2 more ... | undefined; text: ...': prenotify, showCredit, text
+src/utils/cropImage.ts(1,22): error TS2307: Cannot find module 'react-easy-crop/types' or its corresponding type declarations.

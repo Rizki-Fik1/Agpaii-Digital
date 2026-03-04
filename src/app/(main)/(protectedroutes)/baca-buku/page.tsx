@@ -253,14 +253,31 @@ const BacaBukuPage = () => {
         )
         .slice(0, 4);
 
+  // Desktop: show more books
+  const featuredBooksDesktop = searchQuery
+    ? filteredBooks
+    : [...allBooks]
+        .sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0))
+        .slice(0, 8);
+
+  const topBooksDesktop = searchQuery
+    ? filteredBooks
+    : [...allBooks]
+        .sort(
+          (a, b) =>
+            (b.viewCount || b.likeCount || 0) -
+            (a.viewCount || a.likeCount || 0)
+        )
+        .slice(0, 8);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC]">
       <TopBar withBackButton>Baca Buku</TopBar>
 
       {/* Main Container with max-width for mobile-first design */}
-      <div className="max-w-[480px] mx-auto pt-[3.8rem] pb-20 relative">
-        {/* Header Section with Search */}
-        <div className="bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700 px-4 py-6">
+      <div className="max-w-[480px] md:max-w-none mx-auto pt-[3.8rem] pb-20 relative">
+        {/* MOBILE Header Section with Search */}
+        <div className="md:hidden bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700 px-4 py-6">
           {/* Greeting with real-time user name */}
           <div className="mb-4">
             <h2 className="text-white text-lg font-semibold">
@@ -291,8 +308,64 @@ const BacaBukuPage = () => {
           </div>
         </div>
 
+        {/* DESKTOP Hero Banner */}
+        <div className="hidden md:block relative pt-16 pb-20 px-8 xl:px-12 overflow-hidden bg-gradient-to-br from-teal-600 via-teal-600 to-emerald-700">
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
+          ></div>
+          <div className="relative z-10 max-w-6xl mx-auto">
+            <div className="flex items-center justify-between">
+              <div className="text-white">
+                <h2 className="text-3xl font-bold tracking-tight mb-2">
+                  Hi, {getUserDisplayName()} 👋
+                </h2>
+                <p className="text-white/80 text-lg">Kamu mau cari buku apa?</p>
+              </div>
+              {/* Desktop Quick Actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleBukuSaya}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-sm transition-all"
+                >
+                  <FaBookmark className="w-3.5 h-3.5" />
+                  Buku Saya
+                </button>
+                <button
+                  onClick={handleTambahBuku}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white text-teal-700 rounded-xl font-semibold text-sm transition-all hover:bg-white/90 shadow-lg"
+                >
+                  <FaPlus className="w-3.5 h-3.5" />
+                  Tambah Buku
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Search Bar */}
+            <div className="mt-8 flex gap-3 max-w-2xl">
+              <div className="flex-1 relative">
+                <BsSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Telusuri nama buku, penulis, atau kategori..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-lg"
+                />
+              </div>
+              <button
+                onClick={handleSearch}
+                className="px-8 py-3.5 bg-teal-800 hover:bg-teal-900 text-white rounded-xl font-medium text-sm transition-colors shadow-lg"
+              >
+                Cari
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Main Content */}
-        <div className="px-4 py-5 space-y-6">
+        <div className="px-4 py-5 space-y-6 md:max-w-6xl md:mx-auto md:px-8 xl:px-12 md:py-8 md:space-y-10">
           {loading && allBooks.length === 0 && (
             <div className="py-8 flex items-center justify-center">
               <svg
@@ -321,12 +394,12 @@ const BacaBukuPage = () => {
 
           {/* Buku Terfavorit Section - Sorted by Likes */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 md:mb-5">
               <div>
-                <h3 className="text-base font-bold text-gray-800">
+                <h3 className="text-base md:text-xl font-bold text-gray-800">
                   Buku Terfavorit
                 </h3>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-[10px] md:text-sm text-gray-500">
                   Paling banyak disukai
                 </p>
               </div>
@@ -338,8 +411,8 @@ const BacaBukuPage = () => {
               </button>
             </div>
 
-            {/* Horizontal Scroll Books */}
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {/* Mobile: Horizontal Scroll Books */}
+            <div className="md:hidden flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
               {featuredBooks.length > 0 ? (
                 featuredBooks.map((book: Book) => (
                   <div key={book.id} className="flex-shrink-0 w-[100px]">
@@ -366,16 +439,43 @@ const BacaBukuPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Desktop: Grid Books */}
+            <div className="hidden md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+              {featuredBooksDesktop.length > 0 ? (
+                featuredBooksDesktop.map((book: Book) => (
+                  <BookCard key={book.id} book={book} />
+                ))
+              ) : (
+                <div className="col-span-full flex items-center justify-center py-16">
+                  <div className="text-center text-gray-500">
+                    {searchQuery ? (
+                      <p className="text-sm">
+                        Tidak ada hasil untuk{" "}
+                        <span className="font-semibold">"{searchQuery}"</span>
+                      </p>
+                    ) : (
+                      <>
+                        <p className="font-semibold">Belum ada buku</p>
+                        <p className="text-sm mt-1">
+                          Coba lagi nanti atau tambahkan buku baru.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Buku Terlaris Section - Sorted by Views */}
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 md:mb-5">
               <div>
-                <h3 className="text-base font-bold text-gray-800">
+                <h3 className="text-base md:text-xl font-bold text-gray-800">
                   Buku Terlaris
                 </h3>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-[10px] md:text-sm text-gray-500">
                   Paling banyak dilihat
                 </p>
               </div>
@@ -387,8 +487,8 @@ const BacaBukuPage = () => {
               </button>
             </div>
 
-            {/* Horizontal Scroll Books */}
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+            {/* Mobile: Horizontal Scroll Books */}
+            <div className="md:hidden flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
               {topBooks.length > 0 ? (
                 topBooks.map((book: Book) => (
                   <div key={book.id} className="flex-shrink-0 w-[100px]">
@@ -415,11 +515,38 @@ const BacaBukuPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Desktop: Grid Books */}
+            <div className="hidden md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+              {topBooksDesktop.length > 0 ? (
+                topBooksDesktop.map((book: Book) => (
+                  <BookCard key={book.id} book={book} />
+                ))
+              ) : (
+                <div className="col-span-full flex items-center justify-center py-16">
+                  <div className="text-center text-gray-500">
+                    {searchQuery ? (
+                      <p className="text-sm">
+                        Tidak ada hasil untuk{" "}
+                        <span className="font-semibold">"{searchQuery}"</span>
+                      </p>
+                    ) : (
+                      <>
+                        <p className="font-semibold">Belum ada buku</p>
+                        <p className="text-sm mt-1">
+                          Coba lagi nanti atau tambahkan buku baru.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Floating Action Button - Inside Frame */}
-        <div ref={fabRef} className="absolute bottom-4 right-4 z-50">
+        {/* Floating Action Button - Mobile Only */}
+        <div ref={fabRef} className="md:hidden absolute bottom-4 right-4 z-50">
           {/* FAB Menu */}
           {showFabMenu && (
             <div className="absolute bottom-16 right-0 mb-2 animate-fade-in">

@@ -255,7 +255,7 @@ const BookReaderPage = () => {
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-teal-700 px-4 py-3">
-        <div className="max-w-[480px] mx-auto flex items-center justify-between">
+        <div className="max-w-[480px] md:max-w-5xl mx-auto flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="p-2 text-white hover:bg-teal-600 rounded-lg transition-colors"
@@ -268,12 +268,21 @@ const BookReaderPage = () => {
             </h1>
             <p className="text-teal-200 text-xs">{book.author}</p>
           </div>
-          <button
-            onClick={handleDownload}
-            className="p-2 text-white hover:bg-teal-600 rounded-lg transition-colors"
-          >
-            <BsDownload className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openPdfInNewTab()}
+              className="hidden md:flex p-2 text-white hover:bg-teal-600 rounded-lg transition-colors"
+              title="Buka di Tab Baru"
+            >
+              <BsFullscreen className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDownload}
+              className="p-2 text-white hover:bg-teal-600 rounded-lg transition-colors"
+            >
+              <BsDownload className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -312,7 +321,7 @@ const BookReaderPage = () => {
         ) : (
           <div className="flex justify-center p-4">
             <div
-              className="w-full max-w-[720px] h-[80vh] bg-black overflow-hidden"
+              className="w-full max-w-[720px] md:max-w-[960px] lg:max-w-[1100px] h-[80vh] md:h-[85vh] bg-black overflow-hidden"
               style={{
                 transform: `scale(${scale})`,
                 transformOrigin: "top center",
@@ -348,7 +357,7 @@ const BookReaderPage = () => {
 
       {/* Bottom Controls */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-800 border-t border-gray-700 px-4 py-3">
-        <div className="max-w-[480px] mx-auto">
+        <div className="max-w-[480px] md:max-w-5xl mx-auto">
           {/* Zoom Controls */}
           <div className="flex items-center justify-center gap-4">
             <button
@@ -368,6 +377,21 @@ const BookReaderPage = () => {
             >
               <BsZoomIn className="w-4 h-4" />
             </button>
+            {/* Desktop: extra buttons */}
+            <div className="hidden md:flex items-center gap-2 ml-4 pl-4 border-l border-gray-700">
+              <button
+                onClick={() => openPdfInNewTab()}
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-xs font-medium"
+              >
+                Buka di Tab Baru
+              </button>
+              <button
+                onClick={handleDownload}
+                className="px-3 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg transition-colors text-xs font-medium"
+              >
+                Unduh PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>

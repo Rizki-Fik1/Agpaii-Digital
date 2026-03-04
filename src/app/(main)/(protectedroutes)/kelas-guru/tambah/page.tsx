@@ -70,10 +70,10 @@ export default function TambahKelasPage() {
   };
 
   return (
-    <div className="w-full max-w-[480px] mx-auto bg-white min-h-screen">
+    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 md:rounded-b-2xl shadow-md">
+        <div className="flex items-center gap-3 mb-4 md:max-w-4xl md:mx-auto">
           <Link href="/kelas-guru" className="p-1">
             <ChevronLeftIcon className="size-6" />
           </Link>
@@ -85,7 +85,7 @@ export default function TambahKelasPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-4 space-y-5">
+      <form onSubmit={handleSubmit} className="p-4 md:p-8 space-y-5 md:max-w-4xl md:mx-auto md:bg-white md:mt-6 md:rounded-2xl md:shadow-sm">
         {/* Nama Sekolah */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
