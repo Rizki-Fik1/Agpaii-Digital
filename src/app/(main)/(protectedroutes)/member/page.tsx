@@ -175,7 +175,7 @@ export default function Members() {
             </TopBar>
 
 			{/* Header */}
-			<div className="flex mx-6 bg-[#009788] mt-8 rounded-lg h-[12rem] relative">
+			<div className="flex mx-6 md:mx-auto md:max-w-5xl bg-gradient-to-r from-[#006557] to-[#009788] md:mt-10 mt-8 rounded-2xl h-[12rem] relative shadow-md">
 				<img
 					src="/svg/indonesian.svg"
 					alt=""

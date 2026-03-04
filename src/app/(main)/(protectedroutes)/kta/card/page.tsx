@@ -125,26 +125,26 @@ export default function Card() {
   if (isError) return <div>{error?.message}</div>;
 
   return (
-    <div className="overflow-y-hidden h-[110vh]">
+    <div className="overflow-y-hidden min-h-screen bg-white md:bg-[#FAFBFC]">
       <TopBar withBackButton>
         <div className="flex justify-between items-center">
           Kartu Tanda Anggota
           {isPending ? (
             <img src="/img/loading_white.gif" className="size-6" alt="" />
           ) : (
-            <ArrowDownTrayIcon onClick={() => downloadImage()} className="size-6" />
+            <ArrowDownTrayIcon onClick={() => downloadImage()} className="size-6 cursor-pointer hover:opacity-70 transition-opacity" />
           )}
         </div>
       </TopBar>
-      <div className="flex items-center justify-center h-full relative px-4">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)] relative px-4 md:px-8">
         {/* Flip Icons */}
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-lg cursor-pointer hover:bg-white transition-colors"
+          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-10 bg-white rounded-xl p-2.5 shadow-md cursor-pointer hover:bg-slate-50 hover:shadow-lg transition-all border border-slate-100"
           onClick={() => setFlipped(!flipped)}
         >
-          <ArrowLeftIcon className="size-6 text-gray-700" />
+          <ArrowLeftIcon className="size-5 text-slate-600" />
         </div>
-        <div className="card relative mx-16">
+        <div className="card relative mx-16 md:mx-24">
           <div className={`content ${flipped ? "flipped" : ""}`}>
             {/* Front Card */}
             <div ref={frontCardRef} className="front overflow-visible">
@@ -186,10 +186,10 @@ export default function Card() {
           </div>
         </div>
         <div
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-2 shadow-lg cursor-pointer hover:bg-white transition-colors"
+          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-10 bg-white rounded-xl p-2.5 shadow-md cursor-pointer hover:bg-slate-50 hover:shadow-lg transition-all border border-slate-100"
           onClick={() => setFlipped(!flipped)}
         >
-          <ArrowRightIcon className="size-6 text-gray-700" />
+          <ArrowRightIcon className="size-5 text-slate-600" />
         </div>
       </div>
     </div>

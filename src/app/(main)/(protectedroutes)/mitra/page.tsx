@@ -181,7 +181,7 @@ const MitraPage: React.FC = () => {
       </TopBar>
 
       {/* Hero Section */}
-      <div className="relative bg-[#266565] text-white pb-16 pt-8 -mt-2 px-6 rounded-b-[3rem] shadow-lg mb-20 overflow-hidden">
+      <div className="relative bg-gradient-to-r from-[#006557] to-[#009788] text-white pb-16 pt-8 md:pt-12 -mt-2 md:mt-6 px-6 md:px-12 rounded-b-[3rem] md:rounded-3xl shadow-lg mb-20 md:mb-24 overflow-hidden md:mx-auto md:max-w-7xl md:w-[calc(100%-3rem)]">
         <div className="relative z-10 max-w-4xl mx-auto text-center space-y-4">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}

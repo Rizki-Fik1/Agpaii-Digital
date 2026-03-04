@@ -11,6 +11,7 @@ import {
   CameraIcon,
   LockClosedIcon,
   ArrowLeftStartOnRectangleIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/solid";
 
 import {
@@ -37,10 +38,6 @@ export default function EditProfile() {
 
   if (authLoading || !auth) return null;
 
-  /* ===============================
-     PROFILE COMPLETION STATUS
-  =============================== */
-
   const completionStatus = {
     information: isInformationProfileCompleted(auth),
     region: isLocationProfileCompleted(auth),
@@ -57,49 +54,47 @@ export default function EditProfile() {
     (completedSection / totalSection) * 100
   );
 
-  /* ===============================
-     MENU CONFIG
-  =============================== */
-
   const menuList: {
     label: string;
     link: string;
     icon: ReactNode;
     completed?: boolean;
+    description?: string;
   }[] = [
     {
       label: "Informasi Umum",
       link: "edit/information",
-      icon: <UserIcon className="size-6" />,
+      icon: <UserIcon className="size-5" />,
       completed: completionStatus.information,
+      description: "Nama, email, nomor telepon",
     },
     {
       label: "Provinsi / Kota",
       link: "edit/region",
-      icon: <MapPinIcon className="size-6" />,
+      icon: <MapPinIcon className="size-5" />,
       completed: completionStatus.region,
+      description: "Lokasi tempat tinggal",
     },
     {
       label: "Status Guru",
       link: "edit/status",
-      icon: <AcademicCapIcon className="size-6" />,
+      icon: <AcademicCapIcon className="size-5" />,
       completed: completionStatus.status,
+      description: "Status kepegawaian",
     },
     {
       label: "Profile Sosmed",
       link: "edit/social-media",
-      icon: <CameraIcon className="size-6" />,
+      icon: <CameraIcon className="size-5" />,
+      description: "Avatar, banner, bio",
     },
     {
       label: "Ubah Password",
       link: "edit/password",
-      icon: <LockClosedIcon className="size-6" />,
+      icon: <LockClosedIcon className="size-5" />,
+      description: "Keamanan akun",
     },
   ];
-
-  /* ===============================
-     LOGOUT
-  =============================== */
 
   const logout = async () => {
     localStorage.removeItem("access_token");
@@ -107,10 +102,6 @@ export default function EditProfile() {
       .invalidateQueries({ queryKey: ["auth"] })
       .then(() => router.push("/auth/login"));
   };
-
-  /* ===============================
-     RENDER
-  =============================== */
 
   return (
     <>
@@ -123,13 +114,13 @@ export default function EditProfile() {
           <div className="flex gap-2 justify-end">
             <button
               onClick={toggle}
-              className="bg-slate-300 px-3 py-1.5 rounded-md"
+              className="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
             >
               Batal
             </button>
             <button
               onClick={logout}
-              className="bg-[#009788] px-4 py-1.5 rounded-md text-white"
+              className="bg-[#009788] hover:bg-[#00867a] px-5 py-2 rounded-xl text-white text-sm font-medium transition-colors"
             >
               Log Out
             </button>
@@ -137,107 +128,131 @@ export default function EditProfile() {
         </div>
       </Modal>
 
-      <div className="pt-[4.21rem]">
+      <div className="pt-[4.21rem] min-h-screen bg-white md:bg-[#FAFBFC]">
         <TopBar withBackButton href="/">
           Edit Profile
         </TopBar>
 
-        <div className="flex flex-col px-[5%] sm:px-6 gap-4 mt-4">
+        <div className="md:max-w-3xl md:mx-auto px-[5%] sm:px-6 md:px-8 mt-4 md:mt-8 pb-10">
 
           {/* HEADER */}
-          <div>
-            <div className="text-2xl font-semibold text-[#009788]">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
               Edit Profile
-            </div>
-            <p className="text-sm text-slate-500">
+            </h2>
+            <p className="text-sm md:text-[15px] text-slate-500 mt-1">
               Lengkapi data anda untuk mengaktifkan semua fitur
             </p>
           </div>
 
-          {/* PROGRESS BAR */}
-          {/* <div className="bg-white p-4 rounded-xl shadow border">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="font-medium text-slate-600">
+          {/* PROGRESS CARD */}
+          <div className="bg-gradient-to-r from-[#004D40] to-[#00897B] p-5 md:p-6 rounded-2xl shadow-sm mb-6 md:mb-8 text-white">
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-medium text-sm text-white/80">
                 Kelengkapan Profil
               </span>
-              <span className="font-semibold text-[#009788]">
+              <span className="font-bold text-lg">
                 {completionPercent}%
               </span>
             </div>
-
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="w-full bg-white/20 rounded-full h-2.5">
               <div
-                className="bg-[#009788] h-2 rounded-full transition-all"
+                className="bg-emerald-300 h-2.5 rounded-full transition-all"
                 style={{ width: `${completionPercent}%` }}
               />
             </div>
-          </div> */}
+            <p className="text-xs text-white/50 mt-2">
+              {completedSection} dari {totalSection} kategori sudah lengkap
+            </p>
+          </div>
 
           {/* MENU LIST */}
-          {menuList.map((menu, i) => (
-            <Link
-              href={menu.link}
-              key={i}
-              className={`flex items-center px-5 py-3 rounded-lg border shadow-sm transition
-                ${
+          <div className="space-y-3">
+            {menuList.map((menu, i) => (
+              <Link
+                href={menu.link}
+                key={i}
+                className={`flex items-center px-5 py-4 rounded-2xl border transition-all hover:shadow-md group
+                  ${
+                    menu.completed === false
+                      ? "border-red-200 bg-red-50 md:bg-white md:border-red-200"
+                      : "border-slate-100 bg-white hover:border-slate-200"
+                  }
+                `}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                   menu.completed === false
-                    ? "border-red-200 bg-red-50"
-                    : "border-slate-200 bg-white"
-                }
-              `}
-            >
-              <div className="text-[#009788]">{menu.icon}</div>
+                    ? "bg-red-100 text-red-500"
+                    : menu.completed === true
+                    ? "bg-emerald-100 text-[#009788]"
+                    : "bg-slate-100 text-slate-500 group-hover:bg-teal-50 group-hover:text-[#009788]"
+                } transition-colors`}>
+                  {menu.icon}
+                </div>
 
-              <div className="ml-3 flex-1">
-                <h1 className="text-slate-700 text-sm font-medium">
-                  {menu.label}
-                </h1>
+                <div className="ml-4 flex-1">
+                  <h3 className="text-slate-800 text-sm font-semibold">
+                    {menu.label}
+                  </h3>
+                  {menu.description && (
+                    <p className="text-xs text-slate-400 mt-0.5">{menu.description}</p>
+                  )}
+                  {menu.completed === false && (
+                    <p className="text-xs text-red-500 mt-0.5 font-medium">
+                      Data belum lengkap
+                    </p>
+                  )}
+                  {menu.completed === true && (
+                    <p className="text-xs text-emerald-600 mt-0.5 font-medium">
+                      Data sudah lengkap
+                    </p>
+                  )}
+                </div>
 
-                {menu.completed === false && (
-                  <p className="text-xs text-red-500">
-                    Data belum lengkap
-                  </p>
-                )}
-
-                {menu.completed === true && (
-                  <p className="text-xs text-green-600">
-                    Data sudah lengkap
-                  </p>
-                )}
-              </div>
-
-              {menu.completed === true && (
-                <CheckCircleIcon className="size-5 text-green-500" />
-              )}
-
-              {menu.completed === false && (
-                <ExclamationCircleIcon className="size-5 text-red-500" />
-              )}
-            </Link>
-          ))}
+                <div className="flex items-center gap-2">
+                  {menu.completed === true && (
+                    <CheckCircleIcon className="size-5 text-emerald-500" />
+                  )}
+                  {menu.completed === false && (
+                    <ExclamationCircleIcon className="size-5 text-red-500" />
+                  )}
+                  <ChevronRightIcon className="size-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                </div>
+              </Link>
+            ))}
+          </div>
 
           {/* ADMIN ONLY */}
           {auth.role_id == 1 && (
             <Link
               href={"/edit-user"}
-              className="flex items-center px-5 py-3 rounded-lg border shadow-sm bg-white"
+              className="flex items-center px-5 py-4 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 hover:shadow-md transition-all mt-3 group"
             >
-              <UserIcon className="size-6 text-[#009788]" />
-              <h1 className="ml-3 text-slate-700 text-sm font-medium">
-                Edit User
-              </h1>
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                <UserIcon className="size-5" />
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="text-slate-800 text-sm font-semibold">Edit User</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Kelola akun pengguna</p>
+              </div>
+              <ChevronRightIcon className="size-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
             </Link>
           )}
 
           {/* LOGOUT */}
           <div
             onClick={toggle}
-            className="flex items-center px-5 py-3 rounded-lg border shadow-sm bg-white mt-10 cursor-pointer"
+            className="flex items-center px-5 py-4 rounded-2xl border border-slate-100 bg-white hover:border-red-200 hover:bg-red-50 transition-all mt-10 cursor-pointer group"
           >
-            <h1 className="text-slate-700 text-sm font-medium">
-              Logout
-            </h1>
-            <ArrowLeftStartOnRectangleIcon className="size-6 text-[#009788] ml-auto" />
+            <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+              <ArrowLeftStartOnRectangleIcon className="size-5 text-slate-400 group-hover:text-red-500 transition-colors" />
+            </div>
+            <div className="ml-4 flex-1">
+              <h3 className="text-slate-700 text-sm font-semibold group-hover:text-red-600 transition-colors">
+                Logout
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">Keluar dari akun Anda</p>
+            </div>
           </div>
         </div>
       </div>

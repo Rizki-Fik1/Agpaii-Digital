@@ -92,8 +92,13 @@ export default function WatchLivePage() {
 
   if (!live) {
     return (
-      <div className="flex items-center justify-center h-screen bg-black text-white">
-        <p>Live tidak ditemukan</p>
+      <div className="flex items-center justify-center h-screen bg-black">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+            <UserGroupIcon className="size-8 text-white/40" />
+          </div>
+          <p className="text-white/60 text-sm">Live tidak ditemukan</p>
+        </div>
       </div>
     );
   }
@@ -118,7 +123,7 @@ export default function WatchLivePage() {
               <img
                 src={getImage(live.hostAvatar) || "/img/profileplacholder.png"}
                 alt={live.hostName}
-                className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
+                className="w-10 h-10 rounded-full object-cover border-2 border-pink-400"
               />
               <div>
                 <p className="text-white font-semibold text-sm">{live.hostName}</p>
@@ -131,7 +136,7 @@ export default function WatchLivePage() {
               {/* Viewer Count - Clickable */}
               <button
                 onClick={() => setShowViewers(true)}
-                className="bg-black/50 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/70 transition-colors"
+                className="bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 hover:bg-black/80 transition-colors"
               >
                 <UserGroupIcon className="size-4" />
                 {viewerCount}
@@ -139,7 +144,7 @@ export default function WatchLivePage() {
               {/* Close Button */}
               <button
                 onClick={handleLeave}
-                className="bg-black/50 p-2 rounded-full"
+                className="bg-black/60 backdrop-blur-sm p-2 rounded-full hover:bg-black/80 transition-colors"
               >
                 <XMarkIcon className="size-5 text-white" />
               </button>
@@ -161,13 +166,13 @@ export default function WatchLivePage() {
       {showViewers && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div 
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowViewers(false)}
           />
-          <div className="relative bg-slate-900 rounded-t-2xl w-full max-w-[480px] max-h-[60vh] overflow-hidden">
+          <div className="relative bg-slate-900/95 backdrop-blur-xl rounded-t-2xl w-full max-w-[480px] max-h-[60vh] overflow-hidden border-t border-white/10">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-700">
-              <h3 className="text-white font-semibold">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/50">
+              <h3 className="text-white font-semibold text-base">
                 Penonton ({viewerCount})
               </h3>
               <button

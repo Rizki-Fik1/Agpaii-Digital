@@ -35,14 +35,17 @@ export default function TopBar({
 	};
 
 	return (
-		<div className="fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-[#266565] flex items-center z-[9999] shadow">
-			{withBackButton && (
-				<ChevronLeftIcon
-					onClick={handleBack}
-					className="size-6 cursor-pointer text-white hover:opacity-80 transition-opacity"
-				/>
-			)}
-			<div className="flex-grow flex items-center justify-between ml-3">
+		<div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 bg-gradient-to-r from-[#006557] to-[#009788] z-[90] shadow-sm transition-all min-h-[64px] flex justify-center border-b border-[#009788]/20">
+			<div className="w-full max-w-[480px] md:max-w-none xl:max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4 flex items-center">
+				{withBackButton && (
+					<div 
+						onClick={handleBack}
+						className="mr-3 p-1.5 -ml-2 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+					>
+						<ChevronLeftIcon className="size-6 md:size-5 text-white" />
+					</div>
+				)}
+				<div className="flex-grow flex items-center justify-between">
                 <h1 className="text-white font-medium capitalize truncate">
                     {children}
                 </h1>
@@ -97,6 +100,7 @@ export default function TopBar({
 					</MenuItems>
 				</Menu>
 			)}
+			</div>
 		</div>
 	);
 }

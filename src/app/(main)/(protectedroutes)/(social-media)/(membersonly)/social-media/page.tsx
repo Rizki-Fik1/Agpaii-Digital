@@ -342,43 +342,46 @@ export default function SocialMedia() {
   if (error) return <div>{error.message}</div>;
 
   return (
-    <div className="pb-24 bg-white min-h-screen">
-      <div className="fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-teal-700 flex items-center z-[9999]">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center"
-        >
-          <svg className="size-6 cursor-pointer text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-white font-semibold ml-3 flex-grow">Diskusi AGPAII</h1>
-        <Link href="/social-media/notification" className="p-1">
-          <BellIcon className="size-6 text-white" />
-        </Link>
+    <div className="pb-24 bg-white md:bg-[#FAFBFC] min-h-screen">
+      {/* ===== HEADER ===== */}
+      <div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
+        <div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 py-4 flex items-center">
+          <button
+            onClick={() => router.back()}
+            className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
+          >
+            <svg className="size-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="text-white font-semibold ml-3 flex-grow text-lg">Diskusi AGPAII</h1>
+          <Link href="/social-media/notification" className="p-1.5 hover:bg-white/20 rounded-full transition-colors">
+            <BellIcon className="size-5 text-white" />
+          </Link>
+        </div>
       </div>
 
       {/* User Avatar + Search Bar */}
-      <div className="sticky top-[4.5rem] z-40 bg-white border-b border-slate-200 px-4 py-4 mt-2 flex items-center gap-3">
+      <div className="sticky top-[4rem] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-4 md:px-8 py-3 mt-2 flex items-center gap-3">
         <img
           src={
             (user?.avatar !== null && getImage(user.avatar)) ||
             "/img/profileplacholder.png"
           }
           alt="user-avatar"
-          className="rounded-full size-11 min-w-11 min-h-11 object-cover border border-slate-200"
+          className="rounded-full size-10 min-w-10 min-h-10 object-cover ring-2 ring-slate-100"
         />
         <button 
           onClick={() => setIsSearchOpen(true)}
-          className="flex-1 flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2.5 text-slate-500"
+          className="flex-1 flex items-center gap-2 bg-slate-100 hover:bg-slate-200/70 rounded-2xl px-4 py-2.5 text-slate-400 transition-colors"
         >
-          <MagnifyingGlassIcon className="size-5" />
-          <span className="text-sm">Cari Diskusi...</span>
+          <MagnifyingGlassIcon className="size-4" />
+          <span className="text-sm">Cari diskusi...</span>
         </button>
       </div>
 
       {/* Posts Feed */}
-      <div className="flex flex-col bg-white pt-8 mt-8">
+      <div className="flex flex-col bg-white md:bg-transparent pt-8 mt-8 md:px-6 lg:px-8">
         {/* Pending Post Preview with Progress Bar */}
         {pendingPost && (
           <div className={`relative flex flex-col pb-6 max-w-[480px] transition-opacity duration-300 ${uploadError ? 'opacity-100' : uploadProgress < 100 ? 'opacity-60' : 'opacity-100'}`}>
@@ -687,8 +690,11 @@ export default function SocialMedia() {
                     <Post key={i} post={post} />
                   ))
                 ) : (
-                  <div className="h-screen flex items-center justify-center">
-                    <h1 className="text-slate-500">Tidak Ada postingan</h1>
+                  <div className="flex flex-col items-center justify-center py-20">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                      <MagnifyingGlassIcon className="size-8 text-slate-300" />
+                    </div>
+                    <p className="text-slate-400 text-sm">Tidak ada postingan</p>
                   </div>
                 )}
               </div>
@@ -704,53 +710,34 @@ export default function SocialMedia() {
 
       {/* Search Modal */}
       {isSearchOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Cari Diskusi</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Cari Diskusi</h2>
             <form onSubmit={handleSearchSubmit}>
               <input
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Masukkan kata kunci"
+                placeholder="Masukkan kata kunci..."
                 disabled={isSearchLoading}
-                className="w-full border border-slate-300 rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-[#009788]/30 focus:border-[#009788] text-sm transition"
               />
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(false)}
                   disabled={isSearchLoading}
-                  className="px-4 py-2 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSearchLoading}
-                  className="px-4 py-2 rounded-md bg-teal-700 text-white flex items-center gap-2 hover:bg-teal-800"
+                  className="px-5 py-2.5 rounded-xl bg-[#009788] hover:bg-[#00867a] text-white text-sm font-medium flex items-center gap-2 transition-colors"
                 >
                   {isSearchLoading && (
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      ></path>
-                    </svg>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
                   Cari
                 </button>
