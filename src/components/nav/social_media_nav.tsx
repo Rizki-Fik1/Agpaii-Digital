@@ -30,6 +30,13 @@ export default function SocialMediaNavbar() {
     id: string;
   }[] = [
     {
+      id: "posting",
+      label: "Posting",
+      icon: <PlusIcon className="size-6" />,
+      link: "/social-media/post/new",
+      active: false,
+    },
+    {
       id: "beranda",
       label: "Beranda",
       icon: <HomeIcon className="size-6" />,
@@ -44,13 +51,6 @@ export default function SocialMediaNavbar() {
       link: "/social-media/liked",
     },
     {
-      id: "posting",
-      label: "Posting",
-      icon: <PlusIcon className="size-6" />,
-      link: "/social-media/post/new",
-      active: false,
-    },
-    {
       id: "pesan",
       label: "Pesan",
       icon: <ChatBubbleLeftIcon className="size-6" />,
@@ -58,8 +58,8 @@ export default function SocialMediaNavbar() {
       active: pathname === "/social-media/chat",
     },
     {
-      id: "profil",
-      label: "Profil",
+      id: "profil-sosmed",
+      label: "Profil Sosmed",
       icon: <UserIcon className="size-6" />,
       link: `/profile/${auth.id}`,
       active: pathname === `/profile/${auth.id}`,
@@ -142,7 +142,7 @@ export default function SocialMediaNavbar() {
                 <Link
                   key={`desk-${i}`}
                   href={list.link}
-                  className="mt w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white p-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 group"
+                  className="mb-2 w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white p-3.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 group"
                 >
                   <PlusIcon className="size-5" />
                   <span className="tracking-wide">Buat Postingan</span>

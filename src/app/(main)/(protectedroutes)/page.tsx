@@ -625,32 +625,33 @@ export default function Home() {
           
 
 
-          {/* Welcome Banner (Desktop Khusus) */}
-          <div className="hidden md:flex bg-gradient-to-r from-[#006557] to-[#009788] rounded-2xl p-8 shadow-md relative overflow-hidden">
-            <div className="relative z-10 flex flex-col justify-center w-full lg:w-2/3">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Selamat datang, {auth.name}! <span className="text-3xl">👋</span></h1>
-              </div>
-              <p className="text-teal-50 text-base mb-6 font-medium">Senang melihat Anda kembali di Dashboard AGPAII Digital.</p>
-              
-              <div className="flex items-center gap-4">
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition rounded-xl px-4 py-2 flex items-center gap-3">
-                  <div className="bg-white/20 rounded-lg p-2 flex-shrink-0 shadow-inner">
-                     <img src="/svg/iuran-aktif.svg" className="w-6 h-6 object-contain grayscale brightness-200" alt=""/>
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-[10px] font-semibold uppercase tracking-wider">Status Keanggotaan</p>
-                    <p className="text-white font-bold text-sm capitalize">{userStatus === Status.ACTIVE ? "Anggota Aktif" : (userStatus === Status.INACTIVE ? "Belum Aktif" : userStatus)}</p>
-                  </div>
-                </div>
-              </div>
+          {/* Welcome Text (Desktop Khusus) */}
+          <div className="hidden md:flex flex-col md:flex-row md:items-end md:justify-between gap-3 pb-2">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-teal-700 tracking-tight">
+                Assalamualaikum, {auth.name}! <span className="text-2xl lg:text-3xl">👋</span>
+              </h1>
+              <p className="text-slate-500 text-sm lg:text-base mt-1 font-medium">
+                Senang melihat Anda kembali di Dashboard AGPAII Digital.
+              </p>
             </div>
-            {/* Dekorasi Visual */}
-            <div className="absolute top-0 right-0 h-full w-1/2 opacity-20 pointer-events-none overflow-hidden rounded-r-2xl">
-              <div className="absolute right-[-10%] top-[-20%] w-[400px] h-[400px] border-[50px] border-white rounded-full"></div>
-            </div>
-            <div className="absolute uppercase right-6 top-1/2 -translate-y-1/2 rotate-90 origin-right text-white text-[4rem] font-black opacity-[0.05] tracking-[0.2em] pointer-events-none whitespace-nowrap">
-              KTA DIGITAL
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className={clsx(
+                "px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 border",
+                userStatus === Status.ACTIVE && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                userStatus === Status.INACTIVE && "bg-red-50 text-red-600 border-red-200",
+                userStatus === Status.EXPIRED && "bg-amber-50 text-amber-700 border-amber-200",
+                userStatus === Status.PENDING && "bg-blue-50 text-blue-600 border-blue-200",
+              )}>
+                <span className={clsx(
+                  "w-2 h-2 rounded-full",
+                  userStatus === Status.ACTIVE && "bg-emerald-500",
+                  userStatus === Status.INACTIVE && "bg-red-500",
+                  userStatus === Status.EXPIRED && "bg-amber-500",
+                  userStatus === Status.PENDING && "bg-blue-500",
+                )}></span>
+                {userStatus === Status.ACTIVE ? "Anggota Aktif" : (userStatus === Status.INACTIVE ? "Belum Aktif" : (userStatus === Status.EXPIRED ? "Iuran Expired" : "Profil Pending"))}
+              </div>
             </div>
           </div>
 

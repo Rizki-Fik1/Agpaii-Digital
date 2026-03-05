@@ -168,9 +168,9 @@ const PerangkatAjarPage: React.FC = () => {
 
 	return (
 		<div className="pt-[5.21rem] bg-gray-50 min-h-screen">
-			<TopBar withBackButton>
-				<div className="flex items-center justify-between w-full">
-					<span>Perangkat Ajar</span>
+			<TopBar
+				withBackButton
+				rightContent={
 					<button
 						onClick={() => router.push("/perangkat-ajar/tambah")}
 						className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-[#006557] rounded-lg font-medium transition-all shadow-sm border border-[#006557]">
@@ -179,7 +179,9 @@ const PerangkatAjarPage: React.FC = () => {
 						</svg>
 						<span className="hidden sm:inline">Tambah</span>
 					</button>
-				</div>
+				}
+			>
+				Perangkat Ajar
 			</TopBar>
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
