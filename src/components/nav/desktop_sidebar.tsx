@@ -79,13 +79,16 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
 
   let navGroups: { group: string | null; items: any[] }[] = [];
 
-    const rawAvatar = auth?.avatar || auth?.foto;
+  const rawAvatar = isMitra ? (auth?.logo_mitra || auth?.logo) : (auth?.avatar || auth?.foto);
 
-      const avatarUrl = rawAvatar
-        ? rawAvatar.startsWith("http")
-          ? rawAvatar
-          : `https://file.agpaiidigital.org/${rawAvatar}`
-        : null;
+  const avatarUrl = rawAvatar
+    ? rawAvatar.startsWith("http")
+      ? rawAvatar
+      : `https://file.agpaiidigital.org/${rawAvatar}`
+    : null;
+
+  const displayName = isMitra ? (auth?.brand_name || auth?.instansi_name || auth?.name) : auth.name;
+
   if (isStudent) {
     navGroups = [
       {
@@ -414,11 +417,11 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
             />
           ) : (
             <div className="w-10 h-10 min-w-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold border border-teal-200">
-              {auth.name?.charAt(0)}
+              {displayName?.charAt(0)}
             </div>
           )}
           <div className="hidden lg:block overflow-hidden flex-1">
-             <div className="text-sm font-bold text-slate-700 truncate group-hover:text-teal-700 transition-colors">{auth.name}</div>
+             <div className="text-sm font-bold text-slate-700 truncate group-hover:text-teal-700 transition-colors">{displayName}</div>
              <div className="text-xs text-slate-500 truncate">{auth.email}</div>
           </div>
         </Link>
