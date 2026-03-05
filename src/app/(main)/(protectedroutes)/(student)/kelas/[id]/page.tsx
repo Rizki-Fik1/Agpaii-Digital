@@ -732,7 +732,7 @@ export default function KelasDetailPage() {
   };
 
   return (
-    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12">
+    <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12 md:pt-4">
       {/* MOBILE HEADER */}
       <div
         className={clsx("md:hidden bg-gradient-to-r text-white p-4 pt-6 shadow-md rounded-b-2xl", headerGradient)}
@@ -760,7 +760,7 @@ export default function KelasDetailPage() {
       </div>
 
       {/* DESKTOP HERO BANNER */}
-      <div className={clsx("hidden md:block relative pt-16 pb-24 px-8 xl:px-12 shadow-md overflow-hidden z-0 bg-gradient-to-r", headerGradient)}>
+      <div className={clsx("hidden md:block relative pt-12 pb-24 px-8 xl:px-12 shadow-md overflow-hidden z-0 bg-gradient-to-r md:rounded-b-3xl md:mx-4 xl:mx-8 mb-6", headerGradient)}>
         <div 
           className="absolute inset-0 opacity-10" 
           style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\\"60\\\" height=\\\"60\\\" viewBox=\\\"0 0 60 60\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"%3E%3Cg fill=\\\"none\\\" fill-rule=\\\"evenodd\\\"%3E%3Cg fill=\\\"%23ffffff\\\" fill-opacity=\\\"1\\\"%3E%3Cpath d=\\\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
@@ -1569,7 +1569,7 @@ export default function KelasDetailPage() {
                       <span className="text-slate-700 font-medium">
                         {selectedMaterial.createdAt || selectedMaterial.created_at
                           ? new Date(
-                              selectedMaterial.createdAt || selectedMaterial.created_at
+                              String(selectedMaterial.createdAt || selectedMaterial.created_at)
                             ).toLocaleDateString("id-ID", {
                               day: "numeric",
                               month: "long",

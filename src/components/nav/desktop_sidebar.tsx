@@ -4,6 +4,9 @@ import { useAuth } from "@/utils/context/auth_context";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import Modal from "@/components/modal/modal";
 import { STUDENT_ROLE_ID, MITRA_ROLE_ID } from "@/constants/student-data";
 import {
   HomeIcon,
@@ -32,7 +35,8 @@ import {
   MoonIcon,
   ShoppingBagIcon,
   DevicePhoneMobileIcon,
-  ListBulletIcon
+  ListBulletIcon,
+  ArrowRightStartOnRectangleIcon
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { getUserStatus } from "@/utils/function/function";
@@ -43,6 +47,19 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
   const { auth, authLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogout = async () => {
+    localStorage.removeItem("access_token");
+    await queryClient.invalidateQueries({ queryKey: ["auth"] });
+    router.push("/auth/login");
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
+    handleLogout();
+  };
 
   if (authLoading || !auth) return null;
 
@@ -86,14 +103,14 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
             icon: <BookOpenIcon className="size-6" />,
             active: pathname.startsWith("/kelas") && !pathname.startsWith("/kelas-guru"),
             link: "/kelas",
-            restricted: true,
+            restricted: false,
           },
           {
             label: "Forum",
             icon: <ChatBubbleLeftRightIcon className="size-6" />,
             active: pathname.startsWith("/forum"),
             link: "/forum",
-            restricted: true,
+            restricted: false,
           },
           {
             label: "Profil",
@@ -387,8 +404,8 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
         ))}
       </div>
       
-      <div className="p-4 border-t border-slate-100">
-        <Link href="/profile/edit" className="flex items-center gap-3 px-1 lg:px-2">
+      <div className="p-4 border-t border-slate-100 space-y-2">
+        <Link href={isMitra ? "/profile-mitra" : isStudent ? "/profile-siswa" : "/profile/edit"} className="flex items-center gap-3 px-1 lg:px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors group">
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -401,11 +418,52 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
             </div>
           )}
           <div className="hidden lg:block overflow-hidden flex-1">
-             <div className="text-sm font-bold text-slate-700 truncate">{auth.name}</div>
+             <div className="text-sm font-bold text-slate-700 truncate group-hover:text-teal-700 transition-colors">{auth.name}</div>
              <div className="text-xs text-slate-500 truncate">{auth.email}</div>
           </div>
         </Link>
+        <button
+          onClick={() => setShowLogoutModal(true)}
+          className="flex items-center gap-3 px-1 lg:px-2 py-2 w-full rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group cursor-pointer"
+          title="Logout"
+        >
+          <div className="w-10 h-10 min-w-10 flex items-center justify-center">
+            <ArrowRightStartOnRectangleIcon className="size-7 text-red-400 group-hover:text-red-600 transition-colors" />
+          </div>
+          <span className="hidden lg:block text-base font-semibold">Logout</span>
+          {/* Tooltip for collapsed sidebar */}
+          <div className="absolute left-16 z-50 p-2 text-xs text-white bg-slate-800 rounded shadow-lg opacity-0 invisible group-hover:visible lg:hidden group-hover:opacity-100 transition-all pointer-events-none">
+            Logout
+          </div>
+        </button>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <Modal show={showLogoutModal} onClose={() => setShowLogoutModal(false)}>
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ArrowRightStartOnRectangleIcon className="size-8 text-red-500" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Konfirmasi Logout</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            Apakah Anda yakin ingin keluar dari akun Anda?
+          </p>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleLogoutConfirm}
+              className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition shadow-sm cursor-pointer"
+            >
+              Ya, Logout
+            </button>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 }

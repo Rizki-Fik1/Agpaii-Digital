@@ -180,156 +180,261 @@ const MyMitraPage: React.FC = () => {
   };
 
   return (
-    <div className="pt-[4.21rem] bg-gray-50 min-h-screen pb-20">
-      <TopBar
-        withBackButton
-        tambahButton="/mitra/new" // Direct link
-      >
-        Mitra Saya
-      </TopBar>
+    <>
+      {/* ========== MOBILE LAYOUT ========== */}
+      <div className="md:hidden pt-[4.21rem] bg-gray-50 min-h-screen pb-20">
+        <TopBar
+          withBackButton
+          tambahButton="/mitra/new"
+        >
+          Mitra Saya
+        </TopBar>
 
-      <div className="px-4 sm:px-6 pt-6 max-w-7xl mx-auto">
-        {/* LOADING */}
-        {loading && (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
-          </div>
-        )}
-
-        {/* EMPTY STATE */}
-        {!loading && myMitraList.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiInfo className="w-8 h-8 text-gray-400" />
+        <div className="px-4 sm:px-6 pt-6 max-w-7xl mx-auto">
+          {/* LOADING */}
+          {loading && (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
             </div>
-            <p className="text-gray-500 font-medium">
-              Anda belum mendaftar pada mitra manapun.
-            </p>
+          )}
+
+          {/* EMPTY STATE */}
+          {!loading && myMitraList.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiInfo className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">
+                Anda belum mendaftar pada mitra manapun.
+              </p>
+              <button
+                onClick={() => router.push("/mitra/new")}
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition"
+              >
+                Tambah Mitra Baru
+              </button>
+            </div>
+          )}
+
+          {/* LIST */}
+          {!loading && myMitraList.length > 0 && (
+            <motion.div
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 gap-6"
+            >
+              {myMitraList.map((item) => (
+                <motion.div
+                  variants={itemAnim}
+                  key={item.id}
+                  onClick={() => router.push(`/mitra/${item.id}`)}
+                  className="group relative h-64 bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col"
+                >
+                  {/* Image Section */}
+                  <div className="relative h-48 w-full overflow-hidden">
+                    {item.gambar ? (
+                      <img
+                        src={
+                          getValidImageUrl(item.gambar) ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`
+                        }
+                        alt={item.mitra}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                        <span className="text-slate-400 font-medium text-sm">
+                          No Image
+                        </span>
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+
+                    {/* Badges */}
+                    <div className="absolute top-3 right-3 flex flex-col gap-1 items-end z-20">
+                      {item.isOwner && Number(item.is_approved) === 0 && (
+                        <div className="bg-yellow-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <span>⏳</span>
+                          Menunggu Verifikasi
+                        </div>
+                      )}
+                      {item.isOwner && Number(item.is_approved) === 1 && (
+                        <div className="bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <FiCheckCircle className="w-3 h-3" />
+                          Disetujui
+                        </div>
+                      )}
+                      {item.isOwner && Number(item.is_approved) === 2 && (
+                        <div className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <FiXCircle className="w-3 h-3" />
+                          Ditolak
+                        </div>
+                      )}
+                      {item.isRegistered && !item.isOwner && (
+                        <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
+                          <FiCheckCircle className="w-3 h-3" />
+                          Terdaftar
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 flex flex-col justify-center px-5 py-3 bg-white relative">
+                    <div className="absolute -top-5 right-4 bg-green-500 text-white p-2.5 rounded-full shadow-lg group-hover:scale-110 group-hover:bg-green-600 transition-all duration-300 z-10 flex items-center justify-center">
+                      <FiArrowRight className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-bold text-gray-800 text-lg pb-4 truncate group-hover:text-green-600 transition-colors">
+                      {item.judul_campaign || item.mitra}
+                    </h3>
+                    <div className="flex items-center gap-1 text-xs text-gray-400 mt-1 font-medium">
+                      <span>Lihat Detail</span>
+                    </div>
+
+                    {/* Action Buttons for Owner */}
+                    {item.isOwner && (
+                      <div className="absolute bottom-2 right-4 flex gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/mitra/edit/${item.id}`);
+                          }}
+                          className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition shadow-sm"
+                          title="Edit Campaign"
+                        >
+                          <FiEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) =>
+                            handleDelete(e, item.id, item.created_by)
+                          }
+                          className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition shadow-sm"
+                          title="Hapus Campaign"
+                        >
+                          <FiTrash className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* ========== DESKTOP LAYOUT ========== */}
+      <div className="hidden md:block min-h-screen bg-transparent pt-[4.5rem]">
+        <div className="px-6 lg:px-8 py-6">
+          {/* Desktop Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">Mitra Saya</h1>
+              <p className="text-slate-500 text-sm mt-1">Kelola campaign dan kemitraan Anda</p>
+            </div>
             <button
               onClick={() => router.push("/mitra/new")}
-              className="mt-4 px-6 py-2 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl transition-all text-sm font-semibold flex items-center gap-2 shadow-sm"
             >
-              Tambah Mitra Baru
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Tambah Campaign
             </button>
           </div>
-        )}
 
-        {/* LIST */}
-        {!loading && myMitraList.length > 0 && (
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          >
-            {myMitraList.map((item) => (
-              <motion.div
-                variants={itemAnim}
-                key={item.id}
-                onClick={() => router.push(`/mitra/${item.id}`)}
-                className="group relative h-64 bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col"
+          {/* LOADING */}
+          {loading && (
+            <div className="flex justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+            </div>
+          )}
+
+          {/* EMPTY */}
+          {!loading && myMitraList.length === 0 && (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100">
+              <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiInfo className="w-7 h-7 text-slate-400" />
+              </div>
+              <p className="text-slate-500 font-medium">Anda belum memiliki campaign mitra.</p>
+              <button
+                onClick={() => router.push("/mitra/new")}
+                className="mt-4 px-5 py-2 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition text-sm"
               >
-                {/* Image Section */}
-                <div className="relative h-48 w-full overflow-hidden">
-                  {item.gambar ? (
-                    <img
-                      src={
-                        getValidImageUrl(item.gambar) ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`
-                      }
-                      alt={item.mitra}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`;
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                      <span className="text-slate-400 font-medium text-sm">
-                        No Image
-                      </span>
+                Buat Campaign Pertama
+              </button>
+            </div>
+          )}
+
+          {/* GRID */}
+          {!loading && myMitraList.length > 0 && (
+            <motion.div
+              variants={container}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-2 xl:grid-cols-3 gap-5"
+            >
+              {myMitraList.map((item) => (
+                <motion.div
+                  variants={itemAnim}
+                  key={item.id}
+                  onClick={() => router.push(`/mitra/${item.id}`)}
+                  className="group relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-md hover:border-teal-200 transition-all duration-300 cursor-pointer flex flex-col"
+                >
+                  <div className="relative h-40 w-full overflow-hidden">
+                    {item.gambar ? (
+                      <img
+                        src={getValidImageUrl(item.gambar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`}
+                        alt={item.mitra}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.mitra || "Mitra")}&background=random`; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                        <span className="text-slate-400 font-medium text-sm">No Image</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent"></div>
+                    <div className="absolute top-2.5 right-2.5 flex flex-col gap-1 items-end z-20">
+                      {item.isOwner && Number(item.is_approved) === 0 && (
+                        <div className="bg-yellow-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">⏳ Menunggu</div>
+                      )}
+                      {item.isOwner && Number(item.is_approved) === 1 && (
+                        <div className="bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><FiCheckCircle className="w-3 h-3" /> Disetujui</div>
+                      )}
+                      {item.isOwner && Number(item.is_approved) === 2 && (
+                        <div className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><FiXCircle className="w-3 h-3" /> Ditolak</div>
+                      )}
+                      {item.isRegistered && !item.isOwner && (
+                        <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"><FiCheckCircle className="w-3 h-3" /> Terdaftar</div>
+                      )}
                     </div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
-
-                  {/* Registered Badge */}
-                  {/* Badges */}
-                  {/* Badges */}
-                  <div className="absolute top-3 right-3 flex flex-col gap-1 items-end z-20">
-                    {item.isOwner && Number(item.is_approved) === 0 && (
-                      <div className="bg-yellow-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <span>⏳</span>
-                        Menunggu Verifikasi
-                      </div>
-                    )}
-
-                    {item.isOwner && Number(item.is_approved) === 1 && (
-                      <div className="bg-green-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <FiCheckCircle className="w-3 h-3" />
-                        Disetujui
-                      </div>
-                    )}
-
-                    {item.isOwner && Number(item.is_approved) === 2 && (
-                      <div className="bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <FiXCircle className="w-3 h-3" />
-                        Ditolak
-                      </div>
-                    )}
-
-                    {item.isRegistered && !item.isOwner && (
-                      <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                        <FiCheckCircle className="w-3 h-3" />
-                        Terdaftar
-                      </div>
-                    )}
                   </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 flex flex-col justify-center px-5 py-3 bg-white relative">
-                  <div className="absolute -top-5 right-4 bg-green-500 text-white p-2.5 rounded-full shadow-lg group-hover:scale-110 group-hover:bg-green-600 transition-all duration-300 z-10 flex items-center justify-center">
-                    <FiArrowRight className="w-4 h-4" />
-                  </div>
-                  <h3 className="font-bold text-gray-800 text-lg pb-4 truncate group-hover:text-green-600 transition-colors">
-                    {item.judul_campaign || item.mitra}
-                  </h3>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-1 font-medium">
-                    <span>Lihat Detail</span>
-                  </div>
-
-                  {/* Action Buttons for Owner */}
-                  {item.isOwner && (
-                    <div className="absolute bottom-2 right-4 flex gap-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/mitra/edit/${item.id}`);
-                        }}
-                        className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition shadow-sm"
-                        title="Edit Campaign"
-                      >
-                        <FiEdit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) =>
-                          handleDelete(e, item.id, item.created_by)
-                        }
-                        className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition shadow-sm"
-                        title="Hapus Campaign"
-                      >
-                        <FiTrash className="w-4 h-4" />
-                      </button>
+                  <div className="flex-1 px-4 py-3 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-semibold text-slate-800 text-sm truncate group-hover:text-teal-600 transition-colors">{item.judul_campaign || item.mitra}</h3>
+                      <div className="flex items-center gap-1 text-xs text-teal-600 mt-1.5 font-semibold">
+                        <span>Lihat Detail</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+                    {item.isOwner && (
+                      <div className="flex gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
+                        <button onClick={(e) => { e.stopPropagation(); router.push(`/mitra/edit/${item.id}`); }} className="flex-1 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-1"><FiEdit className="w-3 h-3" /> Edit</button>
+                        <button onClick={(e) => handleDelete(e, item.id, item.created_by)} className="flex-1 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-1"><FiTrash className="w-3 h-3" /> Hapus</button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
