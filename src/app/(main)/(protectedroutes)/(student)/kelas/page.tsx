@@ -153,7 +153,7 @@ export default function KelasListPage() {
 
               return (
                 <Link href={`/kelas/${kelas.id}`} key={kelas.id} className="block group">
-                  <div className={clsx("rounded-xl p-5 shadow-md relative overflow-hidden flex flex-col", gradient)}>
+                  <div className={clsx("bg-gradient-to-br rounded-xl p-5 shadow-md relative overflow-hidden flex flex-col", gradient)}>
                     <div className="absolute -bottom-6 -right-4 opacity-10">
                       <AcademicCapIcon className="size-32 text-white" />
                     </div>
@@ -273,7 +273,7 @@ export default function KelasListPage() {
                 <Link href={`/kelas/${kelas.id}`} key={kelas.id} className="block group h-full">
                   <div
                     className={clsx(
-                      "rounded-2xl p-6 shadow-sm border border-transparent hover:border-white/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden h-full flex flex-col",
+                      "bg-gradient-to-br rounded-2xl p-6 shadow-sm border border-transparent hover:border-white/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden h-full flex flex-col",
                       gradient
                     )}
                   >
