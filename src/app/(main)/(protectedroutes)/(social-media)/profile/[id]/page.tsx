@@ -100,9 +100,9 @@ export default function Profile() {
   }
 
   return (
-    <div className="pb-28 bg-white md:bg-[#FAFBFC] min-h-screen">
+    <div className="pb-28 bg-white md:bg-[#FAFBFC] min-h-screen lg:pr-[240px] xl:pr-[280px]">
       {/* ===== FIXED HEADER ===== */}
-      <div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[99] bg-gradient-to-r from-[#004D40] to-[#00897B] text-white shadow-sm transition-all">
+      <div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 lg:right-[240px] xl:right-[280px] z-[99] bg-gradient-to-r from-[#004D40] to-[#00897B] text-white shadow-sm transition-all">
         <div className="max-w-[480px] md:max-w-none xl:max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center">
           <button onClick={() => router.back()} className="p-1.5 hover:bg-white/20 rounded-full transition-colors">
             <ArrowLeftIcon className="size-5 text-white" />
