@@ -343,8 +343,24 @@ export default function SocialMedia() {
 
   return (
     <div className="pb-24 bg-white md:bg-[#FAFBFC] min-h-screen">
-      {/* ===== HEADER ===== */}
-      <div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
+      {/* ===== MOBILE HEADER ===== */}
+      <div className="md:hidden fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-teal-700 flex items-center z-[9999]">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center"
+        >
+          <svg className="size-6 cursor-pointer text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h1 className="text-white font-semibold ml-3 flex-grow">Diskusi AGPAII</h1>
+        <Link href="/social-media/notification" className="p-1">
+          <BellIcon className="size-6 text-white" />
+        </Link>
+      </div>
+
+      {/* ===== DESKTOP HEADER ===== */}
+      <div className="hidden md:block fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
         <div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 py-4 flex items-center">
           <button
             onClick={() => router.back()}
@@ -362,7 +378,27 @@ export default function SocialMedia() {
       </div>
 
       {/* User Avatar + Search Bar */}
-      <div className="sticky top-[4rem] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-4 md:px-8 py-3 mt-2 mx-4 flex items-center gap-3">
+      {/* ===== MOBILE SEARCH BAR ===== */}
+      <div className="md:hidden sticky top-[4.5rem] z-40 bg-white border-b border-slate-200 px-4 py-4 mt-2 flex items-center gap-3">
+        <img
+          src={
+            (user?.avatar !== null && getImage(user.avatar)) ||
+            "/img/profileplacholder.png"
+          }
+          alt="user-avatar"
+          className="rounded-full size-11 min-w-11 min-h-11 object-cover border border-slate-200"
+        />
+        <button 
+          onClick={() => setIsSearchOpen(true)}
+          className="flex-1 flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2.5 text-slate-500"
+        >
+          <MagnifyingGlassIcon className="size-5" />
+          <span className="text-sm">Cari Diskusi...</span>
+        </button>
+      </div>
+
+      {/* ===== DESKTOP SEARCH BAR ===== */}
+      <div className="hidden md:flex sticky top-[4rem] z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-4 md:px-8 py-3 mt-2 mx-4 items-center gap-3">
         <img
           src={
             (user?.avatar !== null && getImage(user.avatar)) ||
@@ -381,7 +417,7 @@ export default function SocialMedia() {
       </div>
 
       {/* Posts Feed */}
-      <div className="flex flex-col bg-white md:bg-transparent pt-4 mt-4 md:pt-6 md:px-0 lg:px-4">
+      <div className="flex flex-col bg-white md:bg-transparent pt-8 mt-8 md:pt-6 md:mt-4 md:px-0 lg:px-4">
         {/* Pending Post Preview with Progress Bar */}
         {pendingPost && (
           <div className={`relative flex flex-col pb-6 max-w-[480px] transition-opacity duration-300 ${uploadError ? 'opacity-100' : uploadProgress < 100 ? 'opacity-60' : 'opacity-100'}`}>
@@ -721,12 +757,17 @@ export default function SocialMedia() {
                     <Post key={i} post={post} />
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-                      <MagnifyingGlassIcon className="size-8 text-slate-300" />
+                  <>
+                    <div className="md:hidden h-[60vh] flex items-center justify-center">
+                      <h1 className="text-slate-500">Tidak Ada postingan</h1>
                     </div>
-                    <p className="text-slate-400 text-sm">Tidak ada postingan</p>
-                  </div>
+                    <div className="hidden md:flex flex-col items-center justify-center py-20">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                        <MagnifyingGlassIcon className="size-8 text-slate-300" />
+                      </div>
+                      <p className="text-slate-400 text-sm">Tidak ada postingan</p>
+                    </div>
+                  </>
                 )}
               </div>
             );
