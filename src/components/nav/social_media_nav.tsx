@@ -30,13 +30,6 @@ export default function SocialMediaNavbar() {
     id: string;
   }[] = [
     {
-      id: "posting",
-      label: "Posting",
-      icon: <PlusIcon className="size-6" />,
-      link: "/social-media/post/new",
-      active: false,
-    },
-    {
       id: "beranda",
       label: "Beranda",
       icon: <HomeIcon className="size-6" />,
@@ -49,6 +42,13 @@ export default function SocialMediaNavbar() {
       icon: <HeartIcon className="size-6" />,
       active: pathname === "/social-media/liked",
       link: "/social-media/liked",
+    },
+    {
+      id: "posting",
+      label: "Posting",
+      icon: <PlusIcon className="size-6" />,
+      link: "/social-media/post/new",
+      active: false,
     },
     {
       id: "pesan",
@@ -65,6 +65,11 @@ export default function SocialMediaNavbar() {
       active: pathname === `/profile/${auth.id}`,
     },
   ];
+
+  const desktopNavList = [
+    navList.find((list) => list.id === "posting"),
+    ...navList.filter((list) => list.id !== "posting"),
+  ].filter(Boolean) as typeof navList;
 
   return (
     !isNavHidden() && (
@@ -127,9 +132,9 @@ export default function SocialMediaNavbar() {
       </div>
 
       {/* DESKTOP VIEW - Right Sidebar Navigation */}
-      <div className="hidden lg:block fixed right-0 top-0 bottom-0 w-[240px] xl:w-[280px] bg-white border-l border-slate-200 shadow-sm z-40 pt-[5.5rem] p-6 lg:block">
+      <div className="hidden lg:block fixed right-0 top-0 bottom-0 w-[240px] xl:w-[280px] bg-white border-l border-slate-200 shadow-sm z-40 pt-[5.5rem] p-6">
         <div className="flex flex-col gap-2">
-          {navList.map((list, i) => {
+          {desktopNavList.map((list, i) => {
             const isPostingButton = list.id === "posting";
             const isChatConversation =
               pathname.startsWith("/social-media/chat/") &&
