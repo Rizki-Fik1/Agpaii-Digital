@@ -1962,43 +1962,45 @@ export default function KelasGuruDetailPage() {
                     </button>
                   </div>
                   {expandedReplies[discussion.id] && (
-                    <div className="bg-slate-50 border-t border-slate-100 px-4 py-3 space-y-3">
-                      {discussion.replies?.length > 0 ? (
-                        discussion.replies.map((reply: any) => (
-                          <div key={reply.id} className="flex gap-3">
-                            <InitialsAvatar
-                              name={reply.user.name}
-                              size="sm"
-                              bgColor="slate"
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-xs font-medium text-slate-700">
-                                  {reply.user.name}
+                    <div className="bg-slate-50 border-t border-slate-100 px-4 py-3 flex flex-col gap-3">
+                      <div className="max-h-48 overflow-y-auto space-y-3 pr-1">
+                        {discussion.replies?.length > 0 ? (
+                          discussion.replies.map((reply: any) => (
+                            <div key={reply.id} className="flex gap-3">
+                              <InitialsAvatar
+                                name={reply.user.name}
+                                size="sm"
+                                bgColor="slate"
+                              />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-medium text-slate-700">
+                                    {reply.user.name}
+                                  </p>
+                                  <span
+                                    className={clsx(
+                                      "px-2 py-0.5 rounded-full text-[10px] font-medium",
+                                      reply.user.role_id === 2
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-green-100 text-green-700"
+                                    )}
+                                  >
+                                    {reply.user.role_id === 2 ? "Guru" : "Siswa"}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-600">
+                                  {reply.content}
                                 </p>
-                                <span
-                                  className={clsx(
-                                    "px-2 py-0.5 rounded-full text-[10px] font-medium",
-                                    reply.user.role_id === 2
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-green-100 text-green-700"
-                                  )}
-                                >
-                                  {reply.user.role_id === 2 ? "Guru" : "Siswa"}
-                                </span>
                               </div>
-                              <p className="text-xs text-slate-600">
-                                {reply.content}
-                              </p>
                             </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-slate-400">
-                          Belum ada balasan
-                        </p>
-                      )}
-                      <div className="flex gap-2 pt-2">
+                          ))
+                        ) : (
+                          <p className="text-xs text-slate-400">
+                            Belum ada balasan
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pt-1 border-t border-slate-200">
                         <input
                           type="text"
                           placeholder="Tulis balasan..."

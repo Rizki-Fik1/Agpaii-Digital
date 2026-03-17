@@ -344,6 +344,15 @@ const DetailPerangkatAjarPage: React.FC = () => {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen gap-3">
+        <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-slate-500">Memuat data...</p>
+      </div>
+    );
+  }
+
   if (!materialData) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -922,7 +931,7 @@ const DetailPerangkatAjarPage: React.FC = () => {
               return (
                 <div key={content.id} className="border rounded-lg overflow-hidden relative">
                   {/* Loading Overlay - covers entire card */}
-                  {loadingPreviews[`content-${content.id}`] !== false && (
+                  {loadingPreviews[`content-${content.id}`] === true && (
                     <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-20">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 border-4 border-[#006557] border-t-transparent rounded-full animate-spin"></div>
@@ -1052,7 +1061,9 @@ const DetailPerangkatAjarPage: React.FC = () => {
                   {isPdfFile(content.url || content.value) && (
                     <div className="bg-white p-4">
                       <iframe
-                        src={getFullUrl(content.url || content.value)}
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                          getFullUrl(content.url || content.value)
+                        )}&embedded=true`}
                         className="w-full h-[600px] border-0 rounded"
                         title={content.name}
                         onLoad={() => {

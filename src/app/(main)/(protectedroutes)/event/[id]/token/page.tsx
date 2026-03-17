@@ -39,9 +39,14 @@ export default function EventTokenPage() {
               {/* HEADER */}
               <div
                 onClick={() => setActive(active === idx ? null : idx)}
-                className="p-4 bg-[#009788] text-white rounded-md cursor-pointer"
+                className="p-4 bg-[#009788] text-white rounded-md cursor-pointer flex items-center justify-between"
               >
-                <span className="font-medium">{session.session_name}</span>
+                <span className="font-medium">
+                  {session.session_name || `Sesi ${idx + 1}`}
+                </span>
+                <span className="text-sm opacity-80">
+                  {active === idx ? "Sembunyikan Token ▲" : "Lihat Token ▼"}
+                </span>
               </div>
 
               {/* CONTENT */}

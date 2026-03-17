@@ -61,6 +61,7 @@ export default function RppDigitalPage() {
   } = useInfiniteQuery({
     queryKey: ["rpps", type],
     initialPageParam: 1,
+    staleTime: 0,
     queryFn: async ({ pageParam }) => {
       const res = await API.get(getUrl(type) + pageParam);
       if (res.status == 200) {

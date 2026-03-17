@@ -255,7 +255,7 @@ const ChatScreen: React.FC = () => {
 			{/* Input Bar */}
 			<form
 				onSubmit={handleSubmit}
-				className="fixed bottom-0 md:bottom-0 left-0 right-0 md:left-20 lg:left-64 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100 transition-all"
+				className="fixed bottom-16 md:bottom-0 left-0 right-0 md:left-20 lg:left-64 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100 transition-all"
 			>
 				<div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 lg:px-12 py-3">
 					<div className="flex items-center gap-3">

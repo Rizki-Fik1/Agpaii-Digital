@@ -139,7 +139,7 @@ export default function Profile() {
 
           {/* Profile Info Card */}
           <div className="relative px-4 md:px-8 -mt-16 md:-mt-20 z-10">
-            <div className="md:bg-white md:rounded-2xl md:shadow-sm md:border md:border-slate-100 md:p-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-8">
               {/* Avatar + Name Row */}
               <div className="flex flex-col md:flex-row md:items-end gap-4">
                 {/* Avatar */}

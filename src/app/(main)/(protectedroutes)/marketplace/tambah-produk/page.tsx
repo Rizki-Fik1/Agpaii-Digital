@@ -81,17 +81,15 @@ export default function TambahProdukPage() {
 		queryKey: ["provinces"],
 		initialPageParam: 1,
 		queryFn: async ({ pageParam = 1 }) => {
-			// Adjust endpoint to your backend
-			const res = await API.get(`/province?page=${pageParam}`);
-			if (res.status === 200) {
+			const res = await fetch(`https://admin.agpaiidigital.org/api/provinces?page=${pageParam}`);
+			const json = await res.json();
+			if (json.success && json.data) {
 				return {
-					nextPage:
-						res.data.next_page_url !== null
-							? parseInt(res.data.next_page_url.split("=").pop())
-							: undefined,
-					data: res.data.data,
+					nextPage: undefined as number | undefined,
+					data: json.data as Province[],
 				};
 			}
+			return { nextPage: undefined, data: [] as Province[] };
 		},
 		getNextPageParam: (lastPage) => lastPage?.nextPage,
 	});
@@ -107,19 +105,15 @@ export default function TambahProdukPage() {
 		queryKey: ["cities", region.province_id],
 		initialPageParam: 1,
 		queryFn: async ({ pageParam = 1 }) => {
-			// Adjust endpoint to your backend
-			const res = await API.get(
-				`/province/${region.province_id}/city?page=${pageParam}`,
-			);
-			if (res.status === 200) {
+			const res = await fetch(`https://admin.agpaiidigital.org/api/provinces/${region.province_id}/cities?page=${pageParam}`);
+			const json = await res.json();
+			if (json.success && json.data) {
 				return {
-					nextPage:
-						res.data.next_page_url !== null
-							? parseInt(res.data.next_page_url.split("=").pop())
-							: undefined,
-					data: res.data.data,
+					nextPage: undefined as number | undefined,
+					data: json.data as City[],
 				};
 			}
+			return { nextPage: undefined, data: [] as City[] };
 		},
 		getNextPageParam: (lastPage) => lastPage?.nextPage,
 	});
