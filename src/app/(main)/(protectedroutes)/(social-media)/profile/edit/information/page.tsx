@@ -74,13 +74,19 @@ const fields = [
 =============================== */
 
 const requiredFields = [
+  "name",
   "nik",
+  "nip",
   "birthdate",
   "gender",
   "contact",
+  "educational_level_id",
+  "pensiun",
   "unit_kerja",
+  "headmaster_name",
   "school_place",
   "school_status",
+  "headmaster_nip",
 ];
 
 /* ===============================
@@ -88,18 +94,20 @@ const requiredFields = [
 =============================== */
 
 const schema = z.object({
-  name: z.string(),
-  nik: z.string().min(16),
-  nip: z.string().optional(),
-  birthdate: z.string(),
-  gender: z.string(),
-  contact: z.string().min(10),
-  unit_kerja: z.string(),
-  headmaster_name: z.string().optional(),
-  headmaster_nip: z.string().optional(),
-  school_place: z.string(),
-  school_status: z.string(),
-  educational_level_id: z.any(),
+  name: z.string().min(1, "Nama wajib diisi"),
+  nik: z.string().min(16, "NIK minimal 16 karakter"),
+  nip: z.string().min(1, "NIP wajib diisi"),
+  birthdate: z.string().min(1, "Tanggal lahir wajib diisi"),
+  gender: z.string().min(1, "Jenis kelamin wajib diisi"),
+  contact: z.string().min(10, "Kontak minimal 10 karakter"),
+  unit_kerja: z.string().min(1, "Unit kerja wajib diisi"),
+  headmaster_name: z.string().min(1, "Nama kepala sekolah wajib diisi"),
+  headmaster_nip: z.string().min(1, "NIP kepala sekolah wajib diisi"),
+  school_place: z.string().min(1, "Tempat tugas wajib diisi"),
+  school_status: z.string().min(1, "Status sekolah wajib diisi"),
+  educational_level_id: z.any().refine((val) => val !== "" && val !== null && val !== undefined, {
+    message: "Jenjang ajar wajib diisi",
+  }),
   pensiun: z.union([z.literal("0"), z.literal("1"), z.literal(0), z.literal(1)])
     .transform((v) => Number(v)),
 });
