@@ -185,13 +185,13 @@ export default function RegionEdit() {
 
 	const regions = [
 		{
-			name: "Provinsi",
+			name: "Provinsi *",
 			value: province?.name,
 			click: () => toggleProvinceModal(),
 			loading: provinceLoading,
 		},
 		{
-			name: "Kota / Kabupaten",
+			name: "Kota / Kabupaten *",
 			value: city?.name,
 			click: () => {
 				!!region.province_id
@@ -201,7 +201,7 @@ export default function RegionEdit() {
 			loading: cityLoading,
 		},
 		{
-			name: "Kecamatan",
+			name: "Kecamatan *",
 			value: district?.name,
 			click: () =>
 				!!region.city_id
@@ -217,6 +217,10 @@ export default function RegionEdit() {
 
 	const { mutate: updateAndGenerateKta, isPending: updating } = useMutation({
 		mutationFn: async () => {
+			if (!region.province_id || !region.city_id || !region.district_id) {
+				toast.error("Semua wilayah (Provinsi, Kota, Kecamatan) wajib diisi");
+				throw new Error("Validation Error");
+			}
 			const res = await API.post(`/kta`, region);
 			if (res.status == 200) return region;
 		},

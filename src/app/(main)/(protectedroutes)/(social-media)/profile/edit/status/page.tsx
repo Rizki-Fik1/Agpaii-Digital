@@ -402,7 +402,7 @@ export default function EditStatus() {
       <TopBar withBackButton>Edit Status Guru</TopBar>
 
       <form
-        onSubmit={handleSubmit(updateStatus)}
+        onSubmit={handleSubmit((data) => updateStatus(data))}
         className="flex flex-col px-6 pt-8 gap-3"
       >
         {forms.map((field, i) => (
@@ -424,7 +424,7 @@ export default function EditStatus() {
               className={`rounded-md border px-3 py-2 ${getBorderColor(
                 field.name,
               )}`}
-              error={errors[field.name]}
+              error={errors[field.name as keyof Fields]}
             />
           </div>
         ))}

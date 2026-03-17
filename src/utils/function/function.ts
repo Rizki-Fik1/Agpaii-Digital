@@ -22,8 +22,13 @@ export const isInformationProfileCompleted = (user: any) => {
 		"gender",
 		"birthdate",
 		"school_status",
+		"nip",
+		"school_place",
+		"educational_level_id",
+		"headmaster_name",
+		"headmaster_nip",
 	];
-	return keys.every((val) => user.profile[val] != null);
+	return keys.every((val) => !!user.profile[val]);
 };
 
 export const isLocationProfileCompleted = (user: any) => {
