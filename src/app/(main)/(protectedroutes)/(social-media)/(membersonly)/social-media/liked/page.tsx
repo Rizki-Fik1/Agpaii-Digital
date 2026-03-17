@@ -19,30 +19,39 @@ export default function LikedPost() {
   const fetchPosts = async ({ pageParam }: { pageParam: number }) => {
     const res = await API.get(`post?liked=true&page=${pageParam}`);
     if (res.status == 200) {
+      let nextPage: number | undefined = undefined;
+      if (res.data.next_page_url) {
+        try {
+          const url = new URL(res.data.next_page_url);
+          const pageVal = url.searchParams.get("page");
+          nextPage = pageVal ? parseInt(pageVal) : undefined;
+        } catch {
+          // fallback: ambil angka setelah "page="
+          const match = res.data.next_page_url.match(/[?&]page=(\d+)/);
+          nextPage = match ? parseInt(match[1]) : undefined;
+        }
+      }
       return {
         currentPage: pageParam,
         data: res.data.data as PostType[],
-        nextPage:
-          res.data.next_page_url !== null
-            ? parseInt(res.data.next_page_url.split("=")[1])
-            : undefined,
+        nextPage,
       };
     }
   };
 
-  const { data, isLoading, error, fetchNextPage, isFetchingNextPage } =
+  const { data, isLoading, error, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useInfiniteQuery({
-      queryKey: ["posts"],
+      queryKey: ["posts", "liked"],
       queryFn: fetchPosts,
       initialPageParam: 1,
-      getNextPageParam: (lastPage) => lastPage?.nextPage,
+      getNextPageParam: (lastPage) => lastPage?.nextPage ?? undefined,
     });
 
   useEffect(() => {
-    if (inView && !isFetchingNextPage) {
+    if (inView && !isFetchingNextPage && hasNextPage) {
       fetchNextPage();
     }
-  }, [inView]);
+  }, [inView, isFetchingNextPage, hasNextPage]);
 
   return (
     <div className="min-h-screen bg-white md:bg-[#FAFBFC]">
@@ -123,6 +132,9 @@ export default function LikedPost() {
           >
             {isFetchingNextPage ? "Harap Tunggu" : ""}
           </div>
+          {!hasNextPage && !isLoading && data?.pages?.[0]?.data?.length ? (
+            <p className="text-center text-xs text-slate-300 py-6">Semua postingan sudah ditampilkan</p>
+          ) : null}
         </div>
       </div>
     </div>

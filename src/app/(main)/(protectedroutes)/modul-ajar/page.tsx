@@ -163,7 +163,7 @@ const ModulAjarPage: React.FC = () => {
 
   // Fungsi fetch data
   const fetchCards = async (
-    pageOrUpdater: number | ((prev: number) => number),
+    currentPage: number,
     append = false
   ) => {
     if (loadingRef.current) return;
@@ -171,9 +171,6 @@ const ModulAjarPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-
-      const currentPage =
-        typeof pageOrUpdater === "function" ? page : pageOrUpdater;
 
       let endpoint = `${process.env.NEXT_PUBLIC_API_BASE_URL}/modules-learn?page=${currentPage}&limit=${LIMIT}`;
 
@@ -271,18 +268,18 @@ const ModulAjarPage: React.FC = () => {
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting && hasMore && !loadingRef.current) {
-          fetchCards((prevPage) => prevPage, true);
+          fetchCards(page, true);
         }
       },
       {
-        rootMargin: "200px", // PENTING
+        rootMargin: "200px",
       }
     );
 
     observer.observe(sentinelRef.current);
 
     return () => observer.disconnect();
-  }, [hasMore]);
+  }, [hasMore, page]);
 
   // Filter + Sorting lokal + Separate repost modules
   useEffect(() => {

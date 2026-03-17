@@ -19,6 +19,7 @@ const DetailDoaPage = () => {
 	const [data, setData] = useState<DoaDetail[] | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
+	const [expanded, setExpanded] = useState<number | null>(null);
 
 	useEffect(() => {
 		const fetchDoaDetails = async () => {
@@ -69,18 +70,28 @@ const DetailDoaPage = () => {
 		<div className="pt-[4.2rem]">
 			<TopBar withBackButton>Doa {slug}</TopBar>
 			<div className="p-4">
-				<ul className="space-y-4">
+				<ul className="space-y-3">
 					{data?.map((item, index) => (
-						<li
-							key={index}
-							className="bg-white p-4 rounded shadow flex flex-col space-y-2">
-							<h2 className="text-lg font-bold text-teal-600 text-center">
-								{item.judul}
-							</h2>
-							<p className="text-right text-xl text-gray-800 font-serif">
-								{item.arab}
-							</p>
-							<p className="italic text-gray-600">{item.indo}</p>
+						<li key={index} className="bg-white rounded shadow overflow-hidden">
+							<button
+								onClick={() => setExpanded(expanded === index ? null : index)}
+								className="w-full px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-teal-50 transition-colors text-left"
+							>
+								<h2 className="text-base font-semibold text-teal-700 flex-1">
+									{item.judul}
+								</h2>
+								<span className="text-teal-500 text-lg ml-3">
+									{expanded === index ? "▲" : "▼"}
+								</span>
+							</button>
+							{expanded === index && (
+								<div className="px-4 pb-4 space-y-3 border-t border-slate-100">
+									<p className="text-right text-xl text-gray-800 font-serif pt-3 leading-loose">
+										{item.arab}
+									</p>
+									<p className="italic text-gray-600 text-sm">{item.indo}</p>
+								</div>
+							)}
 						</li>
 					))}
 				</ul>

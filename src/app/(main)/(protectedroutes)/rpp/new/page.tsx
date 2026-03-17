@@ -4,14 +4,22 @@ import { XMarkIcon } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import API from "@/utils/api/config";
-import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/utils/context/auth_context";
 
 export default function NewRPP() {
   const [image, setImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [grades, setGrades] = useState<Array<{ id: string; description: string; educational_level_id: number }>>([]);
+  const queryClient = useQueryClient();
+  const [grades] = useState([
+    { id: "5", label: "TK" },
+    { id: "1", label: "SD" },
+    { id: "2", label: "SMP" },
+    { id: "3", label: "SMA" },
+    { id: "4", label: "SMK" },
+    { id: "9", label: "SLB" },
+  ]);
   const router = useRouter();
   const { auth } = useAuth();
 
@@ -25,21 +33,6 @@ export default function NewRPP() {
       setImage(acceptedFiles[0]);
     }
   }, [acceptedFiles]);
-
-  useEffect(() => {
-    fetchGrades();
-  }, []);
-
-  const fetchGrades = async () => {
-    try {
-      const response = await axios.get(
-        `https://2024.agpaiidigital.org/api/grades`
-      );
-      setGrades(response.data);
-    } catch (error) {
-      console.error("Error fetching grades:", error);
-    }
-  };
 
   const [credentials, setCredentials] = useState({
     topic: "",
@@ -78,20 +71,13 @@ export default function NewRPP() {
         formData.append("image", image);
       }
 
-      // Use full URL to bypass /member prefix in base URL
-      const access_token = localStorage.getItem("access_token");
-      const response = await axios.post(
-        "https://2024.agpaiidigital.org/api/v2/lessonplan",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            "Authorization": `Bearer ${access_token}`,
-          },
-        }
-      );
+      const response = await API.post("/lesson-plan", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (response.status === 200 || response.status === 201) {
+        // Invalidate semua RPP queries supaya list ter-refresh
+        queryClient.removeQueries({ queryKey: ["rpps"] });
         alert("RPP berhasil dibuat!");
         router.push("/rpp");
       }
@@ -171,7 +157,7 @@ export default function NewRPP() {
             </option>
             {grades.map((grade) => (
               <option key={grade.id} value={grade.id}>
-                {grade.description}
+                {grade.label}
               </option>
             ))}
           </select>

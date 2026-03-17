@@ -5,7 +5,6 @@ import TopBar from "@/components/nav/topbar";
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import axios from "axios";
-import Link from "next/link";
 import { useCachedData } from "@/utils/hooks/useDataCache";
 
 const DoaPage = () => {
@@ -46,18 +45,15 @@ const DoaPage = () => {
 				{!isLoading && data && (
 					<ul className="space-y-4">
 						{data.map((name, index) => (
-							<li
-								key={index}
-								className="bg-white p-4 rounded shadow flex items-center justify-between">
-								<div className="flex-grow">
-									<p className="text-lg font-medium capitalize">Doa {name}</p>
-								</div>
-								<Link
-									className="text-blue-500"
+							<li key={index}>
+								<a
 									href={`/doa/${name}`}
-									passHref>
-									Lihat Detail
-								</Link>
+									className="bg-white p-4 rounded shadow flex items-center justify-between cursor-pointer hover:bg-teal-50 transition-colors">
+									<div className="flex-grow">
+										<p className="text-lg font-medium capitalize text-teal-700">Doa {name}</p>
+									</div>
+									<span className="text-teal-500 text-sm font-medium">Lihat Detail →</span>
+								</a>
 							</li>
 						))}
 					</ul>
