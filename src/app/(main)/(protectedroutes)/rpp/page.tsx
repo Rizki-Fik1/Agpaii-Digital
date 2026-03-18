@@ -16,35 +16,16 @@ export default function RppDigitalPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  const isExpandedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef<number | null>(null);
   const { auth } = useAuth();
   
-  // Gesture sensitivity settings
-  const SWIPE_THRESHOLD = 50; // Threshold untuk trigger expand/collapse
+  const SWIPE_THRESHOLD = 50;
 
-  // Capture container width before expand
+  // Keep ref in sync with state
   useEffect(() => {
-    if (containerRef.current) {
-      if (!isExpanded) {
-        // Capture width when not expanded
-        setContainerWidth(containerRef.current.offsetWidth);
-      }
-    }
-  }, [isExpanded]);
-
-  // Also capture on mount and resize
-  useEffect(() => {
-    const updateWidth = () => {
-      if (containerRef.current && !isExpanded) {
-        setContainerWidth(containerRef.current.offsetWidth);
-      }
-    };
-
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    isExpandedRef.current = isExpanded;
   }, [isExpanded]);
   
   const getUrl = (type: "all" | "me") => {
@@ -113,60 +94,46 @@ export default function RppDigitalPage() {
 
   // Handle touch events for swipe gesture
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientY);
+    dragStartY.current = e.targetTouches[0].clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // Prevent pull-to-refresh on mobile
-    const touchY = e.targetTouches[0].clientY;
-    const swipeDistance = touchStart - touchY;
-    
-    // Prevent default if swiping up (to prevent pull-to-refresh)
-    if (swipeDistance > 0) {
-      e.preventDefault();
-    }
+    if (dragStartY.current === null) return;
+    const swipeDistance = dragStartY.current - e.targetTouches[0].clientY;
+    if (swipeDistance > 0) e.preventDefault();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEnd = e.changedTouches[0].clientY;
-    const swipeDistance = touchStart - touchEnd;
-    
+    if (dragStartY.current === null) return;
+    const swipeDistance = dragStartY.current - e.changedTouches[0].clientY;
     if (Math.abs(swipeDistance) > SWIPE_THRESHOLD) {
-      if (swipeDistance > 0 && !isExpanded) {
-        // Swipe up - expand
-        setIsExpanded(true);
-      } else if (swipeDistance < 0 && isExpanded) {
-        // Swipe down - collapse
-        setIsExpanded(false);
-      }
+      if (swipeDistance > 0 && !isExpanded) setIsExpanded(true);
+      else if (swipeDistance < 0 && isExpanded) setIsExpanded(false);
     }
-    
-    setTouchStart(0);
+    dragStartY.current = null;
   };
 
-  // Handle mouse events for desktop
+  // Handle mouse drag for desktop — attach move/up to window so drag outside element still works
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    setTouchStart(e.clientY);
-  };
+    dragStartY.current = e.clientY;
 
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (touchStart === 0) return;
-    
-    const mouseEnd = e.clientY;
-    const swipeDistance = touchStart - mouseEnd;
-    
-    if (Math.abs(swipeDistance) > SWIPE_THRESHOLD) {
-      if (swipeDistance > 0 && !isExpanded) {
-        // Swipe up - expand
-        setIsExpanded(true);
-      } else if (swipeDistance < 0 && isExpanded) {
-        // Swipe down - collapse
-        setIsExpanded(false);
+    const onMouseMove = () => {}; // just to keep cursor consistent
+
+    const onMouseUp = (upEvent: MouseEvent) => {
+      if (dragStartY.current === null) return;
+      const swipeDistance = dragStartY.current - upEvent.clientY;
+      if (Math.abs(swipeDistance) > SWIPE_THRESHOLD) {
+        if (swipeDistance > 0 && !isExpandedRef.current) setIsExpanded(true);
+        else if (swipeDistance < 0 && isExpandedRef.current) setIsExpanded(false);
       }
-    }
-    
-    setTouchStart(0);
+      dragStartY.current = null;
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
   };
 
   return (
@@ -258,16 +225,11 @@ export default function RppDigitalPage() {
         ref={containerRef}
         className={`transition-all duration-500 ease-out ${
           isExpanded 
-            ? 'fixed z-40 bottom-0 left-1/2 -translate-x-1/2' // Full height when expanded
-            : 'flex-1 px-0 py-6 overflow-hidden relative left-1/2 -translate-x-1/2' // Normal state, also centered
+            ? 'fixed z-40 bottom-0 right-0 md:left-20 lg:left-64' // Align to content area, not viewport center
+            : 'flex-1 px-0 py-6 overflow-hidden' // Normal state
         }`}
         style={isExpanded ? {
           top: 'calc(4.21rem + 3.5rem)', // TopBar height + Tab Navigation height
-          width: containerWidth ? `${containerWidth}px` : undefined,
-          maxWidth: containerWidth ? `${containerWidth}px` : undefined
-        } : containerWidth ? {
-          width: `${containerWidth}px`,
-          maxWidth: `${containerWidth}px`
         } : {}}
       >
         {/* Results Container with white background */}
@@ -288,7 +250,6 @@ export default function RppDigitalPage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
           >
             {/* Top Handle Bar */}
             <div className="flex justify-center pt-3 pb-2">

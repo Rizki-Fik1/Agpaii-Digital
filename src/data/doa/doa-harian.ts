@@ -1,0 +1,38 @@
+import { DoaItem } from "./doa-quran";
+
+const doaHarian: DoaItem[] = [
+  { id: 1, judul: "Doa Ketika Bangun Tidur", arab: "الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا", indo: "Segala puji bagi Allah yang telah menghidupkan kami setelah mematikan kami.", sumber: "HR. Bukhari" },
+  { id: 2, judul: "Doa Ketika Mimpi Baik", arab: "الْحَمْدُ لِلَّهِ", indo: "Segala puji bagi Allah.", sumber: "HR. Bukhari" },
+  { id: 3, judul: "Doa Ketika Mimpi Buruk", arab: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ", indo: "Aku berlindung kepada Allah dari setan.", sumber: "HR. Muslim" },
+  { id: 4, judul: "Doa Masuk WC", arab: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ", indo: "Ya Allah, aku berlindung dari setan laki-laki dan perempuan.", sumber: "HR. Bukhari & Muslim" },
+  { id: 5, judul: "Doa Istinja", arab: "اللَّهُمَّ طَهِّرْ قَلْبِي مِنَ النِّفَاقِ", indo: "Ya Allah, bersihkan hatiku dari kemunafikan." },
+  { id: 6, judul: "Doa Keluar WC", arab: "غُفْرَانَكَ", indo: "Aku memohon ampunan-Mu.", sumber: "HR. Abu Dawud" },
+  { id: 7, judul: "Doa Hendak Berpakaian", arab: "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ خَيْرِهِ", indo: "Ya Allah, aku memohon kebaikan dari pakaian ini.", sumber: "HR. Abu Dawud" },
+  { id: 8, judul: "Doa Ketika Bercermin", arab: "اللَّهُمَّ كَمَا حَسَّنْتَ خَلْقِي فَحَسِّنْ خُلُقِي", indo: "Ya Allah, sebagaimana Engkau memperindah rupaku, maka perindahlah akhlakku.", sumber: "HR. Ahmad" },
+  { id: 9, judul: "Doa Sebelum Makan", arab: "بِسْمِ اللَّهِ", indo: "Dengan nama Allah.", sumber: "HR. Bukhari" },
+  { id: 10, judul: "Doa Sesudah Makan", arab: "الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنَا", indo: "Segala puji bagi Allah yang telah memberi kami makan.", sumber: "HR. Tirmidzi" },
+  { id: 11, judul: "Doa Bepergian", arab: "سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا", indo: "Maha Suci Allah yang menundukkan ini bagi kami.", sumber: "HR. Muslim" },
+  { id: 12, judul: "Doa Naik Kendaraan Darat", arab: "بِسْمِ اللَّهِ", indo: "Dengan nama Allah." },
+  { id: 13, judul: "Doa Naik Kendaraan Laut", arab: "بِسْمِ اللَّهِ مَجْرَاهَا وَمُرْسَاهَا", indo: "Dengan nama Allah saat berlayar dan berlabuh.", sumber: "QS. Hud: 41" },
+  { id: 14, judul: "Doa Tiba di Tempat Tujuan", arab: "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَهَا", indo: "Ya Allah, aku memohon kebaikan tempat ini." },
+  { id: 15, judul: "Doa Melepas Pakaian", arab: "بِسْمِ اللَّهِ", indo: "Dengan nama Allah.", sumber: "HR. Tirmidzi" },
+  { id: 16, judul: "Doa Sebelum Tidur", arab: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا", indo: "Dengan nama-Mu ya Allah aku mati dan hidup.", sumber: "HR. Bukhari" },
+  { id: 17, judul: "Doa Terkejut dari Tidur", arab: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", indo: "Tiada Tuhan selain Allah, tiada sekutu bagi-Nya.", sumber: "HR. Bukhari" },
+  { id: 18, judul: "Doa Ketika Duduk Setelah Tidur", arab: "رَبِّ اغْفِرْ لِي", indo: "Ya Tuhanku, ampunilah aku." },
+  { id: 19, judul: "Doa Menjelang Shalat Subuh", arab: "اللَّهُمَّ بَارِكْ لِي فِي بُكُورِي", indo: "Ya Allah, berkahilah waktu pagiku.", sumber: "HR. Tirmidzi" },
+  { id: 20, judul: "Doa Menyambut Pagi", arab: "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا", indo: "Ya Allah, dengan-Mu kami memasuki pagi dan sore.", sumber: "HR. Tirmidzi" },
+  { id: 21, judul: "Doa Mohon Ilmu yang Bermanfaat", arab: "اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا", indo: "Ya Allah, aku memohon ilmu yang bermanfaat.", sumber: "HR. Ibnu Majah" },
+  { id: 22, judul: "Doa Menyambut Petang", arab: "اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا", indo: "Ya Allah, dengan-Mu kami memasuki sore dan pagi.", sumber: "HR. Tirmidzi" },
+  { id: 23, judul: "Doa Masuk Rumah", arab: "اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلِجِ وَخَيْرَ الْمَخْرَجِ", indo: "Ya Allah, aku memohon kebaikan saat masuk dan keluar rumah.", sumber: "HR. Abu Dawud" },
+  { id: 24, judul: "Doa Keluar Rumah", arab: "بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ", indo: "Dengan nama Allah, aku bertawakal kepada-Nya.", sumber: "HR. Abu Dawud" },
+  { id: 25, judul: "Doa Menuju Masjid", arab: "اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا", indo: "Ya Allah, jadikanlah cahaya dalam hatiku.", sumber: "HR. Muslim" },
+  { id: 26, judul: "Doa Masuk Masjid", arab: "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ", indo: "Ya Allah, bukakanlah pintu rahmat-Mu untukku.", sumber: "HR. Muslim" },
+  { id: 27, judul: "Doa Keluar Masjid", arab: "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ", indo: "Ya Allah, aku memohon karunia-Mu.", sumber: "HR. Muslim" },
+  { id: 28, judul: "Doa Masuk Pasar", arab: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ", indo: "Tiada Tuhan selain Allah semata, tiada sekutu bagi-Nya.", sumber: "HR. Tirmidzi" },
+  { id: 29, judul: "Doa Agar Tidak Pikun", arab: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَرَمِ", indo: "Ya Allah, aku berlindung dari kepikunan.", sumber: "HR. Bukhari" },
+  { id: 30, judul: "Doa Susah Tidur", arab: "اللَّهُمَّ غَارَتِ النُّجُومُ وَهَدَأَتِ الْعُيُونُ", indo: "Ya Allah, bintang-bintang telah tenggelam dan mata telah terpejam.", sumber: "HR. Ahmad" },
+  { id: 31, judul: "Doa untuk Pasien", arab: "اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ", indo: "Ya Allah, ampunilah dia dan rahmatilah dia." },
+  { id: 32, judul: "Doa dari Keluarga untuk Pasien", arab: "اللَّهُمَّ خَفِّفْ عَنْهُ وَارْحَمْهُ", indo: "Ya Allah, ringankanlah dan rahmatilah dia." },
+];
+
+export default doaHarian;
