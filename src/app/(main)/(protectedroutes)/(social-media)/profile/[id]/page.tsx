@@ -142,17 +142,18 @@ export default function Profile() {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 md:p-8">
               {/* Avatar + Name Row */}
               <div className="flex flex-col md:flex-row md:items-end gap-4">
-                {/* Avatar */}
-                <div className="border-4 border-white rounded-full overflow-hidden bg-white shadow-lg md:shadow-xl flex-shrink-0">
-                  <UserAvatar
-                    src={profile?.avatar}
-                    name={profile.name}
-                    className="w-28 h-28 md:w-36 md:h-36 text-4xl"
+                {/* Avatar — self-start prevents stretch on mobile */}
+                <div className="self-start border-4 border-white rounded-full overflow-hidden bg-white shadow-lg md:shadow-xl flex-shrink-0 w-28 h-28 md:w-36 md:h-36" style={{minWidth: '7rem', minHeight: '7rem'}}>
+                  <img
+                    src={profile?.avatar ? getImage(profile.avatar) : '/icons/avatar.jpg'}
+                    alt={profile.name}
+                    className="w-full h-full object-cover rounded-full"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/icons/avatar.jpg'; }}
                   />
                 </div>
 
-                {/* Name + Meta (desktop: beside avatar) */}
-                <div className="flex-1 md:pb-2">
+                {/* Name + Meta — full width on mobile, beside avatar on desktop */}
+                <div className="flex-1 md:pb-2 w-full">
                   <h1 className="font-bold text-xl md:text-2xl text-slate-900">{profile.name}</h1>
                   <div className="text-sm text-slate-500 mt-1 space-y-1">
                     {profile?.kta_id && (
