@@ -6,27 +6,49 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
+import doaQuran, { DoaItem } from "@/data/doa/doa-quran";
+import doaHadits from "@/data/doa/doa-hadits";
+import doaHarian from "@/data/doa/doa-harian";
+import doaPilihan from "@/data/doa/doa-pilihan";
+import doaIbadah from "@/data/doa/doa-ibadah";
+import doaHaji from "@/data/doa/doa-haji";
+import doaLainnya from "@/data/doa/doa-lainnya";
 
-interface DoaDetail {
-	id: number;
-	judul: string;
-	arab: string;
-	indo: string;
-}
+// Slugs yang menggunakan data lokal (hardcoded)
+const LOCAL_DATA: Record<string, DoaItem[]> = {
+  quran: doaQuran,
+  hadits: doaHadits,
+  harian: doaHarian,
+  pilihan: doaPilihan,
+  ibadah: doaIbadah,
+  haji: doaHaji,
+  lainnya: doaLainnya,
+};
 
 const DetailDoaPage = () => {
 	const { slug } = useParams();
-	const [data, setData] = useState<DoaDetail[] | null>(null);
+	const slugStr = Array.isArray(slug) ? slug[0] : slug ?? "";
+	const [data, setData] = useState<DoaItem[] | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [expanded, setExpanded] = useState<number | null>(null);
 
 	useEffect(() => {
+		if (!slugStr) return;
+
+		// Gunakan data lokal jika tersedia
+		if (LOCAL_DATA[slugStr]) {
+			setData(LOCAL_DATA[slugStr]);
+			setIsLoading(false);
+			return;
+		}
+
+		// Fallback ke API eksternal
 		const fetchDoaDetails = async () => {
 			try {
 				setIsLoading(true);
 				const response = await axios.get(
-					`${process.env.NEXT_PUBLIC_DOA_API_URL}/doa/sumber/${slug}`,
+					`${process.env.NEXT_PUBLIC_DOA_API_URL}/doa/sumber/${slugStr}`,
 				);
 				setData(response.data.data);
 			} catch (err: any) {
@@ -36,13 +58,13 @@ const DetailDoaPage = () => {
 			}
 		};
 
-		if (slug) fetchDoaDetails();
-	}, [slug]);
+		fetchDoaDetails();
+	}, [slugStr]);
 
 	if (isLoading) {
 		return (
 			<div className="pt-[4.2rem]">
-				<TopBar withBackButton>Doa {slug}</TopBar>
+				<TopBar withBackButton>Doa {slugStr}</TopBar>
 				<div className="p-4">
 					<div className="space-y-4">
 						{[...Array(3)].map((_, index) => (
@@ -68,7 +90,7 @@ const DetailDoaPage = () => {
 
 	return (
 		<div className="pt-[4.2rem]">
-			<TopBar withBackButton>Doa {slug}</TopBar>
+			<TopBar withBackButton>Doa {slugStr}</TopBar>
 			<div className="p-4">
 				<ul className="space-y-3">
 					{data?.map((item, index) => (
@@ -90,6 +112,11 @@ const DetailDoaPage = () => {
 										{item.arab}
 									</p>
 									<p className="italic text-gray-600 text-sm">{item.indo}</p>
+									{item.sumber && (
+										<p className="text-xs text-teal-600 font-medium text-right">
+											📖 {item.sumber}
+										</p>
+									)}
 								</div>
 							)}
 						</li>

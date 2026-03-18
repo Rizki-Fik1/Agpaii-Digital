@@ -219,7 +219,7 @@ const RamadhanDashboard = () => {
       title: "Al-Qur'an & Tadarus",
       items: [
         { name: "Tadarus 30 Hari", path: "/ramadhan/tadarus", icon: <BsListCheck className="w-5 h-5 text-teal-500" /> },
-        { name: "Murottal", path: "/murrotal", icon: <BsBookHalf className="w-5 h-5 text-emerald-500" /> },
+        { name: "Murottal", path: "/murrotal/surat", icon: <BsBookHalf className="w-5 h-5 text-emerald-500" /> },
       ]
     },
     {

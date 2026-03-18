@@ -336,11 +336,15 @@ export default function ExportMembers() {
 				{/* PASSWORD */}
 				{showPassword && (
 					<div className="border rounded-md p-4">
-						<h4 className="font-semibold mb-2">Konfirmasi Password</h4>
+						<h4 className="font-semibold mb-1">Konfirmasi Password</h4>
+						<p className="text-xs text-gray-500 mb-3">
+							Masukkan <span className="font-medium text-amber-600">password export</span> yang diberikan oleh administrator sistem. Password ini berbeda dengan password akun Anda.
+						</p>
 						<input
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Password export dari administrator"
 							className="w-full border rounded-md px-3 py-2 mb-3"
 						/>
 						<button
