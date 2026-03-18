@@ -200,7 +200,7 @@ const WaktuSholatPage: React.FC = () => {
 
   return (
     <div className="pt-[4.2rem] bg-gray-50 min-h-screen">
-      <TopBar withBackButton>Waktu Sholat</TopBar>
+      <TopBar withBackButton href="/">Waktu Sholat</TopBar>
       <div className="p-4">
         {/* Date Selection Section */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-4">

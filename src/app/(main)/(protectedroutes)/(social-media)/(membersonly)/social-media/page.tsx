@@ -346,7 +346,7 @@ export default function SocialMedia() {
       {/* ===== MOBILE HEADER ===== */}
       <div className="md:hidden fixed top-0 left-0 right-0 mx-auto max-w-[480px] px-4 sm:px-5 py-5 bg-teal-700 flex items-center z-[9999]">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           className="flex items-center"
         >
           <svg className="size-6 cursor-pointer text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,7 +363,7 @@ export default function SocialMedia() {
       <div className="hidden md:block fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
         <div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 py-4 flex items-center">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/")}
             className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
           >
             <svg className="size-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

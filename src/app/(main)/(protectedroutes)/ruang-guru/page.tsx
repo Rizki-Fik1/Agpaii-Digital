@@ -47,7 +47,7 @@ export default function SearchCpAtpPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pt-[3.2rem]">
-      <TopBar withBackButton>Ruang Guru</TopBar>
+      <TopBar withBackButton href="/">Ruang Guru</TopBar>
 
       {/* Hero / Header Section */}
       <div className="bg-[#009788] text-white px-6 py-8 rounded-b-[2rem] shadow-md relative overflow-hidden">

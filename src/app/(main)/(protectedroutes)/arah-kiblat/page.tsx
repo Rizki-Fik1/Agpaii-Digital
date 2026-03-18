@@ -160,7 +160,7 @@ const ArahKiblatPage: React.FC = () => {
 
   return (
     <div className="pt-[4.2rem] min-h-screen bg-gradient-to-b from-green-50 to-green-100">
-      <TopBar withBackButton>Arah Kiblat</TopBar>
+      <TopBar withBackButton href="/">Arah Kiblat</TopBar>
       <div className="p-4">
         {/* Info Lokasi */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">

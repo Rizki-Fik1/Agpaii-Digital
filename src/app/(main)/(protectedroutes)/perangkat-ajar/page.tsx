@@ -170,6 +170,7 @@ const PerangkatAjarPage: React.FC = () => {
 		<div className="pt-[5.21rem] bg-gray-50 min-h-screen">
 			<TopBar
 				withBackButton
+				href="/"
 				rightContent={
 					<button
 						onClick={() => router.push("/perangkat-ajar/tambah")}

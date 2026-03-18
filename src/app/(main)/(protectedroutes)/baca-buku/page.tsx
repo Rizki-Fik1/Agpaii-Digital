@@ -272,7 +272,7 @@ const BacaBukuPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 md:bg-[#FAFBFC]">
-      <TopBar withBackButton>Baca Buku</TopBar>
+      <TopBar withBackButton href="/">Baca Buku</TopBar>
 
       {/* Main Container with max-width for mobile-first design */}
       <div className="max-w-[480px] md:max-w-none mx-auto pt-[3.8rem] pb-20 relative">

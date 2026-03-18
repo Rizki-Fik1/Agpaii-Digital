@@ -361,7 +361,7 @@ const ModulAjarPage: React.FC = () => {
       {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
         <div className="max-w-[480px] md:max-w-none mx-auto px-4 md:px-8 py-4 flex items-center">
-          <button onClick={() => router.back()} className="p-1.5 hover:bg-white/20 rounded-full transition-colors">
+          <button onClick={() => router.push("/")} className="p-1.5 hover:bg-white/20 rounded-full transition-colors">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

@@ -48,7 +48,7 @@ export default function KTAPage() {
 
   return (
     <>
-      <TopBar withBackButton>KTA Digital</TopBar>
+      <TopBar withBackButton href="/">KTA Digital</TopBar>
       <div className="pt-[4.21rem] min-h-screen bg-white md:bg-[#FAFBFC]">
         <div className="px-[5%] sm:px-6 md:px-8 lg:px-12 py-6 md:py-10">
 

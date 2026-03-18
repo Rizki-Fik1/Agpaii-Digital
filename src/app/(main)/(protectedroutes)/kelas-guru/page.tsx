@@ -96,7 +96,7 @@ export default function KelasGuruListPage() {
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 text-white p-4 pt-6 md:rounded-b-2xl shadow-md">
         <div className="flex items-center justify-between mb-4 md:max-w-6xl md:mx-auto">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="p-1">
+            <button onClick={() => router.push("/")} className="p-1">
               <ChevronLeftIcon className="size-6 text-white" />
             </button>
             <div>
