@@ -112,7 +112,7 @@ export default function CBTListPage() {
       <div className="sticky top-0 z-20 bg-gradient-to-r from-teal-700 via-teal-600 to-teal-700 text-white shadow-lg">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <Link href="/other">
+            <Link href="/">
               <button className="p-2.5 rounded-full hover:bg-white/10 transition">
                 ←
               </button>

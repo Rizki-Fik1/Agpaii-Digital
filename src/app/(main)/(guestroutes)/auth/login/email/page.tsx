@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/utils/error-handler";
 import { FaWhatsapp } from "react-icons/fa";
 import AuthBrandingPanel from "@/components/auth/auth_branding_panel";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface LoginFormData {
   email: string;
@@ -21,6 +22,13 @@ export default function LoginEmailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { register, handleSubmit } = useForm<LoginFormData>();
+  const [goBack, setGoBack] = useState(false);
+
+  useEffect(() => {
+    if (goBack) {
+      router.replace("/getting-started");
+    }
+  }, [goBack, router]);
 
   const { mutate: submit, isPending: loading } = useMutation({
     mutationFn: async (data: LoginFormData) => {
@@ -46,18 +54,23 @@ export default function LoginEmailPage() {
       <div className="flex-1 flex flex-col bg-white md:bg-[#FAFBFC] relative">
         <div className="hidden md:block absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-green-300" />
 
-        {/* Header */}
-        <div className="flex items-center gap-4 px-6 py-6 md:px-12 lg:px-16 xl:px-20 md:py-8">
-          <button onClick={() => router.back()} className="p-1.5 hover:bg-slate-100 rounded-full transition-colors">
+        {/* Header — back button mobile only */}
+        <div className="relative z-10 flex items-center gap-3 px-6 py-6 md:px-12 lg:px-16 xl:px-20 md:py-8">
+          <button
+            onClick={() => {
+              setGoBack(true);
+            }}
+            className="md:hidden p-1.5 hover:bg-slate-100 rounded-full transition-colors"
+          >
             <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
           </button>
           <h1 className="text-lg font-medium text-gray-700 md:text-xl md:font-semibold">Login dengan Email</h1>
         </div>
 
         {/* Form */}
-        <div className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-16 xl:px-20 -mt-16 md:-mt-10">
+        <div className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-16 xl:px-20 -mt-16 md:-mt-10 pointer-events-none md:pointer-events-auto">
           <motion.div
-            className="md:max-w-md"
+            className="md:max-w-md pointer-events-auto"
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}

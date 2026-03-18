@@ -267,7 +267,7 @@ const LivePage: React.FC = () => {
         <div className="fixed top-0 left-20 lg:left-64 right-0 z-[9999] bg-gradient-to-r from-[#004D40] to-[#00897B] shadow-sm transition-all">
           <div className="px-8 py-4 flex items-center">
             <button
-              onClick={() => router.back()}
+              onClick={() => router.push("/")}
               className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
             >
               <ArrowLeftIcon className="size-5 text-white" />

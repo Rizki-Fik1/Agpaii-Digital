@@ -20,7 +20,7 @@ const DoaPage = () => {
 
 	return (
 		<div className="pt-[4.2rem]">
-			<TopBar withBackButton>Doa</TopBar>
+			<TopBar withBackButton href="/">Doa</TopBar>
 
 			<div className="p-4">
 				{isLoading && (

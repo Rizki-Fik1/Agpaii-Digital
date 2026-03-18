@@ -138,7 +138,7 @@ export default function RppDigitalPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-      <TopBar withBackButton>RPP Digital</TopBar>
+      <TopBar withBackButton href="/">RPP Digital</TopBar>
       
       {/* Tab Navigation - Always visible with sticky positioning */}
       <div className="sticky top-[4.21rem] flex relative text-center pt-3 pb-4 text-sm text-slate-700 border-b border-b-slate-300 bg-white flex-shrink-0 z-50">

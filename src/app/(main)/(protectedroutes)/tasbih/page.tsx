@@ -40,7 +40,7 @@ const TasbihDigital = () => {
 
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen pt-[5.21rem]">
-			<TopBar withBackButton>Tasbih Digital</TopBar>
+			<TopBar withBackButton href="/">Tasbih Digital</TopBar>
 			{/* Watch Display */}
 			<div className="mx-auto flex flex-col items-center">
 				<button
