@@ -108,19 +108,52 @@ export default function AssistantChat() {
     );
 
     setTimeout(() => {
+      // Cek apakah user klik tombol terkait admin / hubungi admin
+      const isAdminRequest = textMsg.toLowerCase().includes("admin") || textMsg.toLowerCase().includes("hubungi");
+
       if (foundQA) {
-        // Jawab sesuai daftar, lalu tampilkan kembali pilihan pertanyaan
-        setMessages((prev) => [
-          ...prev,
+        // Jawab sesuai daftar
+        const botMessages: IMessage[] = [
           {
             id: `bot_${Date.now()}`,
             sender: "bot",
             text: foundQA.answer,
           },
+        ];
+
+        // Kalau pertanyaan soal menghubungi admin, tampilkan juga tombol WA
+        if (foundQA.question.toLowerCase().includes("admin")) {
+          botMessages[0] = {
+            ...botMessages[0],
+            whatsappLink: true,
+          };
+        }
+
+        botMessages.push({
+          id: `bot_followup_${Date.now()}`,
+          sender: "bot",
+          text: "Mau tanya yang lain? Silakan pilih lagi ya! 😊",
+          options: [
+            ...PREDEFINED_QUESTIONS.map((q) => q.question),
+            "Hubungi Admin AGPAII",
+          ],
+        });
+
+        setMessages((prev) => [...prev, ...botMessages]);
+      } else if (isAdminRequest) {
+        // Permintaan terkait admin → langsung arahkan ke WhatsApp
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot_${Date.now()}`,
+            sender: "bot",
+            text: "Siap! Kamu bisa langsung hubungi tim Admin AGPAII lewat WhatsApp ya. Mereka siap bantu kamu! 💬👇",
+            whatsappLink: true,
+          },
           {
             id: `bot_followup_${Date.now()}`,
             sender: "bot",
-            text: "Mau tanya yang lain? Silakan pilih lagi ya! 😊",
+            text: "Atau kalau mau tanya yang lain, pilih aja dari daftar ini ya! 😊",
             options: [
               ...PREDEFINED_QUESTIONS.map((q) => q.question),
               "Hubungi Admin AGPAII",
