@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { ReactNode, Suspense } from "react";
 import DesktopSidebar from "@/components/nav/desktop_sidebar";
+import FloatingAssistant from "@/components/chat/FloatingAssistant";
 
 const excludedPages = ["/auth", "/getting-started", "/fetching"];
 
@@ -28,9 +29,13 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         >
           {children}
         </Suspense>
+        <FloatingAssistant />
       </div>
     </main>
   ) : (
-    <>{children}</>
+    <>
+      {children}
+      <FloatingAssistant />
+    </>
   );
 }
