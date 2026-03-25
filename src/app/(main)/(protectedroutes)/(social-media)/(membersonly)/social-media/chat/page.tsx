@@ -225,23 +225,51 @@ export default function ChatIndex() {
 						</div>
 					)}
 
-					{users.length === 0 && !loading ? (
-						<div className="flex flex-col items-center justify-center py-20">
-							<div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-								<ChatBubbleLeftRightIcon className="size-8 text-slate-300" />
+					{!loading && (
+						<div className="md:bg-white md:rounded-2xl md:border md:border-slate-100 md:shadow-sm md:overflow-hidden mb-4 pb-2 md:pb-0">
+							{/* AI Assistant Item */}
+							<div
+								className="py-4 px-4 md:px-6 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors group border-b border-slate-100 bg-teal-50/20"
+								onClick={() => router.push("/social-media/chat/assistant")}
+							>
+								<div className="flex items-center gap-3 flex-1 min-w-0">
+									<div className="relative flex-shrink-0">
+										<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#009788] to-teal-800 flex items-center justify-center shadow-sm">
+											<ChatBubbleLeftRightIcon className="size-6 text-white" />
+										</div>
+										<div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white" />
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="font-semibold text-slate-800 text-sm truncate flex items-center gap-2">
+											Asisten AI AGPAII
+											<span className="text-[9px] bg-[#009788] text-white px-1.5 py-0.5 rounded flex items-center justify-center font-bold tracking-wider">AI BOT</span>
+										</p>
+										<p className="text-slate-400 text-xs truncate mt-0.5">
+											Selalu online • Siap membantu Anda
+										</p>
+									</div>
+								</div>
+								<div className="flex flex-col items-end gap-1.5 flex-shrink-0 ml-3">
+									<span className="text-[11px] text-[#009788] font-medium whitespace-nowrap">Online</span>
+								</div>
 							</div>
-							<p className="text-slate-400 text-sm">
-								{search.trim() === ""
-									? "Belum ada percakapan"
-									: "Tidak ditemukan user yang cocok"}
-							</p>
-							{search.trim() === "" && (
-								<p className="text-slate-300 text-xs mt-1">Mulai chat dengan mencari pengguna</p>
-							)}
-						</div>
-					) : (
-						<div className="md:bg-white md:rounded-2xl md:border md:border-slate-100 md:shadow-sm md:overflow-hidden">
-							{users.map((u, idx) => {
+
+							{users.length === 0 ? (
+								<div className="flex flex-col items-center justify-center py-16">
+									<div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+										<ChatBubbleLeftRightIcon className="size-8 text-slate-300" />
+									</div>
+									<p className="text-slate-400 text-sm">
+										{search.trim() === ""
+											? "Belum ada percakapan dengan pengguna lain"
+											: "Tidak ditemukan user yang cocok"}
+									</p>
+									{search.trim() === "" && (
+										<p className="text-slate-300 text-xs mt-1">Mulai chat dengan mencari pengguna</p>
+									)}
+								</div>
+							) : (
+								users.map((u, idx) => {
 								const conversation = conversations.find((c) =>
 									c.participants.includes(u.id),
 								);
@@ -307,7 +335,7 @@ export default function ChatIndex() {
 										</div>
 									</div>
 								);
-							})}
+							}))}
 						</div>
 					)}
 				</div>
