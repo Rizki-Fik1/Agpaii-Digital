@@ -200,88 +200,99 @@ export default function Home() {
   return (
     <>
       {/* Modal components */}
-      <Modal show={modalShow && userStatus === Status.EXPIRED} onClose={toggleModal}>
-        <div className="flex flex-col items-center text-sm text-center">
-          <img src="/img/credit_card.svg" className="size-20 mt-6" alt="" />
-          <p className="text-slate-600 pt-3 mt-6">
-            Saatnya iuran 6 bulan untuk tetap <br /> mendapatkan fasilitas AGPAII Digital.
-          </p>
-          <div className="flex flex-col mt-3 gap-2 w-full">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleAcceptModal(Status.EXPIRED);
-              }}
-              className="px-4 py-2 w-full bg-[#009788] text-white border border-slate-300 rounded-md cursor-pointer"
-            >
-              Klik Disini
-            </button>
-            <button
-              onClick={toggleModal}
-              className="px-4 py-2 w-full bg-gray-200 rounded-md cursor-pointer"
-            >
-              Nanti Saja
-            </button>
-          </div>
-        </div>
-      </Modal>
+      {/* Modal Profile Pending */}
       <Modal show={modalShow && userStatus === Status.PENDING} onClose={toggleModal}>
-        <div className="flex flex-col items-center text-sm text-center ">
-          <img src="/img/profile.svg" className="size-32 mt-8" alt="" />
-          <p className="text-slate-600 text-left pt-3">
-            Lengkapi Profil Anda untuk mendapatkan
-            <span className="sm:hidden"> Nomor KTA</span>
-            <span className="max-sm:hidden">
-              <br />
-              Nomor KTA
-            </span>
+        <div className="p-6 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+             <svg className="size-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+             </svg>
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Profil Belum Lengkap!</h2>
+          <p className="text-sm text-slate-500 mb-4 text-left">
+            Mohon lengkapi bagian berikut untuk mendapatkan Nomor KTA dan akses penuh ke aplikasi:
           </p>
-          <ul className="list-disc flex flex-col w-full text-slate-500 text-left px-3 mt-1">
+          <ul className="list-disc w-full text-slate-600 text-sm text-left pl-5 space-y-1 mb-6">
             {profileMessage.map((msg, i) => (
               <li key={i}>{msg}</li>
             ))}
           </ul>
-          <div className="flex flex-col mt-6 gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full">
             <button
               onClick={(e) => {
                 e.preventDefault();
                 handleAcceptModal(Status.PENDING);
               }}
-              className="px-4 py-2 w-full bg-[#009788] text-white border border-slate-300 rounded-md cursor-pointer"
+              className="px-5 py-3 bg-[#009788] hover:bg-[#00867a] text-white rounded-xl text-sm font-bold transition shadow-sm cursor-pointer"
             >
-              Klik Disini
+              Klik Disini Untuk Melengkapi
             </button>
             <button
               onClick={toggleModal}
-              className="px-4 py-2 w-full bg-gray-200 rounded-md cursor-pointer"
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition cursor-pointer"
             >
               Nanti Saja
             </button>
           </div>
         </div>
       </Modal>
-      <Modal
-        className="w-[23rem] sm:w-5/6 "
-        show={modalShow && userStatus === Status.INACTIVE}
-        onClose={() => toggleModal()}
-      >
-        <div className="flex flex-col items-center text-sm text-center">
-          <img src="/img/credit_card.svg" className="size-20 mt-8" alt="" />
-          <p className="text-slate-600 pt-3 mt-6 pb-3">
-            Lakukan Iuran Pendaftaran untuk <br /> mengaktifkan akun
+
+      {/* Modal Iuran Expired */}
+      <Modal show={modalShow && userStatus === Status.EXPIRED} onClose={toggleModal}>
+        <div className="p-6 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+             <svg className="size-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Masa Aktif Habis</h2>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            Saatnya iuran 6 bulan untuk tetap mendapatkan fasilitas dan akses penuh AGPAII Digital.
           </p>
-          <div className="flex flex-col mt-3 gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full">
             <button
-              onClick={() => handleAcceptModal(Status.INACTIVE)}
-              className="px-4 py-2 w-full bg-[#009788] text-white border border-slate-300 rounded-md cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                handleAcceptModal(Status.EXPIRED);
+              }}
+              className="px-5 py-3 bg-[#009788] hover:bg-[#00867a] text-white rounded-xl text-sm font-bold transition shadow-sm cursor-pointer"
             >
-              Klik Disini
+              Klik Disini Untuk Perpanjang
             </button>
             <button
               onClick={toggleModal}
-              className="px-4 py-2 w-full bg-gray-200 rounded-md cursor-pointer"
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition cursor-pointer"
             >
               Nanti Saja
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal Akun Belum Aktif (Inactive) */}
+      <Modal show={modalShow && userStatus === Status.INACTIVE} onClose={toggleModal}>
+        <div className="p-6 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+             <svg className="size-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+             </svg>
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Akses Terbatas</h2>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            Lakukan iuran pendaftaran untuk mengaktifkan akun dan mendapatkan KTA Digital Anda.
+          </p>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              onClick={() => handleAcceptModal(Status.INACTIVE)}
+              className="px-5 py-3 bg-[#009788] hover:bg-[#00867a] text-white rounded-xl text-sm font-bold transition shadow-sm cursor-pointer"
+            >
+              Klik Disini Untuk Aktivasi
+            </button>
+            <button
+              onClick={toggleModal}
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition cursor-pointer"
+            >
+              Tutup
             </button>
           </div>
         </div>

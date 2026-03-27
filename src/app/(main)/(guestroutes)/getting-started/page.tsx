@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { EnvelopeIcon, IdentificationIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
+import AuthBrandingPanel from "@/components/auth/auth_branding_panel";
 
 export default function GettingStarted() {
   return (
@@ -51,26 +52,36 @@ export default function GettingStarted() {
         >
           <div className="w-full max-w-sm space-y-4">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
-              <Link href="/auth/login/email" className="flex items-center justify-center gap-3 w-full py-4 px-5 rounded-full bg-[#00DB81] text-white text-base font-semibold hover:bg-[#00c573] transition shadow-lg">
+              <Link href="/auth/login" className="flex items-center justify-center gap-3 w-full py-4 px-5 rounded-full bg-[#00DB81] text-white text-base font-semibold hover:bg-[#00c573] transition shadow-lg">
                 <EnvelopeIcon className="w-6 h-6 flex-shrink-0" />
-                <span>Login dengan email</span>
+                <span>Masuk ke Akun</span>
               </Link>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.6 }}>
-              <Link href="/auth/login/nik" className="flex items-center justify-center gap-3 w-full py-4 px-5 rounded-full bg-[#FDFDFD] text-black text-base font-semibold hover:bg-gray-100 transition shadow-lg">
-                <IdentificationIcon className="w-6 h-6 flex-shrink-0" />
-                <span>Login dengan NIK</span>
+            
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.8 }}>
+              <Link href="/auth/register" className="block w-full py-4 bg-[#01925B] text-white rounded-full text-base font-semibold text-center hover:bg-[#1a1a1a] transition shadow-lg">
+                Daftar Akun Baru
               </Link>
             </motion.div>
+
             <motion.div className="flex items-center gap-4 py-2" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.7 }}>
               <div className="flex-1 h-px bg-white/30"></div>
               <span className="text-white/80 font-medium text-sm">OR</span>
               <div className="flex-1 h-px bg-white/30"></div>
             </motion.div>
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.8 }}>
-              <Link href="/auth/register" className="block w-full py-4 bg-[#01925B] text-white rounded-full text-base font-semibold text-center hover:bg-[#1a1a1a] transition shadow-lg">
-                Daftar Akun
-              </Link>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.9 }}>
+              <a 
+                href="https://api.whatsapp.com/send/?phone=628567854448&text=Assalamualaikum%20Admin%20AGPAII%2C%20saya%20ingin%20bertanya%20%3A&type=phone_number&app_absent=0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 text-white/70 hover:text-white transition-colors text-sm font-medium"
+              >
+                <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                <span>Ada kendala? Hubungi Admin</span>
+              </a>
             </motion.div>
           </div>
         </motion.div>
@@ -81,124 +92,7 @@ export default function GettingStarted() {
       {/* ============================================= */}
       <div className="hidden md:flex w-full min-h-screen">
         {/* ---- LEFT PANEL: Immersive Branding ---- */}
-        <div className="w-[55%] lg:w-[52%] relative overflow-hidden flex flex-col"
-          style={{ background: "linear-gradient(145deg, #004D40 0%, #00695C 35%, #00897B 70%, #26A69A 100%)" }}
-        >
-          {/* Animated mesh background */}
-          <div className="absolute inset-0 opacity-[0.07]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 25% 25%, white 1px, transparent 1px),
-                                radial-gradient(circle at 75% 75%, white 1px, transparent 1px)`,
-              backgroundSize: "60px 60px",
-            }}
-          />
-          
-          {/* Large decorative blobs */}
-          <motion.div
-            className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)" }}
-            animate={{ scale: [1, 1.1, 1], rotate: [0, 5, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(0,219,129,0.12) 0%, transparent 70%)" }}
-            animate={{ scale: [1, 1.15, 1] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-
-          {/* Content */}
-          <div className="relative z-10 flex flex-col flex-1 p-10 lg:p-14 xl:p-16">
-            {/* Top: Logo */}
-            <motion.div
-              className="flex items-center gap-3"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <img src="/img/agpai-logo.png" alt="AGPAII Logo" className="w-14 h-14 lg:w-16 lg:h-16 object-contain drop-shadow-xl" />
-              <div>
-                <p className="text-white/90 font-bold text-lg tracking-tight">AGPAII</p>
-                <p className="text-white/50 text-xs tracking-widest uppercase">Digital Platform</p>
-              </div>
-            </motion.div>
-
-            {/* Center: Hero copy */}
-            <div className="flex-1 flex flex-col -mb-10 justify-center">
-              <motion.div
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
-                <p className="text-emerald-300/80 text-sm font-semibold tracking-widest uppercase mb-4">
-                  Assalamualaikum Warahmatullahi Wabarakatuh
-                </p>
-                <h1 className="text-4xl lg:text-5xl xl:text-[3.4rem] font-extrabold text-white leading-[1.15] tracking-tight">
-                  Portal AGPAII Digital <br />
-                  <span className="bg-gradient-to-r from-emerald-300 to-green-200 bg-clip-text text-transparent">
-                    Asosiasi Guru PAI Indonesia
-                  </span>
-                </h1>
-              </motion.div>
-
-              {/* Feature highlights */}
-              <motion.div
-                className="mt-18 lg:mt-20 -mb-10 grid grid-cols-3 pb-10 gap-4 max-w-lg"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                {[
-                  { label: "KTA Digital", value: "Kartu Anggota" },
-                  { label: "Modul Ajar", value: "Perangkat Guru" },
-                  { label: "Sosial Media", value: "Komunitas PAI" },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.1] rounded-2xl p-4 hover:bg-white/[0.12] transition-colors cursor-default"
-                    whileHover={{ y: -2 }}
-                  >
-                    <p className="text-white font-bold text-sm">{item.label}</p>
-                    <p className="text-white/40 text-xs mt-1">{item.value}</p>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Bottom: Stats */}
-            <motion.div
-              className="flex items-center gap-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
-            >
-              <div className="flex -space-x-3">
-                {["AG", "BL", "SI", "KT"].map((initials, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full border-2 border-[#004D40] flex items-center justify-center text-white text-[10px] font-bold shadow-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${
-                        ["#00BFA5", "#00897B", "#4DB6AC", "#26A69A"][i]
-                      }, ${["#00897B", "#004D40", "#00695C", "#00796B"][i]})`,
-                    }}
-                  >
-                    {initials}
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="text-white font-bold text-xl">10,000+</p>
-                <p className="text-white/40 text-xs">Anggota Aktif Nasional</p>
-              </div>
-              <div className="h-8 w-px bg-white/10 mx-2" />
-              <div>
-                <p className="text-white font-bold text-xl">34</p>
-                <p className="text-white/40 text-xs">Provinsi</p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
+        <AuthBrandingPanel />
 
         {/* ---- RIGHT PANEL: Auth Actions ---- */}
         <div className="w-[45%] lg:w-[48%] bg-[#FAFBFC] flex flex-col justify-center relative">
@@ -212,7 +106,7 @@ export default function GettingStarted() {
               transition={{ duration: 0.7, delay: 0.3 }}
             >
               {/* Greeting */}
-              <div className="mb-10 lg:mb-12">
+              <div className="mb-10 lg:mb-12 text-center md:text-left">
                 <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Platform Aktif
@@ -262,33 +156,22 @@ export default function GettingStarted() {
                 </Link>
               </div>
 
-              {/* Divider */}
-              <div className="flex items-center gap-4 my-8">
-                <div className="flex-1 h-px bg-slate-200"></div>
-                <span className="text-slate-300 text-xs font-medium uppercase tracking-wider">atau langsung</span>
-                <div className="flex-1 h-px bg-slate-200"></div>
-              </div>
-
-              {/* Quick Login Options */}
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  href="/auth/login/email"
-                  className="flex flex-col items-center gap-2 py-4 px-4 rounded-2xl bg-white border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all group"
+              {/* Hubungi Admin Section */}
+              <div className="mt-10 pt-8 border-t border-slate-100">
+                <p className="text-sm text-slate-400 text-center mb-4 italic">Butuh bantuan pendaftaran?</p>
+                <a 
+                  href="https://api.whatsapp.com/send/?phone=628567854448&text=Assalamualaikum%20Admin%20AGPAII%2C%20saya%20ingin%20bertanya%20%3A&type=phone_number&app_absent=0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100 transition-all group"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-                    <EnvelopeIcon className="w-4 h-4 text-emerald-600" />
+                  <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center group-hover:bg-[#25D366]/20 transition-colors">
+                    <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
                   </div>
-                  <span className="text-xs font-medium text-slate-600 group-hover:text-emerald-700 transition-colors">Login Email</span>
-                </Link>
-                <Link
-                  href="/auth/login/nik"
-                  className="flex flex-col items-center gap-2 py-4 px-4 rounded-2xl bg-white border border-slate-100 hover:border-teal-200 hover:bg-teal-50/50 transition-all group"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-teal-100 flex items-center justify-center group-hover:bg-teal-200 transition-colors">
-                    <IdentificationIcon className="w-4 h-4 text-teal-600" />
-                  </div>
-                  <span className="text-xs font-medium text-slate-600 group-hover:text-teal-700 transition-colors">Login NIK</span>
-                </Link>
+                  Hubungi Admin AGPAII
+                </a>
               </div>
 
               {/* Footer hint */}

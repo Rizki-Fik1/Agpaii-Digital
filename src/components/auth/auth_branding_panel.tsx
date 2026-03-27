@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export default function AuthBrandingPanel() {
   return (
     <div
-      className="hidden md:flex w-[55%] lg:w-[52%] relative overflow-hidden flex-col min-h-screen"
+      className="hidden md:flex w-[55%] lg:w-[52%] relative overflow-hidden flex-col min-h-screen flex-shrink-0"
       style={{ background: "linear-gradient(145deg, #004D40 0%, #00695C 35%, #00897B 70%, #26A69A 100%)" }}
     >
       {/* Animated mesh background */}
@@ -41,7 +41,11 @@ export default function AuthBrandingPanel() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <img src="/img/agpai-logo.png" alt="AGPAII Logo" className="w-14 h-14 lg:w-16 lg:h-16 object-contain drop-shadow-xl" />
+          <img
+            src="/img/agpai-logo.png"
+            alt="AGPAII Logo"
+            className="w-14 h-14 lg:w-16 lg:h-16 object-contain drop-shadow-xl"
+          />
           <div>
             <p className="text-white/90 font-bold text-lg tracking-tight">AGPAII</p>
             <p className="text-white/50 text-xs tracking-widest uppercase">Digital Platform</p>
@@ -49,7 +53,7 @@ export default function AuthBrandingPanel() {
         </motion.div>
 
         {/* Center: Hero copy */}
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 flex flex-col -mb-10 justify-center">
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -59,22 +63,16 @@ export default function AuthBrandingPanel() {
               Assalamualaikum Warahmatullahi Wabarakatuh
             </p>
             <h1 className="text-4xl lg:text-5xl xl:text-[3.4rem] font-extrabold text-white leading-[1.15] tracking-tight">
-              Layanan Digital
-              <br />
-              Terpadu untuk
-              <br />
+              Portal AGPAII Digital <br />
               <span className="bg-gradient-to-r from-emerald-300 to-green-200 bg-clip-text text-transparent">
-                Guru PAI Indonesia
+                Asosiasi Guru PAI Indonesia
               </span>
             </h1>
-            <p className="mt-6 lg:mt-8 text-white/60 text-sm lg:text-base leading-relaxed max-w-md">
-              Kelola KTA Digital, akses modul pembelajaran, bergabung dengan komunitas guru, dan nikmati berbagai layanan AGPAII dari satu platform.
-            </p>
           </motion.div>
 
           {/* Feature highlights */}
           <motion.div
-            className="mt-10 lg:mt-12 grid grid-cols-3 gap-4 max-w-lg"
+            className="mt-18 lg:mt-20 -mb-10 grid grid-cols-3 pb-10 gap-4 max-w-lg"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
@@ -132,3 +130,4 @@ export default function AuthBrandingPanel() {
     </div>
   );
 }
+

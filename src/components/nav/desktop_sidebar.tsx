@@ -39,7 +39,12 @@ import {
   ArrowRightStartOnRectangleIcon
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { getUserStatus } from "@/utils/function/function";
+import { 
+  getUserStatus, 
+  isInformationProfileCompleted, 
+  isLocationProfileCompleted, 
+  isPnsStatusCompleted 
+} from "@/utils/function/function";
 import { Status } from "@/constant/constant";
 
 // Constants (dapat disesuaikan jika import dirasa beda dengan di komponen aslinya)
@@ -49,6 +54,8 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [showRestrictionModal, setShowRestrictionModal] = useState(false);
 
   const handleLogout = async () => {
     localStorage.removeItem("access_token");
@@ -75,7 +82,15 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
   if (isGuestPage) return null;
 
   const userStatus = getUserStatus(auth);
-  const isRestricted = userStatus === Status.EXPIRED || userStatus === Status.INACTIVE;
+  const isRestricted = userStatus === Status.EXPIRED || userStatus === Status.INACTIVE || userStatus === Status.PENDING;
+
+  // Profile completion status for messages
+  const profileMessage: string[] = [];
+  if (userStatus === Status.PENDING) {
+    if (!isInformationProfileCompleted(auth)) profileMessage.push("Informasi Umum");
+    if (!isLocationProfileCompleted(auth)) profileMessage.push("Provinsi / Kota / Kecamatan");
+    if (!isPnsStatusCompleted(auth)) profileMessage.push("Status PNS");
+  }
 
   let navGroups: { group: string | null; items: any[] }[] = [];
 
@@ -380,7 +395,14 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
                 return (
                   <Link
                     key={i}
-                    href={blocked ? "/" : item.link}
+                    href={blocked ? "#" : item.link}
+                    onClick={(e) => {
+                      if (blocked) {
+                        e.preventDefault();
+                        if (userStatus === Status.PENDING) setShowPendingModal(true);
+                        else setShowRestrictionModal(true);
+                      }
+                    }}
                     className={clsx(
                       "flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 rounded-xl transition-all duration-200 group relative",
                       item.active
@@ -440,6 +462,80 @@ export default function DesktopSidebar({ className = "" }: { className?: string 
           </div>
         </button>
       </div>
+
+      {/* MODALS */}
+      
+      {/* Pending Profile Modal */}
+      <Modal show={showPendingModal} onClose={() => setShowPendingModal(false)}>
+        <div className="p-6 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+             <UserIcon className="size-8 text-blue-500" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">Profil Belum Lengkap!</h2>
+          <p className="text-sm text-slate-500 mb-4 text-left">
+            Mohon lengkapi bagian berikut untuk mendapatkan Nomor KTA dan akses penuh ke aplikasi:
+          </p>
+          <ul className="list-disc w-full text-slate-600 text-sm text-left pl-5 space-y-1 mb-6">
+            {profileMessage.map((msg, i) => (
+              <li key={i}>{msg}</li>
+            ))}
+          </ul>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              onClick={() => {
+                setShowPendingModal(false);
+                router.push("/profile/edit");
+              }}
+              className="px-5 py-3 bg-[#009788] hover:bg-[#00867a] text-white rounded-xl text-sm font-bold transition shadow-sm"
+            >
+              Klik Disini Untuk Melengkapi
+            </button>
+            <button
+              onClick={() => setShowPendingModal(false)}
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition"
+            >
+              Nanti Saja
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Restriction Modal (Inactive/Expired) */}
+      <Modal show={showRestrictionModal} onClose={() => setShowRestrictionModal(false)}>
+        <div className="p-6 flex flex-col items-center text-center">
+          <div className={clsx(
+              "w-16 h-16 rounded-full flex items-center justify-center mb-4",
+              userStatus === Status.EXPIRED ? "bg-orange-100" : "bg-red-100"
+          )}>
+             {userStatus === Status.EXPIRED ? <ClockIcon className="size-8 text-orange-500" /> : <CreditCardIcon className="size-8 text-red-500" />}
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 mb-2">
+            {userStatus === Status.EXPIRED ? "Masa Aktif Habis" : "Akses Terbatas"}
+          </h2>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            {userStatus === Status.EXPIRED 
+              ? "Iuran keanggotaan Anda telah berakhir. Perpanjang kembali untuk mendapatkan akses fitur ini."
+              : "Lakukan iuran pendaftaran untuk mengaktifkan fitur dan KTA Digital Anda."}
+          </p>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              onClick={() => {
+                setShowRestrictionModal(false);
+                router.push("/iuran");
+              }}
+              className="px-5 py-3 bg-[#009788] hover:bg-[#00867a] text-white rounded-xl text-sm font-bold transition shadow-sm"
+            >
+              Bayar Sekarang
+            </button>
+            <button
+              onClick={() => setShowRestrictionModal(false)}
+              className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold transition"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Logout Confirmation Modal */}
       <Modal show={showLogoutModal} onClose={() => setShowLogoutModal(false)}>
