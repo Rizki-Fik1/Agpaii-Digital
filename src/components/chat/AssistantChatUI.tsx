@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import TopBar from "@/components/nav/topbar";
 import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/utils/context/auth_context";
+import { STUDENT_ROLE_ID, MITRA_ROLE_ID } from "@/constants/student-data";
 
 interface IMessage {
   id: string;
@@ -14,7 +16,7 @@ interface IMessage {
   whatsappLink?: boolean;
 }
 
-const PREDEFINED_QUESTIONS = [
+const QUESTIONS_GURU = [
   {
     question: "Bagaimana cara mendaftar akun?",
     answer: "Gampang banget kok! 😊 Tinggal balik ke halaman login, terus klik tombol \"Daftar Akun\". Kamu bisa daftar pakai Email atau NIK — tinggal ikutin aja form yang muncul, isi data diri, dan akun kamu langsung siap dipakai! ✅",
@@ -57,6 +59,48 @@ const PREDEFINED_QUESTIONS = [
   },
 ];
 
+const QUESTIONS_SISWA = [
+  {
+    question: "Bagaimana cara bergabung ke kelas?",
+    answer: "Gampang banget! 😊 Buka menu Kelas, lalu klik tombol gabung dan masukkan kode kelas yang diberikan oleh gurumu. Kamu bakal langsung masuk ke kelas tersebut! 📚",
+  },
+  {
+    question: "Bagaimana cara melihat tugas dan materi?",
+    answer: "Setelah kamu masuk ke dalam Kelas, semua materi pelajaran dan tugas akan tampil di sana. Tinggal klik materinya buat baca atau tonton, dan klik tugasnya kalau mau ngerjain. Semangat belajarnya ya! 🚀",
+  },
+  {
+    question: "Bagaimana cara berdiskusi di forum?",
+    answer: "Di menu Forum, kamu bisa bikin postingan baru buat nanya-nanya, atau ikut ngobrol di postingan teman/guru kamu dengan ngasih komentar. Jangan malu bertanya ya! 💬",
+  },
+  {
+    question: "Bagaimana cara ubah foto profil?",
+    answer: "Langsung aja masuk ke menu Profil, terus klik tombol edit. Di situ kamu bisa ganti foto, ubah nama, atau lengkapi data diri kamu biar makin keren! ✨",
+  },
+  {
+    question: "Bagaimana cara menghubungi Admin?",
+    answer: "Kalau ada error atau kamu butuh bantuan admin, langsung aja chat tim kami lewat WhatsApp ya! 💬",
+  },
+];
+
+const QUESTIONS_MITRA = [
+  {
+    question: "Bagaimana cara melihat laporan dashboard?",
+    answer: "Halo Mitra! 👋 Semua statistik, laporan transaksi, dan grafik bisa Anda temukan langsung di menu Mitra Dashboard. Tampilannya otomatis diperbarui untuk memudahkan pemantauan.",
+  },
+  {
+    question: "Bagaimana cara mengubah profil Mitra?",
+    answer: "Silakan buka menu Profil Mitra. Di sana Anda bisa mengganti logo mitra, nama brand, serta mengupdate informasi kontak bisnis Anda. 🏢",
+  },
+  {
+    question: "Bagaimana cara mengelola layanan/transaksi?",
+    answer: "Seluruh kelola layanan dapat diakses melalui Dashboard Mitra. Pastikan Anda memeriksa tab masing-masing layanan untuk melihat riwayat dan detail transaksinya. 📊",
+  },
+  {
+    question: "Bagaimana cara menghubungi Admin?",
+    answer: "Jika butuh dukungan teknis atau bantuan khusus terkait akun Mitra, jangan ragu untuk menghubungi tim Admin AGPAII melalui WhatsApp! 🙏",
+  },
+];
+
 const ADMIN_WA_NUMBER = "628567854448";
 const ADMIN_LINK = `https://wa.me/${ADMIN_WA_NUMBER}?text=Halo%20Admin%20AGPAII%20Digital,%20saya%20butuh%20bantuan.`;
 
@@ -66,24 +110,38 @@ interface Props {
 }
 
 export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
+  const { auth, authLoading } = useAuth();
+  
+  const roleId = Number(auth?.role_id ?? auth?.role?.id ?? auth?.role);
+  const isStudent = roleId === STUDENT_ROLE_ID;
+  const isMitra = roleId === MITRA_ROLE_ID;
+
+  const activeQuestions = isStudent ? QUESTIONS_SISWA : isMitra ? QUESTIONS_MITRA : QUESTIONS_GURU;
+
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [expandedOptions, setExpandedOptions] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Guard untuk menunggu auth load
+  const [initDone, setInitDone] = useState(false);
 
   useEffect(() => {
+    if (authLoading || !auth || initDone) return;
+
     setMessages([
       {
         id: "msg_intro",
         sender: "bot",
         text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AI yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, langsung aja pilih pertanyaan di bawah ya! 👇",
         options: [
-          ...PREDEFINED_QUESTIONS.map((q) => q.question),
+          ...activeQuestions.map((q) => q.question),
           "Aplikasi error / Butuh bantuan admin",
         ],
       },
     ]);
-  }, []);
+    setInitDone(true);
+  }, [authLoading, auth, activeQuestions, initDone]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,7 +162,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
     ]);
     setInputText("");
 
-    const foundQA = PREDEFINED_QUESTIONS.find(
+    const foundQA = activeQuestions.find(
       (qa) => qa.question.toLowerCase() === textMsg.toLowerCase()
     );
 
@@ -132,7 +190,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
           sender: "bot",
           text: "Mau tanya yang lain? Silakan pilih lagi ya! 😊",
           options: [
-            ...PREDEFINED_QUESTIONS.map((q) => q.question),
+            ...activeQuestions.map((q) => q.question),
             "Hubungi Admin AGPAII",
           ],
         });
@@ -152,7 +210,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
             sender: "bot",
             text: "Atau kalau mau tanya yang lain, pilih aja dari daftar ini ya! 😊",
             options: [
-              ...PREDEFINED_QUESTIONS.map((q) => q.question),
+              ...activeQuestions.map((q) => q.question),
               "Hubungi Admin AGPAII",
             ],
           },
@@ -172,7 +230,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
             sender: "bot",
             text: "Atau kalau mau tanya yang lain, pilih aja dari daftar ini ya! 😊",
             options: [
-              ...PREDEFINED_QUESTIONS.map((q) => q.question),
+              ...activeQuestions.map((q) => q.question),
               "Hubungi Admin AGPAII",
             ],
           },

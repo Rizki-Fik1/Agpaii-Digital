@@ -620,48 +620,76 @@ export default function BankSoalPage() {
                   Pilihan Jawaban (klik huruf untuk pilih jawaban benar)
                 </label>
                 <div className="space-y-2">
-                  {formData.options.map((opt, optIndex) => (
-                    <div key={optIndex} className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFormData({ ...formData, correctAnswer: optIndex })
-                        }
-                        className={clsx(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition flex-shrink-0",
-                          formData.correctAnswer === optIndex
-                            ? "bg-green-500 text-white"
-                            : "bg-white border-2 border-slate-300 text-slate-500 hover:border-green-400"
-                        )}
-                      >
-                        {String.fromCharCode(65 + optIndex)}
-                      </button>
-                      <input
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                          const newOptions = [...formData.options];
-                          newOptions[optIndex] = e.target.value;
-                          setFormData({ ...formData, options: newOptions });
-                        }}
-                        placeholder={`Pilihan ${String.fromCharCode(
-                          65 + optIndex
-                        )}`}
-                        className={clsx(
-                          "flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                          formData.correctAnswer === optIndex
-                            ? "border-green-400 bg-green-50"
-                            : "border-slate-300"
-                        )}
-                      />
+                    {formData.options.map((opt, optIndex) => (
+                      <div key={optIndex} className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, correctAnswer: optIndex })
+                          }
+                          className={clsx(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition flex-shrink-0",
+                            formData.correctAnswer === optIndex
+                              ? "bg-green-500 text-white"
+                              : "bg-white border-2 border-slate-300 text-slate-500 hover:border-green-400"
+                          )}
+                        >
+                          {String.fromCharCode(65 + optIndex)}
+                        </button>
+                        <input
+                          type="text"
+                          value={opt}
+                          onChange={(e) => {
+                            const newOptions = [...formData.options];
+                            newOptions[optIndex] = e.target.value;
+                            setFormData({ ...formData, options: newOptions });
+                          }}
+                          placeholder={`Pilihan ${String.fromCharCode(
+                            65 + optIndex
+                          )}`}
+                          className={clsx(
+                            "flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20",
+                            formData.correctAnswer === optIndex
+                              ? "border-green-400 bg-green-50"
+                              : "border-slate-300"
+                          )}
+                        />
 
-                      {formData.correctAnswer === optIndex && (
-                        <CheckCircleSolidIcon className="size-5 text-green-500 flex-shrink-0" />
-                      )}
-                    </div>
-                  ))}
+                        {formData.options.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newOptions = formData.options.filter((_, i) => i !== optIndex);
+                              let newCorrect = formData.correctAnswer;
+                              if (formData.correctAnswer === optIndex) {
+                                newCorrect = -1;
+                              } else if (formData.correctAnswer > optIndex) {
+                                newCorrect--;
+                              }
+                              setFormData({ ...formData, options: newOptions, correctAnswer: newCorrect });
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded transition"
+                          >
+                            <TrashIcon className="size-4" />
+                          </button>
+                        )}
+
+                        {formData.correctAnswer === optIndex && (
+                          <CheckCircleSolidIcon className="size-5 text-green-500 flex-shrink-0" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, options: [...formData.options, ""] })}
+                    className="mt-3 flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition"
+                  >
+                    <PlusCircleIcon className="size-4" />
+                    Tambah Opsi
+                  </button>
                 </div>
-              </div>
               {/* Score */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
