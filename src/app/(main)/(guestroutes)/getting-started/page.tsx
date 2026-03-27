@@ -134,12 +134,9 @@ export default function GettingStarted() {
                   Assalamualaikum Warahmatullahi Wabarakatuh
                 </p>
                 <h1 className="text-4xl lg:text-5xl xl:text-[3.4rem] font-extrabold text-white leading-[1.15] tracking-tight">
-                  Layanan Digital
-                  <br />
-                  untuk
-                  <br />
+                  Portal AGPAII Digital <br />
                   <span className="bg-gradient-to-r from-emerald-300 to-green-200 bg-clip-text text-transparent">
-                    Guru PAI Indonesia
+                    Asosiasi Guru PAI Indonesia
                   </span>
                 </h1>
               </motion.div>
