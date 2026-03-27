@@ -30,6 +30,8 @@ const schema = z
 
 type Fields = z.infer<typeof schema>;
 
+import { motion } from "framer-motion";
+
 export default function VerifyPage() {
   const router = useRouter();
   const [credentials, setCredentials] = useState<Record<string, any>>({
@@ -46,6 +48,7 @@ export default function VerifyPage() {
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: zodResolver(schema) });
+  
   useEffect(() => {
     if (!!params.get("email"))
       setCredentials((c) => ({ ...c, email: params.get("email") }));
@@ -99,128 +102,127 @@ export default function VerifyPage() {
       },
       onSuccess: async (data) => {
         toast.success(data.message);
-        router.push("/auth/login/email");
+        router.push("/auth/login");
       },
     });
 
-  return !verifySuccess ? (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-6">
-        <Link href="/auth/password-reset" className="p-1">
-          <ChevronLeftIcon className="w-6 h-6 text-gray-700" />
-        </Link>
-        <h1 className="text-xl font-medium text-gray-700">Verifikasi OTP</h1>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col px-6 pt-8">
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Masukkan Kode OTP
-            </h2>
-            <p className="text-gray-600">
-              Kode verifikasi telah dikirim ke email Anda
-            </p>
-          </div>
-
-          <OTPInput
-            onComplete={(num) => setCredentials((c) => ({ ...c, code: num }))}
-            length={4}
-          />
-        </div>
-
-        {/* Bottom Button */}
-        <div className="mt-auto pb-8">
-          {isPending ? (
-            <div className="flex justify-center py-4">
-              <Loader className="size-8" />
-            </div>
-          ) : (
-            <button
-              onClick={() => verify()}
-              className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition"
-            >
-              Verifikasi
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-6">
-        <button onClick={() => router.back()} className="p-1">
-          <ChevronLeftIcon className="w-6 h-6 text-gray-700" />
-        </button>
-        <h1 className="text-xl font-medium text-gray-700">Reset Password</h1>
-      </div>
-
-      {/* Main Content */}
-      <form
-        onSubmit={handleSubmit(changePassword as any)}
-        className="flex-1 flex flex-col px-6 pt-8"
+  return (
+    <div className="flex flex-col px-6 md:px-12 lg:px-16 xl:px-20 pb-10">
+      <motion.div
+        className="md:max-w-xl md:mx-auto md:w-full"
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-              Buat Password Baru
-            </h2>
-            <p className="text-gray-600">
-              Masukkan password baru untuk akun Anda
-            </p>
-          </div>
-
-          {/* Password Input */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Password Baru
-            </label>
-            <FormControl
-              className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
-              inputType="password"
-              type={"input"}
-              name="password"
-              placeholder="Minimal 8 karakter"
-              register={register}
-            />
-          </div>
-
-          {/* Confirm Password Input */}
-          <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Konfirmasi Password
-            </label>
-            <FormControl
-              className="w-full px-4 py-3 border-2 border-[#00AF70] rounded-lg focus:outline-none focus:border-[#00AF70] placeholder-gray-400"
-              inputType="password"
-              type={"input"}
-              name="password_confirmation"
-              placeholder="Ulangi password"
-              register={register}
-              error={errors["password_confirmation"]}
-            />
-          </div>
-        </div>
-
-        {/* Bottom Button */}
-        <div className="mt-auto pb-8">
-          {changePasswordPending ? (
-            <div className="flex justify-center py-4">
-              <Loader className="size-8" />
+        {!verifySuccess ? (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">
+                Masukkan Kode OTP 📩
+              </h2>
+              <p className="text-slate-500 text-sm md:text-base">
+                Kami telah mengirimkan 4 digit kode verifikasi ke email <span className="font-bold text-slate-700">{credentials.email}</span>
+              </p>
             </div>
-          ) : (
-            <button
-              type="submit"
-              className="w-full py-4 bg-[#00DB81] text-white font-medium rounded-full hover:bg-[#00c573] transition"
-            >
-              Simpan Password
-            </button>
-          )}
-        </div>
-      </form>
+
+            <div className="flex justify-center py-4">
+              <OTPInput
+                onComplete={(num) => setCredentials((c) => ({ ...c, code: num }))}
+                length={4}
+              />
+            </div>
+
+            <div className="pt-6">
+              {isPending ? (
+                <div className="flex justify-center py-4">
+                  <Loader className="size-10" />
+                </div>
+              ) : (
+                <button
+                  onClick={() => verify()}
+                  disabled={!credentials.code || credentials.code.length < 4}
+                  className="w-full py-4 bg-[#009788] hover:bg-[#00867a] disabled:bg-slate-100 disabled:text-slate-300 text-white font-bold rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  Verifikasi Sekarang
+                </button>
+              )}
+              
+              <p className="text-center text-sm text-slate-400 mt-6">
+                Tidak menerima kode? <button className="text-[#009788] font-bold hover:underline">Kirim Ulang</button>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSubmit(changePassword as any)}
+            className="space-y-8"
+          >
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">
+                Buat Password Baru 🔒
+              </h2>
+              <p className="text-slate-500 text-sm md:text-base">
+                Gunakan kombinasi yang kuat agar akun Anda tetap aman.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-slate-700 font-medium mb-2 text-sm">
+                  Password Baru
+                </label>
+                <div className="relative group">
+                   <FormControl
+                    className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-[#009788] transition-all outline-none bg-white placeholder-gray-400"
+                    inputType="password"
+                    type={"input"}
+                    name="password"
+                    placeholder="Minimal 8 karakter"
+                    register={register}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-medium mb-2 text-sm">
+                  Konfirmasi Password
+                </label>
+                <div className="relative group">
+                  <FormControl
+                    className="w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl focus:border-[#009788] transition-all outline-none bg-white placeholder-gray-400"
+                    inputType="password"
+                    type={"input"}
+                    name="password_confirmation"
+                    placeholder="Ulangi password baru"
+                    register={register}
+                    error={errors["password_confirmation"]}
+                  />
+                </div>
+                {errors["password_confirmation"] && (
+                   <p className="text-red-500 text-xs mt-2 italic flex items-center gap-1">
+                      <span>⚠️</span> {errors["password_confirmation"].message as string}
+                   </p>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-4">
+              {changePasswordPending ? (
+                <div className="flex justify-center py-4">
+                  <Loader className="size-10" />
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-[#009788] hover:bg-[#00867a] text-white font-bold rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  Simpan Password & Login
+                </button>
+              )}
+            </div>
+          </form>
+        )}
+      </motion.div>
     </div>
   );
 }
