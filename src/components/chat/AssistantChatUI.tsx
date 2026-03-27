@@ -22,40 +22,12 @@ const QUESTIONS_GURU = [
     answer: "Gampang banget kok! 😊 Tinggal balik ke halaman login, terus klik tombol \"Daftar Akun\". Kamu bisa daftar pakai Email atau NIK — tinggal ikutin aja form yang muncul, isi data diri, dan akun kamu langsung siap dipakai! ✅",
   },
   {
-    question: "Bagaimana cara membuat postingan/diskusi?",
+    question: "Bagaimana cara membayar iuran?",
+    answer: "Untuk membayar iuran, silakan buka menu KTA Digital di halaman utama 🪪. Di situ pilih tombol Iuran atau klik banner iuran yang muncul. Kamu bisa pilih pembayaran iuran pendaftaran atau iuran rutin (6 bulan). Ikuti petunjuk pembayaran yang muncul, dan akunmu otomatis aktif! 💳✨",
+  },
+  {
+    question: "Bagaimana cara membuat postingan?",
     answer: "Caranya gini ya 📝 Masuk ke menu Sosial Media / Diskusi AGPAII, terus klik area \"Mulai diskusi...\". Dari situ kamu bisa nulis pesan, lampirin gambar, file PDF, atau tempel link YouTube. Kalau udah oke, tinggal klik kirim dan postingan kamu langsung tayang! 🚀",
-  },
-  {
-    question: "Bagaimana cara mengurus KTA?",
-    answer: "Buat ngurus KTA (Kartu Tanda Anggota), kamu bisa langsung buka menu KTA dari halaman utama 🪪. Di sana kamu bisa cek status KTA, bayar iuran, sampai lihat riwayat pembayaran. Oh iya, pastiin data profil kamu udah lengkap dulu ya sebelum ngajuin! 👍",
-  },
-  {
-    question: "Bagaimana cara mengikuti Tryout/CBT?",
-    answer: "Mau latihan soal? Langsung aja buka menu Tryout / CBT dari halaman utama 📋. Pilih tryout yang tersedia, klik \"Mulai Ujian\", dan kerjain soalnya. Kalau udah selesai, hasilnya bisa kamu cek di halaman Riwayat CBT. Pastiin koneksi internet kamu stabil ya biar lancar! 🌐",
-  },
-  {
-    question: "Bagaimana cara membaca buku digital?",
-    answer: "Kamu bisa buka menu Baca Buku dari halaman utama 📚. Tinggal jelajahi koleksi buku yang ada, pilih yang kamu suka, dan langsung baca! Kalau mau simpan biar gampang dibuka lagi nanti, tambahin aja ke Koleksi pribadi kamu. Praktis kan? 😄",
-  },
-  {
-    question: "Bagaimana cara mengikuti event?",
-    answer: "Buka aja menu Event dari halaman utama 🎉. Di sana kamu bisa lihat daftar acara yang lagi tersedia. Klik event yang menarik buat kamu, cek detailnya, dan langsung daftar! Jangan lupa cek jadwalnya dan lakukan presensi pas acaranya berlangsung ya~ ✨",
-  },
-  {
-    question: "Bagaimana cara belanja di E-Commerce?",
-    answer: "Belanja di AGPAII gampang banget! 🛒 Buka menu E-Commerce / Toko dari halaman utama, jelajahi produknya, masukin ke keranjang, dan tinggal bayar. Status pesanan kamu bisa dicek kapan aja di halaman Riwayat Transaksi. Happy shopping! 🎁",
-  },
-  {
-    question: "Bagaimana cara menggunakan Cloud / penyimpanan file?",
-    answer: "Fitur Cloud ini kayak penyimpanan online pribadi kamu ☁️. Buka menu Cloud dari halaman utama, terus kamu bisa upload, download, dan kelola file-file penting kamu di sana. Bisa diakses kapan aja dan dari mana aja — praktis banget! 💾",
-  },
-  {
-    question: "Bagaimana cara melihat arah kiblat dan kumpulan doa?",
-    answer: "Buat Arah Kiblat 🕌, buka menu Arah Kiblat dan izinin akses lokasi di HP kamu ya. Nanti otomatis nunjukin arah kiblatnya. Kalau mau baca doa, tinggal buka menu Doa dari halaman utama dan pilih kategori doa yang kamu butuhin. Semoga bermanfaat! 🤲",
-  },
-  {
-    question: "Bagaimana cara menghubungi Admin?",
-    answer: "Kalau kamu butuh bantuan langsung dari tim Admin AGPAII — entah soal masalah akun, pembayaran, atau kendala teknis lainnya — langsung aja hubungi kami lewat WhatsApp ya! Tim kami siap bantu kamu 💬",
   },
 ];
 
@@ -133,10 +105,10 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
       {
         id: "msg_intro",
         sender: "bot",
-        text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AI yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, langsung aja pilih pertanyaan di bawah ya! 👇",
+        text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AI yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, pilih pertanyaan di bawah ya! 😊\n\nJika punya pertanyaan lain atau butuh bantuan lebih lanjut, kamu bisa langsung menghubungi Admin lewat WhatsApp. 👇",
         options: [
           ...activeQuestions.map((q) => q.question),
-          "Aplikasi error / Butuh bantuan admin",
+          "Hubungi Admin AGPAII (WhatsApp)",
         ],
       },
     ]);
@@ -191,7 +163,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
           text: "Mau tanya yang lain? Silakan pilih lagi ya! 😊",
           options: [
             ...activeQuestions.map((q) => q.question),
-            "Hubungi Admin AGPAII",
+            "Hubungi Admin AGPAII (WhatsApp)",
           ],
         });
 
@@ -211,7 +183,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
             text: "Atau kalau mau tanya yang lain, pilih aja dari daftar ini ya! 😊",
             options: [
               ...activeQuestions.map((q) => q.question),
-              "Hubungi Admin AGPAII",
+              "Hubungi Admin AGPAII (WhatsApp)",
             ],
           },
         ]);
@@ -231,7 +203,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
             text: "Atau kalau mau tanya yang lain, pilih aja dari daftar ini ya! 😊",
             options: [
               ...activeQuestions.map((q) => q.question),
-              "Hubungi Admin AGPAII",
+              "Hubungi Admin AGPAII (WhatsApp)",
             ],
           },
         ]);
@@ -250,14 +222,14 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
 
   return (
     <div
-      className="min-h-screen flex flex-col w-full"
+      className={`${isPopup ? "h-full" : "min-h-screen"} flex flex-col w-full relative`}
       style={{ background: "linear-gradient(180deg, #F0F4F3 0%, #FAFBFC 100%)" }}
     >
       {isPopup ? (
         <div className="flex items-center gap-3 px-4 h-[4.21rem] bg-white border-b border-slate-200 sticky top-0 z-50">
           <button onClick={onClose} className="p-2 -ml-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors">
              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
              </svg>
           </button>
           <span className="font-semibold text-slate-800 text-[17px]">Asisten AI AGPAII</span>
@@ -266,7 +238,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
         <TopBar withBackButton>Asisten AI AGPAII</TopBar>
       )}
 
-      <div className={`flex-1 overflow-y-auto p-4 md:px-8 lg:px-12 space-y-3 pb-32 ${!isPopup ? 'pt-[5.5rem]' : ''}`}>
+      <div className={`flex-1 overflow-y-auto p-4 md:px-6 space-y-3 pb-24 ${!isPopup ? 'pt-[5.5rem]' : ''}`}>
         {messages.map((m) => {
           const isUser = m.sender === "user";
           return (
@@ -280,7 +252,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
               )}
 
               <div
-                className={`max-w-[85%] lg:max-w-md px-4 py-2.5 shadow-sm text-sm ${
+                className={`max-w-[85%] lg:max-w-[90%] px-4 py-2.5 shadow-sm text-sm ${
                   isUser
                     ? "bg-[#009788] text-white rounded-2xl rounded-br-sm"
                     : "bg-white text-slate-700 rounded-2xl rounded-tl-sm border border-slate-100"
@@ -300,15 +272,15 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
 
                   return (
                     <div className="mt-4 flex flex-col gap-2">
-                      {m.options!.map((opt, i) => (
+                      {visibleOptions.map((opt, i) => (
                         <button
                           key={i}
                           onClick={() => handleQuickReply(opt)}
-                          className={`text-left text-[13px] px-3 py-2 rounded-xl border font-medium transition-colors ${
+                          className={`text-left text-[12.5px] px-3 py-2 rounded-xl border font-medium transition-colors ${
                             opt.includes("Admin")
                               ? "bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
                               : "bg-teal-50 hover:bg-teal-100 text-[#009788] border-teal-200"
-                          } ${!isExpanded && i >= MOBILE_LIMIT ? "hidden md:block" : ""}`}
+                          }`}
                         >
                           {opt}
                         </button>
@@ -317,7 +289,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
                       {hasMore && (
                         <button
                           onClick={() => setExpandedOptions((prev) => ({ ...prev, [m.id]: !isExpanded }))}
-                          className="md:hidden text-center text-[12px] text-slate-400 hover:text-slate-600 font-medium py-1.5 transition-colors"
+                          className="text-center text-[12px] text-slate-400 hover:text-slate-600 font-medium py-1.5 transition-colors"
                         >
                           {isExpanded ? "▲ Sembunyikan" : `▼ Lihat semua (${m.options!.length - MOBILE_LIMIT} lainnya)`}
                         </button>
@@ -346,8 +318,8 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className={`fixed bottom-16 md:bottom-0 left-0 right-0 md:left-20 lg:left-64 z-[9999] bg-white/90 backdrop-blur-xl border-t border-slate-100 transition-all flex flex-col ${isPopup ? 'bottom-0 md:left-0 lg:left-0' : ''}`}>
-        <form onSubmit={handleFormSubmit} className="max-w-none w-full px-4 md:px-8 lg:px-12 py-3">
+      <div className={`${isPopup ? 'absolute bottom-0 left-0 right-0' : 'fixed bottom-16 md:bottom-0 left-0 right-0 md:left-20 lg:left-64'} z-[9999] bg-white/90 backdrop-blur-xl border-t border-slate-100 transition-all flex flex-col`}>
+        <form onSubmit={handleFormSubmit} className="max-w-none w-full px-4 md:px-6 py-3">
           <div className="flex items-center gap-3">
             <input
               type="text"
