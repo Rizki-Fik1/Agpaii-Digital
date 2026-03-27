@@ -735,27 +735,39 @@ export default function KelasDetailPage() {
     <div className="w-full bg-white md:bg-[#FAFBFC] min-h-screen pb-24 md:pb-12 md:pt-4">
       {/* MOBILE HEADER */}
       <div
-        className={clsx("md:hidden bg-gradient-to-r text-white p-4 pt-6 shadow-md rounded-b-2xl", headerGradient)}
+        className={clsx("md:hidden bg-gradient-to-br text-white p-5 pt-8 shadow-xl rounded-b-[2.5rem] relative overflow-hidden", headerGradient)}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Link href="/kelas" className="p-1 hover:bg-white/10 rounded-full transition">
-              <ChevronLeftIcon className="size-6 text-white" />
+        {/* Background decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl"></div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <Link href="/kelas" className="p-2 bg-white/20 backdrop-blur-md rounded-xl shadow-sm active:scale-95 transition">
+              <ChevronLeftIcon className="size-5 text-white" />
             </Link>
-            <div>
-              <h1 className="text-lg font-semibold leading-tight">{classInfo.name}</h1>
-              <p className="text-xs text-white/80">{classInfo.school_place}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold leading-tight truncate">{classInfo.name}</h1>
+              <p className="text-xs text-white/70 font-medium truncate mt-0.5">{classInfo.school_place}</p>
             </div>
           </div>
-        </div>
-        <div className="bg-white/20 rounded-xl p-3 border border-white/10 backdrop-blur-sm">
-          <p className="text-sm">
-            <span className="font-medium">Guru:</span>{" "}
-            {classInfo.teacher?.name || "-"}
-          </p>
-          <p className="text-xs text-white/80 mt-1">
-            {classInfo.total_students} siswa terdaftar
-          </p>
+          
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 rounded-lg p-2">
+                <UserGroupIcon className="size-5 text-white" />
+              </div>
+              <div>
+                <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider">Siswa</p>
+                <p className="text-sm font-bold">{classInfo.total_students} Orang</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-white/20"></div>
+            <div className="text-right">
+              <p className="text-[10px] text-white/60 font-bold uppercase tracking-wider">Guru</p>
+              <p className="text-sm font-bold truncate max-w-[120px]">{classInfo.teacher?.name?.split(',')[0] || "-"}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -765,32 +777,34 @@ export default function KelasDetailPage() {
           className="absolute inset-0 opacity-10" 
           style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg width=\\\"60\\\" height=\\\"60\\\" viewBox=\\\"0 0 60 60\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"%3E%3Cg fill=\\\"none\\\" fill-rule=\\\"evenodd\\\"%3E%3Cg fill=\\\"%23ffffff\\\" fill-opacity=\\\"1\\\"%3E%3Cpath d=\\\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2V6h4V4H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')" }}
         ></div>
-        <div className="relative z-10 max-w-6xl mx-auto flex items-center justify-between">
-          <div className="text-white">
-            <div className="flex items-center gap-3 mb-2">
+        <div className="relative z-10 max-w-6xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+          <div className="text-white flex-1">
+            <div className="flex items-center gap-3 mb-4">
                <Link href="/kelas" className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors border border-white/20 backdrop-blur-sm">
                   <ChevronLeftIcon className="size-5 text-white" />
                </Link>
-               <h1 className="text-3xl font-bold tracking-tight">{classInfo.name}</h1>
+               <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight">{classInfo.name}</h1>
             </div>
-            <p className="text-white/90 max-w-xl text-sm leading-relaxed pl-12">
+            <p className="text-white/90 max-w-xl text-lg sm:text-lg leading-relaxed md:pl-12 font-medium">
               {classInfo.school_place}
             </p>
           </div>
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20 flex items-center gap-4 shadow-xl">
-            <div className="bg-white/20 rounded-xl p-3">
-              <UserGroupIcon className="size-8 text-white" />
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 flex flex-wrap items-center gap-6 shadow-2xl">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 rounded-2xl p-4">
+                <UserGroupIcon className="size-8 text-white" />
+              </div>
+              <div>
+                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Total Siswa</p>
+                <p className="text-white font-black text-3xl">
+                  {classInfo.total_students} <span className="text-lg font-medium opacity-80">Orang</span>
+                </p>
+              </div>
             </div>
+            <div className="hidden sm:block w-px h-14 bg-white/30"></div>
             <div>
-              <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Total Siswa</p>
-              <p className="text-white font-black text-3xl">
-                {classInfo.total_students} <span className="text-lg font-medium opacity-80">Orang</span>
-              </p>
-            </div>
-            <div className="w-px h-12 bg-white/20 mx-2"></div>
-            <div>
-               <p className="text-white/80 text-xs font-semibold uppercase tracking-wider">Pengajar</p>
-               <p className="text-white font-bold text-lg mt-1">{classInfo.teacher?.name || "-"}</p>
+               <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Pengajar</p>
+               <p className="text-white font-bold text-xl mt-1">{classInfo.teacher?.name || "-"}</p>
             </div>
           </div>
         </div>
@@ -798,24 +812,26 @@ export default function KelasDetailPage() {
 
       {/* Main Content Area */}
       <div className="md:max-w-6xl md:mx-auto md:px-8 xl:px-12 md:-mt-14 relative z-20">
-         {/* Desktop Tabs */}
-         <div className="hidden md:flex bg-white rounded-2xl shadow-lg border border-slate-100 p-2 mb-6 gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={clsx(
-                  "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all",
-                  activeTab === tab.id 
-                    ? "bg-teal-50 text-teal-700" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-teal-600"
-                )}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-         </div>
+         {/* Tabs Nav */}
+          <div className="flex bg-white/80 backdrop-blur-xl md:bg-white/50 rounded-2xl shadow-sm md:shadow-xl border border-slate-200/50 p-1.5 mb-6 gap-1 md:gap-2 overflow-x-auto no-scrollbar z-40 sticky top-4 md:static">
+             {tabs.map((tab) => (
+               <button
+                 key={tab.id}
+                 onClick={() => setActiveTab(tab.id)}
+                 className={clsx(
+                   "flex-1 min-w-[110px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs md:text-sm font-bold transition-all duration-300",
+                   activeTab === tab.id 
+                     ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 scale-[1.02]" 
+                     : "text-slate-500 hover:bg-slate-50 hover:text-teal-600"
+                 )}
+               >
+                 <span className={clsx("transition-transform duration-300", activeTab === tab.id ? "scale-110" : "")}>
+                   {tab.icon}
+                 </span>
+                 <span className="whitespace-nowrap tracking-wide">{tab.label}</span>
+               </button>
+             ))}
+          </div>
 
       {/* Tab Content */}
       <div className="p-4 md:p-8 md:bg-white md:rounded-3xl md:shadow-[0_8px_30px_rgb(0,0,0,0.04)] md:border md:border-slate-100 min-h-[50vh]">
@@ -842,54 +858,58 @@ export default function KelasDetailPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            {materials.map((material) => (
-              <div
-                key={material.id}
-                onClick={() => setSelectedMaterial(material)}
-                className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={clsx(
-                      "p-3 rounded-xl",
-                      material.type === "pdf" ? "bg-red-100" : "bg-blue-100"
-                    )}
-                  >
-                    {material.type === "pdf" ? (
-                      <DocumentTextIcon className="size-6 text-red-600" />
-                    ) : (
-                      <PlayIcon className="size-6 text-blue-600" />
-                    )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+              {materials.map((material) => (
+                <div
+                  key={material.id}
+                  onClick={() => setSelectedMaterial(material)}
+                  className="group bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:border-teal-100 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={clsx(
+                        "p-4 rounded-2xl transition-transform group-hover:scale-110 duration-300",
+                        material.type === "pdf" ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600"
+                      )}
+                    >
+                      {material.type === "pdf" ? (
+                        <DocumentTextIcon className="size-8" />
+                      ) : (
+                        <PlayIcon className="size-8" />
+                      )}
+                    </div>
+                    <span
+                      className={clsx(
+                        "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                        material.type === "pdf"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
+                      )}
+                    >
+                      {material.type}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-700">
+                  
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-teal-600 transition-colors">
                       {material.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
                       {material.description}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <ClockIcon className="size-3" />
-                        {material.duration}
-                      </span>
-                      <span
-                        className={clsx(
-                          "px-2 py-0.5 rounded-full text-[10px] font-medium uppercase",
-                          material.type === "pdf"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-blue-100 text-blue-600"
-                        )}
-                      >
-                        {material.type}
-                      </span>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                      <ClockIcon className="size-4" />
+                      {material.duration}
+                    </div>
+                    <div className="text-teal-600 opacity-0 lg:group-hover:opacity-100 transition-opacity font-bold text-xs flex items-center gap-1">
+                      Buka Materi 
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         )}
@@ -916,76 +936,79 @@ export default function KelasDetailPage() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-            {exercises.map((exercise) => (
-              <div
-                key={exercise.id}
-                className={clsx(
-                  "bg-white border rounded-xl p-4 shadow-sm",
-                  exercise.is_completed
-                    ? "border-green-300 bg-green-50/50"
-                    : "border-slate-200"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={clsx(
-                      "p-3 rounded-xl",
-                      exercise.is_completed ? "bg-green-100" : "bg-orange-100"
-                    )}
-                  >
-                    {exercise.is_completed ? (
-                      <CheckCircleSolidIcon className="size-6 text-green-600" />
-                    ) : (
-                      <ClipboardDocumentListIcon className="size-6 text-orange-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+              {exercises.map((exercise) => (
+                <div
+                  key={exercise.id}
+                  className={clsx(
+                    "group bg-white border rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
+                    exercise.is_completed
+                      ? "border-green-200 bg-green-50/20"
+                      : "border-slate-200 hover:border-orange-200"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={clsx(
+                        "p-4 rounded-2xl transition-transform group-hover:scale-110",
+                        exercise.is_completed ? "bg-green-100 text-green-600" : "bg-orange-50 text-orange-600"
+                      )}
+                    >
+                      {exercise.is_completed ? (
+                        <CheckCircleSolidIcon className="size-8" />
+                      ) : (
+                        <ClipboardDocumentListIcon className="size-8" />
+                      )}
+                    </div>
+                    {exercise.is_completed && (
+                      <div className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider">
+                        Selesai
+                      </div>
                     )}
                   </div>
 
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-slate-700">
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-teal-600 transition-colors">
                       {exercise.title}
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
                       {exercise.description}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                      <span>{exercise.totalQuestions} soal</span>
-                      <span>•</span>
-                      <span>{exercise.duration} menit</span>
+                    <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mt-4 text-[11px] font-semibold text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <DocumentTextIcon className="size-4" />
+                        {exercise.totalQuestions} soal
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <ClockIcon className="size-4" />
+                        {exercise.duration} menit
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <div className="mt-2 text-[11px] font-medium text-slate-400 flex items-center gap-1.5">
+                      <CalendarDaysIcon className="size-4" />
                       Deadline: {formatDeadline(exercise.deadline)}
-                    </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  {exercise.is_completed ? (
-                    <>
-                      <span className="text-xs text-green-600 font-medium">
-                        ✓ Selesai dikerjakan
-                      </span>
-                      <span className="text-lg font-bold text-green-600">
-                        {exercise.result_score}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xs text-orange-600">
-                        Belum dikerjakan
-                      </span>
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    {exercise.is_completed ? (
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nilai Anda</span>
+                        <span className="text-2xl font-black text-green-600 leading-none mt-1">
+                          {exercise.result_score}
+                        </span>
+                      </div>
+                    ) : (
                       <button
                         onClick={() => handleStartQuiz(exercise)}
-                        className="px-4 py-2 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 transition"
+                        className="w-full py-3 bg-teal-600 text-white text-sm font-bold rounded-xl hover:bg-teal-700 shadow-md hover:shadow-lg transition-all active:scale-95"
                       >
-                        Kerjakan Sekarang
+                        Mulai Latihan
                       </button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </div>
           </div>
         )}
@@ -1007,7 +1030,7 @@ export default function KelasDetailPage() {
             </div>
 
             {/* Discussions List */}
-            <div className="space-y-5 md:grid md:grid-cols-2 md:gap-6 md:space-y-0 lg:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {discussionsLoading && (
                 <div className="col-span-full flex justify-center py-10">
                    <div className="w-8 h-8 border-4 border-slate-200 border-t-teal-600 rounded-full animate-spin"></div>
@@ -1158,23 +1181,24 @@ export default function KelasDetailPage() {
             </h2>
 
             {/* Summary Card */}
+            {/* Summary Card */}
             <div
               className={clsx(
-                "rounded-xl p-4 shadow-sm border",
+                "rounded-2xl p-6 shadow-md border transition-all duration-300",
                 attendancePercentage >= 80
-                  ? "bg-green-50 border-green-200"
+                  ? "bg-green-50 border-green-100"
                   : attendancePercentage >= 60
-                  ? "bg-yellow-50 border-yellow-200"
-                  : "bg-red-50 border-red-200"
+                  ? "bg-yellow-50 border-yellow-100"
+                  : "bg-red-50 border-red-100"
               )}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-slate-700">
-                  Total Kehadiran
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-bold text-slate-700 tracking-wide uppercase">
+                  Progress Kehadiran
                 </span>
                 <span
                   className={clsx(
-                    "text-2xl font-bold",
+                    "text-3xl font-black",
                     attendancePercentage >= 80
                       ? "text-green-600"
                       : attendancePercentage >= 60
@@ -1185,57 +1209,67 @@ export default function KelasDetailPage() {
                   {attendancePercentage}%
                 </span>
               </div>
-              <div className="w-full bg-white/50 rounded-full h-3">
+              <div className="w-full bg-slate-200/50 rounded-full h-3.5 mb-2">
                 <div
                   className={clsx(
-                    "h-3 rounded-full transition-all",
+                    "h-3.5 rounded-full transition-all duration-1000",
                     attendancePercentage >= 80
-                      ? "bg-green-500"
+                      ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]"
                       : attendancePercentage >= 60
-                      ? "bg-yellow-500"
-                      : "bg-red-500"
+                      ? "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]"
+                      : "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
                   )}
                   style={{ width: `${attendancePercentage}%` }}
                 />
               </div>
-              <div className="flex justify-between text-xs mt-2 text-slate-500">
-                <span>
-                  Hadir {attendanceStats.hadir} dari {attendanceStats.total}{" "}
-                  hari
+              <div className="flex justify-between text-[11px] font-bold mt-4 text-slate-400 tracking-wide uppercase">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  Hadir {attendanceStats.hadir} / {attendanceStats.total} Hari
                 </span>
-                <span>
-                  {attendanceStats.izin > 0 && `${attendanceStats.izin} izin`}
-                  {attendanceStats.sakit > 0 &&
-                    `, ${attendanceStats.sakit} sakit`}
+                <span className="flex gap-3">
+                  {attendanceStats.izin > 0 && <span className="text-blue-500">{attendanceStats.izin} Izin</span>}
+                  {attendanceStats.sakit > 0 && <span className="text-orange-500">{attendanceStats.sakit} Sakit</span>}
                 </span>
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-2">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-green-600">
-                  {attendanceStats.hadir}
-                </p>
-                <p className="text-[10px] text-green-700">Hadir</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                   <div className="p-2 bg-green-50 rounded-lg text-green-600 font-bold text-xs">Hdr</div>
+                   <CheckCircleIcon className="size-4 text-green-500" />
+                </div>
+                <p className="text-2xl font-black text-slate-800">{attendanceStats.hadir}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Hari</p>
               </div>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-red-600">
-                  {attendanceStats.tidakHadir}
-                </p>
-                <p className="text-[10px] text-red-700">Tidak</p>
+              
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                   <div className="p-2 bg-red-50 rounded-lg text-red-600 font-bold text-xs">Abs</div>
+                   <XCircleIcon className="size-4 text-red-500" />
+                </div>
+                <p className="text-2xl font-black text-slate-800">{attendanceStats.tidakHadir}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Alpa</p>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-blue-600">
-                  {attendanceStats.izin}
-                </p>
-                <p className="text-[10px] text-blue-700">Izin</p>
+
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                   <div className="p-2 bg-blue-50 rounded-lg text-blue-600 font-bold text-xs">Izn</div>
+                   <ClockIcon className="size-4 text-blue-500" />
+                </div>
+                <p className="text-2xl font-black text-slate-800">{attendanceStats.izin}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Izin</p>
               </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-orange-600">
-                  {attendanceStats.sakit}
-                </p>
-                <p className="text-[10px] text-orange-700">Sakit</p>
+
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                   <div className="p-2 bg-orange-50 rounded-lg text-orange-600 font-bold text-xs">Skt</div>
+                   <ExclamationTriangleIcon className="size-4 text-orange-500" />
+                </div>
+                <p className="text-2xl font-black text-slate-800">{attendanceStats.sakit}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Sakit</p>
               </div>
             </div>
 
@@ -1285,6 +1319,7 @@ export default function KelasDetailPage() {
         )}
       </div>
       </div>
+
 
       {/* Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] max-w-[480px] mx-auto bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgb(0,0,0,0.05)] rounded-t-2xl">
