@@ -1721,7 +1721,7 @@ export default function KelasGuruDetailPage() {
               </h3>
               <div className="flex items-center gap-2">
                 <Link
-                  href="/bank-soal"
+                  href={`/bank-soal?classId=${classId}`}
                   className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition"
                 >
                   <svg

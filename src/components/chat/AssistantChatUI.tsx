@@ -16,6 +16,15 @@ interface IMessage {
   whatsappLink?: boolean;
 }
 
+type FAQRole = "guru" | "siswa" | "mitra";
+
+interface IFAQItem {
+  question: string;
+  answer: string;
+  type?: FAQRole | string;
+  role?: FAQRole | string;
+}
+
 const QUESTIONS_GURU = [
   {
     question: "Bagaimana cara mendaftar akun?",
@@ -87,25 +96,124 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
   const roleId = Number(auth?.role_id ?? auth?.role?.id ?? auth?.role);
   const isStudent = roleId === STUDENT_ROLE_ID;
   const isMitra = roleId === MITRA_ROLE_ID;
+  const roleType: FAQRole = isStudent ? "siswa" : isMitra ? "mitra" : "guru";
 
-  const activeQuestions = isStudent ? QUESTIONS_SISWA : isMitra ? QUESTIONS_MITRA : QUESTIONS_GURU;
+  const [managedQuestions, setManagedQuestions] = useState<IFAQItem[]>([]);
+  const [faqLoadDone, setFaqLoadDone] = useState(false);
+
+  const fallbackByRole: Record<FAQRole, IFAQItem[]> = {
+    guru: QUESTIONS_GURU,
+    siswa: QUESTIONS_SISWA,
+    mitra: QUESTIONS_MITRA,
+  };
+
+  const activeQuestions =
+    managedQuestions.length > 0 ? managedQuestions : fallbackByRole[roleType];
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [inputText, setInputText] = useState("");
   const [expandedOptions, setExpandedOptions] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Guard untuk menunggu auth load
   const [initDone, setInitDone] = useState(false);
 
+  const normalizeFAQPayload = (raw: any, targetRole: FAQRole): IFAQItem[] => {
+    const source = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw?.data)
+      ? raw.data
+      : Array.isArray(raw?.items)
+      ? raw.items
+      : [];
+
+    return source
+      .map((item: any) => ({
+        question: String(item?.question ?? item?.title ?? "").trim(),
+        answer: String(item?.answer ?? item?.content ?? "").trim(),
+        type: String(item?.type ?? item?.role ?? "").toLowerCase(),
+      }))
+      .filter((item: IFAQItem) => item.question && item.answer)
+      .filter((item: IFAQItem) => {
+        if (!item.type) return true;
+        return item.type === targetRole;
+      });
+  };
+
   useEffect(() => {
-    if (authLoading || !auth || initDone) return;
+    if (authLoading || !auth) return;
+
+    let isCancelled = false;
+
+    const loadManagedFAQ = async () => {
+      try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("access_token")
+            : null;
+
+        const customEndpoint = process.env.NEXT_PUBLIC_ASSISTANT_FAQ_ENDPOINT;
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+        const endpointCandidates = [
+          customEndpoint
+            ? `${customEndpoint}${customEndpoint.includes("?") ? "&" : "?"}type=${roleType}`
+            : null,
+          baseUrl ? `${baseUrl}/assistant-faqs?type=${roleType}` : null,
+          baseUrl ? `${baseUrl}/assistant/faqs?type=${roleType}` : null,
+        ].filter(Boolean) as string[];
+
+        for (const url of endpointCandidates) {
+          try {
+            const res = await fetch(url, {
+              headers: token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                  }
+                : undefined,
+            });
+
+            if (!res.ok) continue;
+            const json = await res.json();
+            const normalized = normalizeFAQPayload(json, roleType);
+
+            if (normalized.length > 0) {
+              if (!isCancelled) {
+                setManagedQuestions(normalized);
+              }
+              break;
+            }
+          } catch {
+            // Silent fallback ke hardcoded agar UX tetap jalan.
+          }
+        }
+      } finally {
+        if (!isCancelled) {
+          setFaqLoadDone(true);
+        }
+      }
+    };
+
+    loadManagedFAQ();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [authLoading, auth, roleType]);
+
+  useEffect(() => {
+    setInitDone(false);
+    setMessages([]);
+    setExpandedOptions({});
+  }, [roleType]);
+
+  useEffect(() => {
+    if (authLoading || !auth || initDone || !faqLoadDone) return;
 
     setMessages([
       {
         id: "msg_intro",
         sender: "bot",
-        text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AI yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, pilih pertanyaan di bawah ya! 😊\n\nJika punya pertanyaan lain atau butuh bantuan lebih lanjut, kamu bisa langsung menghubungi Admin lewat WhatsApp. 👇",
+        text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AGPAII yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, pilih pertanyaan di bawah ya! 😊\n\nJika punya pertanyaan lain atau butuh bantuan lebih lanjut, kamu bisa langsung menghubungi Admin lewat WhatsApp. 👇",
         options: [
           ...activeQuestions.map((q) => q.question),
           "Hubungi Admin AGPAII (WhatsApp)",
@@ -113,7 +221,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
       },
     ]);
     setInitDone(true);
-  }, [authLoading, auth, activeQuestions, initDone]);
+  }, [authLoading, auth, activeQuestions, initDone, faqLoadDone]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -232,10 +340,10 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
              </svg>
           </button>
-          <span className="font-semibold text-slate-800 text-[17px]">Asisten AI AGPAII</span>
+          <span className="font-semibold text-slate-800 text-[17px]">Asisten AGPAII</span>
         </div>
       ) : (
-        <TopBar withBackButton>Asisten AI AGPAII</TopBar>
+        <TopBar withBackButton>Asisten AGPAII</TopBar>
       )}
 
       <div className={`flex-1 overflow-y-auto p-4 md:px-6 space-y-3 pb-24 ${!isPopup ? 'pt-[5.5rem]' : ''}`}>

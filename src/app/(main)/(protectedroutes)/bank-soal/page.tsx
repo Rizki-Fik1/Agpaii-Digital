@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ChevronLeftIcon,
   PlusIcon,
@@ -36,6 +37,12 @@ interface Exercise {
 }
 
 export default function BankSoalPage() {
+  const searchParams = useSearchParams();
+  const classIdFromQuery = searchParams.get("classId");
+  const backHref = classIdFromQuery
+    ? `/kelas-guru/${classIdFromQuery}`
+    : "/kelas-guru";
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
@@ -309,11 +316,11 @@ export default function BankSoalPage() {
   };
 
   return (
-    <div className="w-full max-w-[480px] mx-auto bg-slate-50 min-h-screen pb-20">
+    <div className="w-full max-w-4xl mx-auto bg-slate-50 min-h-screen pb-20 px-4 lg:px-2">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 pt-6 sticky top-0 z-10 shadow-lg">
         <div className="flex items-center gap-3 mb-4">
-          <Link href="/kelas-guru" className="p-1">
+          <Link href={backHref} className="p-1">
             <ChevronLeftIcon className="size-6" />
           </Link>
           <div>
