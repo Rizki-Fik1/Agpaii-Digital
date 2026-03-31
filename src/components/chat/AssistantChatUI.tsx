@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import TopBar from "@/components/nav/topbar";
-import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/utils/context/auth_context";
 import { STUDENT_ROLE_ID, MITRA_ROLE_ID } from "@/constants/student-data";
@@ -25,63 +24,6 @@ interface IFAQItem {
   role?: FAQRole | string;
 }
 
-const QUESTIONS_GURU = [
-  {
-    question: "Bagaimana cara mendaftar akun?",
-    answer: "Gampang banget kok! 😊 Tinggal balik ke halaman login, terus klik tombol \"Daftar Akun\". Kamu bisa daftar pakai Email atau NIK — tinggal ikutin aja form yang muncul, isi data diri, dan akun kamu langsung siap dipakai! ✅",
-  },
-  {
-    question: "Bagaimana cara membayar iuran?",
-    answer: "Untuk membayar iuran, silakan buka menu KTA Digital di halaman utama 🪪. Di situ pilih tombol Iuran atau klik banner iuran yang muncul. Kamu bisa pilih pembayaran iuran pendaftaran atau iuran rutin (6 bulan). Ikuti petunjuk pembayaran yang muncul, dan akunmu otomatis aktif! 💳✨",
-  },
-  {
-    question: "Bagaimana cara membuat postingan?",
-    answer: "Caranya gini ya 📝 Masuk ke menu Sosial Media / Diskusi AGPAII, terus klik area \"Mulai diskusi...\". Dari situ kamu bisa nulis pesan, lampirin gambar, file PDF, atau tempel link YouTube. Kalau udah oke, tinggal klik kirim dan postingan kamu langsung tayang! 🚀",
-  },
-];
-
-const QUESTIONS_SISWA = [
-  {
-    question: "Bagaimana cara bergabung ke kelas?",
-    answer: "Gampang banget! 😊 Buka menu Kelas, lalu klik tombol gabung dan masukkan kode kelas yang diberikan oleh gurumu. Kamu bakal langsung masuk ke kelas tersebut! 📚",
-  },
-  {
-    question: "Bagaimana cara melihat tugas dan materi?",
-    answer: "Setelah kamu masuk ke dalam Kelas, semua materi pelajaran dan tugas akan tampil di sana. Tinggal klik materinya buat baca atau tonton, dan klik tugasnya kalau mau ngerjain. Semangat belajarnya ya! 🚀",
-  },
-  {
-    question: "Bagaimana cara berdiskusi di forum?",
-    answer: "Di menu Forum, kamu bisa bikin postingan baru buat nanya-nanya, atau ikut ngobrol di postingan teman/guru kamu dengan ngasih komentar. Jangan malu bertanya ya! 💬",
-  },
-  {
-    question: "Bagaimana cara ubah foto profil?",
-    answer: "Langsung aja masuk ke menu Profil, terus klik tombol edit. Di situ kamu bisa ganti foto, ubah nama, atau lengkapi data diri kamu biar makin keren! ✨",
-  },
-  {
-    question: "Bagaimana cara menghubungi Admin?",
-    answer: "Kalau ada error atau kamu butuh bantuan admin, langsung aja chat tim kami lewat WhatsApp ya! 💬",
-  },
-];
-
-const QUESTIONS_MITRA = [
-  {
-    question: "Bagaimana cara melihat laporan dashboard?",
-    answer: "Halo Mitra! 👋 Semua statistik, laporan transaksi, dan grafik bisa Anda temukan langsung di menu Mitra Dashboard. Tampilannya otomatis diperbarui untuk memudahkan pemantauan.",
-  },
-  {
-    question: "Bagaimana cara mengubah profil Mitra?",
-    answer: "Silakan buka menu Profil Mitra. Di sana Anda bisa mengganti logo mitra, nama brand, serta mengupdate informasi kontak bisnis Anda. 🏢",
-  },
-  {
-    question: "Bagaimana cara mengelola layanan/transaksi?",
-    answer: "Seluruh kelola layanan dapat diakses melalui Dashboard Mitra. Pastikan Anda memeriksa tab masing-masing layanan untuk melihat riwayat dan detail transaksinya. 📊",
-  },
-  {
-    question: "Bagaimana cara menghubungi Admin?",
-    answer: "Jika butuh dukungan teknis atau bantuan khusus terkait akun Mitra, jangan ragu untuk menghubungi tim Admin AGPAII melalui WhatsApp! 🙏",
-  },
-];
-
 const ADMIN_WA_NUMBER = "628567854448";
 const ADMIN_LINK = `https://wa.me/${ADMIN_WA_NUMBER}?text=Halo%20Admin%20AGPAII%20Digital,%20saya%20butuh%20bantuan.`;
 
@@ -100,18 +42,11 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
 
   const [managedQuestions, setManagedQuestions] = useState<IFAQItem[]>([]);
   const [faqLoadDone, setFaqLoadDone] = useState(false);
+  const hasManagedFaq = managedQuestions.length > 0;
 
-  const fallbackByRole: Record<FAQRole, IFAQItem[]> = {
-    guru: QUESTIONS_GURU,
-    siswa: QUESTIONS_SISWA,
-    mitra: QUESTIONS_MITRA,
-  };
-
-  const activeQuestions =
-    managedQuestions.length > 0 ? managedQuestions : fallbackByRole[roleType];
+  const activeQuestions = managedQuestions;
 
   const [messages, setMessages] = useState<IMessage[]>([]);
-  const [inputText, setInputText] = useState("");
   const [expandedOptions, setExpandedOptions] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -135,7 +70,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
       .filter((item: IFAQItem) => item.question && item.answer)
       .filter((item: IFAQItem) => {
         if (!item.type) return true;
-        return item.type === targetRole;
+        return item.type === targetRole || item.type === "umum";
       });
   };
 
@@ -153,14 +88,18 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
 
         const customEndpoint = process.env.NEXT_PUBLIC_ASSISTANT_FAQ_ENDPOINT;
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const baseUrl2 = process.env.NEXT_PUBLIC_API_BASE_URL2;
+        const defaultAdminFaqEndpoint = "https://admin.agpaiidigital.org/api/assistant-faqs";
 
-        const endpointCandidates = [
+        const endpointCandidates = Array.from(new Set([
           customEndpoint
             ? `${customEndpoint}${customEndpoint.includes("?") ? "&" : "?"}type=${roleType}`
             : null,
           baseUrl ? `${baseUrl}/assistant-faqs?type=${roleType}` : null,
           baseUrl ? `${baseUrl}/assistant/faqs?type=${roleType}` : null,
-        ].filter(Boolean) as string[];
+          baseUrl2 ? `${baseUrl2}/api/assistant-faqs?type=${roleType}` : null,
+          `${defaultAdminFaqEndpoint}?type=${roleType}`,
+        ].filter(Boolean) as string[]));
 
         for (const url of endpointCandidates) {
           try {
@@ -213,7 +152,9 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
       {
         id: "msg_intro",
         sender: "bot",
-        text: "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AGPAII yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, pilih pertanyaan di bawah ya! 😊\n\nJika punya pertanyaan lain atau butuh bantuan lebih lanjut, kamu bisa langsung menghubungi Admin lewat WhatsApp. 👇",
+        text: hasManagedFaq
+          ? "Halo! Selamat datang di AGPAII Digital 👋\n\nAku Asisten AGPAII yang siap bantu kamu. Kalau ada yang bingung soal aplikasi ini, pilih pertanyaan di bawah ya! 😊\n\nJika punya pertanyaan lain atau butuh bantuan lebih lanjut, kamu bisa langsung menghubungi Admin lewat WhatsApp. 👇"
+          : "Halo! Selamat datang di AGPAII Digital 👋\n\nSaat ini daftar FAQ untuk akun kamu belum tersedia. Kamu tetap bisa tanya bebas, atau langsung hubungi Admin lewat WhatsApp ya. 👇",
         options: [
           ...activeQuestions.map((q) => q.question),
           "Hubungi Admin AGPAII (WhatsApp)",
@@ -221,7 +162,7 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
       },
     ]);
     setInitDone(true);
-  }, [authLoading, auth, activeQuestions, initDone, faqLoadDone]);
+  }, [authLoading, auth, activeQuestions, initDone, faqLoadDone, hasManagedFaq]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -240,7 +181,6 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
         text: textMsg,
       },
     ]);
-    setInputText("");
 
     const foundQA = activeQuestions.find(
       (qa) => qa.question.toLowerCase() === textMsg.toLowerCase()
@@ -317,11 +257,6 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
         ]);
       }
     }, 500);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSend(inputText);
   };
 
   const handleQuickReply = (question: string) => {
@@ -426,26 +361,6 @@ export default function AssistantChatUI({ onClose, isPopup = false }: Props) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className={`${isPopup ? 'absolute bottom-0 left-0 right-0' : 'fixed bottom-16 md:bottom-0 left-0 right-0 md:left-20 lg:left-64'} z-[9999] bg-white/90 backdrop-blur-xl border-t border-slate-100 transition-all flex flex-col`}>
-        <form onSubmit={handleFormSubmit} className="max-w-none w-full px-4 md:px-6 py-3">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Tulis pertanyaan..."
-              className="flex-1 px-5 py-3 bg-slate-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#009788]/30 focus:bg-white border border-transparent focus:border-[#009788]/20 placeholder-slate-400 text-sm transition-all shadow-inner"
-            />
-            <button
-              type="submit"
-              disabled={!inputText.trim()}
-              className="w-11 h-11 bg-[#009788] hover:bg-[#00867a] disabled:bg-slate-200 text-white disabled:text-slate-400 rounded-xl flex items-center justify-center transition-all shadow-sm hover:shadow-md disabled:shadow-none"
-            >
-              <PaperAirplaneIcon className="size-5" />
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

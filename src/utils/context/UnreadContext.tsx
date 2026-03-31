@@ -26,7 +26,7 @@ export function UnreadProvider({ children }: { children: React.ReactNode }) {
 	const [totalUnread, setTotalUnread] = useState<number>(0);
 
 	useEffect(() => {
-		if (!currentUserId) return;
+		if (!currentUserId || !db) return;
 
 		// Langganan conversation
 		const colRef = collection(db, "conversations");

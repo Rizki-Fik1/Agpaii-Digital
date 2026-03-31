@@ -2,8 +2,8 @@
 
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Analytics, getAnalytics, logEvent } from "firebase/analytics";
-import { app } from "../../../firebase";
+import { Analytics, getAnalytics, isSupported, logEvent } from "firebase/analytics";
+import { app, isFirebaseConfigured } from "../../../firebase";
 
 export const FirebaseContext = createContext<Analytics | null>(null);
 
@@ -16,14 +16,30 @@ export const FirebaseTrackingProvider = ({
 	const [tracking, setTracking] = useState<Analytics | null>(null);
 
 	useEffect(() => {
-		const analytics = getAnalytics(app);
-		setTracking(analytics);
+		let mounted = true;
+
+		if (!app || !isFirebaseConfigured) return;
+		const firebaseApp = app;
+
+		isSupported()
+			.then((supported) => {
+				if (!supported || !mounted) return;
+				const analytics = getAnalytics(firebaseApp);
+				setTracking(analytics);
+			})
+			.catch(() => {
+				// Ignore analytics initialization on unsupported environments.
+			});
+
+		return () => {
+			mounted = false;
+		};
 	}, []);
 
 	useEffect(() => {
 		if (!tracking || !pathname) return;
 
-		logEvent(getAnalytics(), "page_view", {
+		logEvent(tracking, "page_view", {
 			platform: "web",
 			page_location: window.location.href,
 			page_path: pathname,
